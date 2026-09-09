@@ -1,0 +1,20 @@
+archive_sha256=746c24ff5d6e2a88cb65397f6f55a024492b918a16dd73de7ef631797b1e2930
+method=fresh extraction, then python3 verify_gate_a.py
+observed_exit_status=0
+scope=local replay, not external Gate A approval
+
+signed_source_manifest=PASS
+A2_records_coverage_numeric_first_hit=PASS
+A3_report_and_order_witnesses=PASS
+p_ECPP_independent=PASS
+q_ECPP_independent=PASS
+q_twist_ECPP_independent=PASS
+q_N_minus_1_independent=PASS
+q_twist_N_minus_1_independent=PASS
+invalid_certificate_controls=PASS
+independent_curve_and_twist_orders=PASS
+basepoint_Python_reproduction=PASS
+basepoint_PARI_crosscheck=PASS
+SHAKE_OpenSSL_cross_call=PASS
+parameters_and_specification=PASS
+gate_A_local_replay=PASS; external_review_pending=True
