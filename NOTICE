@@ -1,0 +1,13 @@
+Copyright 2026 Martin Wolf and ED301 contributors.
+
+The Phase-B curve reference adapts the project's earlier affine ED301 curve
+reference. The signature reference adapts the current Ed301-EdDSA-v1
+transcript, not the retired Ed301-Sig-v1 construction. Modified source files
+identify their adaptation; source hashes are recorded in phase-b/SOURCES.md.
+
+The legacy Python oracles and v1 fixtures are unchanged copies of project
+work licensed under Apache-2.0 and retained solely as test controls.
+
+No ownership is claimed in mathematical facts, formulae or algorithms.
+References to RFC, NIST and Explicit-Formulas Database publications do not
+relicense or incorporate those publications into this project's license.
