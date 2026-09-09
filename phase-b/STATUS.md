@@ -1,7 +1,10 @@
-# Phase B: Ed301-EdDSA subset
+# Phase B: Ed301-EdDSA and X301 reference package
 
 Started 2026-09-09 after Martin's go-ahead following Claude's Gate-A approval.
-This is development work on Testing, not a Gate-B submission or release.
+The Ed301 subset was committed as `42c33bc9b892110720fcd7481e9d33ee6d1bed08`.
+Martin subsequently supplied the X301 revision-2 contract, explicitly including
+the inherited twist-order-secret exclusion. The complete reference package is
+prepared for Claude's Gate B. This is not Gate-B approval or a product release.
 
 ## Implemented and checked
 
@@ -33,8 +36,39 @@ This is development work on Testing, not a Gate-B submission or release.
   pruning extremes and the nonidentity proof, and frozen source hashes.
 - Exact regeneration reproduces the checked-in vector file byte for byte.
 
-Counts above describe the current Ed301 corpus, not full feature parity or a
-security audit. Test seeds, secrets and transcripts are public synthetic data.
+## X301 completion under revision 2
+
+- B1: strict peer decoding through the existing field decoder, unchanged
+  clamping on a secret copy, explicit import validation, rejection of k=N_t,
+  fixed 301-step ladder with Gate-A A24_minus, mandatory infinity/all-zero
+  errors and canonical output. KeyGen retries only the excluded secret.
+- B2: 7 key derivation/clamping cases, 4 DH pairs in both directions,
+  24 main-curve/twist evaluations, 33 malformed/all-zero inputs and all
+  64 raw aliases that clamp to N_t. The iteration recurrence has newly
+  computed checkpoints 1, 10, 100 and 1000; no v1 outputs are inherited.
+- B3: the separate Node X301 implementation uses a direct add/double pair
+  schedule, rather than the Python swap schedule. It agrees on every X301
+  vector and rejects the same malformed inputs before ladder entry. All
+  64 weak aliases are checked across clamp, import, Public, Shared and
+  KeyGen resampling. Both infinity and a forced affine zero are errors.
+- 13 new Python test methods verify the same behavior and independently
+  recompute all 24 positive u evaluations by affine chord/tangent arithmetic
+  on the Gate-A Weierstrass curve or specified z=2 twist. Public keys are
+  also checked against Edwards multiplication. Tests reconstruct the clamp
+  bounds, weak-alias count and twist annihilator with the v2 parameters.
+- Runtime tracing counts exactly 301 Python ladder rounds, including raw
+  mathematical scalars 0 and 1 with leading zeros. Test spies prove that
+  malformed peer inputs and excluded secrets cause no first ladder step.
+- Result APIs return complete bytes or raise: sentinels remain unchanged on
+  failure. There is no caller-supplied output buffer in the reference API;
+  provider-buffer atomicity is still a Phase-D test, not claimed here.
+- The old integration normalization expectations are explicitly classified
+  as historical in `HISTORICAL_X301_TESTS.md`. Their source is unchanged;
+  hybrid/provider/TLS test intentions are retained for Phase D.
+
+The complete Python suite has 29 test methods. These counts describe Phase-B
+references, not full feature parity or a security audit. All seeds, secrets
+and transcripts in the corpus are public synthetic data.
 
 ## Important acceptance distinctions
 
@@ -66,33 +100,40 @@ Python integers and Node BigInt are deliberate reference-only choices from
 the Phase-B assignment. The test oracle's small modular exponentiation fills
 a missing Node BigInt primitive; it is not a handwritten limb backend.
 SHAKE256, JSON parsing, hashes and test assertions use the runtimes' libraries.
+X301 uses hmac.compare_digest and Node crypto.timingSafeEqual for fixed-length
+secret/result comparisons. These existing primitives avoid homemade byte
+comparison routines but do not establish constant-time behavior for the
+surrounding Python/BigInt arithmetic or later Rust/provider binaries.
 Neither reference is constant-time or guarantees erasure of secret copies.
 This work establishes no Rust/provider/integration or performance result.
 
-## Still open before a complete Gate B
+## Remaining gates and deferred decisions
 
-1. Martin must bind the external X301-u policy: strict canonical decoding from
-   the github baseline versus masking/reduction from the integration baseline.
-   No default or compromise is chosen in this subset. Raw-TLS group coverage
-   is a separate unresolved integration decision; choosing the input policy
-   must not silently remove that surface.
-2. B1 X301 profile API, B2 DH/twist/all-zero/iteration and input-policy vectors,
-   and B3 independent X301 replay remain to be implemented on that contract.
-   The canonical-u mathematical ladder is not a completed X301 profile.
-3. Complete the combined Phase-B artifacts, then explicitly select a Review
-   snapshot and submit to Claude. Do not start Phase C before Gate B passes.
+1. Claude must perform Gate B on the selected immutable commit/archive:
+   independently recalculate vector samples and check negative coverage
+   against the profile and revision-2 contract. Local replay is not that
+   external approval. Do not start Phase C before Gate B passes.
+2. Phase C still covers Rust, field-reduction bounds, generated constants,
+   actual constant-time/codegen/taint/timing evidence and performance.
+3. OIDs, TLS codepoints, Raw-TLS versus Hybrid-only, provider/codec and
+   handshake work remain Phase D. The input policy no longer blocks Phase B.
 
 OID numbers and TLS codepoints are still unassigned and were not needed or
-invented for this byte-level reference subset. No main/Review/tag promotion is
-part of this intermediate implementation.
+invented for the byte-level references. Raw XDH values carry no profile tag;
+this package does not claim that v1 u bytes are universally rejected by v2.
+The later protocol/container identity must select the correct profile.
+No main promotion, tag change or product release is authorized by this package.
 
 ## Replay and evidence
 
-Run `python3 -B tools/check_phase_b_eddsa.py` from the repository root. It
-checks this subset's source manifest, the immutable Phase-A manifest and the
-signed search-package manifest, then runs Python tests, Node and deterministic
-regeneration. It makes no source writes and requires no network.
+Run `python3 -B tools/check_phase_b.py` from the repository root. Its eight
+steps check the full source manifest, the immutable Phase-A manifest and the
+signed search-package manifest, then run all Python tests, both Node checks
+and exact regeneration of both vector files. No network or source writes are
+required. This replaces the earlier Ed301-only runner in the development tree;
+that earlier replay remains available at its original immutable commit.
 
-`phase-b/EDDSA_SOURCE_MANIFEST.sha256` binds code, vectors, the frozen controls
-and documentation. `phase-b/SOURCES.md` binds the input artifacts. A passing
-runner is not Claude's approval and deliberately reports the X301 limitation.
+`phase-b/PHASE_B_SOURCE_MANIFEST.sha256` binds code, vectors, the unchanged
+legacy controls, contract copy and documentation. `phase-b/SOURCES.md` binds
+the input artifacts. `phase-b/GATE_B_HANDOFF.md` gives the review checklist.
+A passing runner explicitly reports that Claude's Gate B remains required.

@@ -35,8 +35,9 @@ hash-bound Gate-A package. No new parameter selection or search was performed.
 | `/home/martin/Dokumente/ED301/ed301/AGENTS.md` | `ec5a6226d9a42f96c96aaff871daef2f9edda948bfd7a71717e197b38af941dd` |
 
 The approved choices preserve the current PureEdDSA transcript and byte rules
-while changing the curve, internal identity and label to SigEd301-v2. OIDs,
-TLS codepoints and the external X301-u rule were not silently assigned.
+while changing the curve, internal identity and label to SigEd301-v2. OIDs
+and TLS codepoints are not assigned. The X301-u rule was initially left open;
+Martin's later explicit revision-2 decision is bound below.
 
 ## Reused v1 components and frozen controls
 
@@ -74,8 +75,8 @@ by the new Node oracle.
   the Ed448 domain shape. The new curve is a project-defined instance, not a
   named RFC algorithm.
 - [RFC 7748](https://www.rfc-editor.org/rfc/rfc7748.html), the mathematical
-  Montgomery ladder pattern. The external X301-u profile decision remains
-  open; this citation does not decide it.
+  Montgomery ladder pattern. The external X301-u profile deliberately departs
+  from its tolerant X25519/X448 decoder under Martin's decision below.
 - [FIPS 202](https://csrc.nist.gov/pubs/fips/202/final), SHAKE256 provided by
   Python hashlib and Node crypto, not a project hash implementation.
 - [Explicit-Formulas Database: generic extended twisted Edwards](https://www.hyperelliptic.org/EFD/g1p/auto-twisted-extended.html#addition-add-2008-hwcd),
@@ -84,3 +85,32 @@ by the new Node oracle.
 
 Standards and mathematical formulae were consulted online on 2026-09-09; no
 third-party executable package or cryptographic implementation was downloaded.
+
+## X301 contract and implementation inputs
+
+Martin explicitly approved strict u decoding and then retained the v1
+twist-order-secret exclusion in revision 2. The original decision file is
+copied byte-identically under `phase-b/inputs/`; its displayed date is
+2026-09-10. The local input file and historical source checkouts were not
+modified by the implementation work.
+
+| Artifact | SHA-256 |
+|---|---|
+| `/home/martin/Dokumente/ED301/X301-v2_EINGABEVERTRAG_2026-09-10.md`, revision 2 | `b33d3fe0bf6b5b026192695902902f4b7592d4271ca98161f47920b47c6a1c2c` |
+| `/home/martin/Dokumente/ED301/ed301_technischer_abschluss/referenz/x301.py` | `acf12998fa26f6d19d97ae356ddf9a973994b5b5166034a259c4aaf533aa7dfe` |
+| `/home/martin/Dokumente/ED301/ed301_technischer_abschluss/spezifikation/X301-v1.md` | `e70748b5fa7176ffde914d32183c1f6c0150e1aaf799be70633499fd387f549e` |
+| `/home/martin/Dokumente/ED301/ed301_technischer_abschluss/gegenpruefung/x301/x301.js` (read for existing oracle/API structure) | `babc850a8717bf95d8e9ea3118b580079551fabb367cbbadf90d17b6b487499c` |
+| `/home/martin/Dokumente/ED301/x301-integration/provider-tests/x301/provider_x301_contract.c` | `808a232945293521a76acc70662273d28a50e5f81b55c8cf71d83a3f6028906d` |
+
+The clean X301 integration checkout was at
+`569dc4ff10e0e5e19d106cbe490d2a5aaeac935e`. The normalization expectations
+are identified as historical in `phase-b/HISTORICAL_X301_TESTS.md`; provider
+and hybrid/TLS integration remain Phase D, with the decoder governed by the
+new contract. The existing strict X301 reference was the Python API template,
+not a source of v2 constants or expected outputs. The newly generated
+1000-call iteration chain uses the RFC-7748 recurrence with the v2 basepoint;
+no old iteration result is carried over.
+
+[RFC 8446 section 7.4.2](https://www.rfc-editor.org/rfc/rfc8446.html#section-7.4.2)
+was consulted for the unconditional TLS all-zero requirement. It is a model
+for the X301 contract, not a claim that X301 is a standardized TLS group.

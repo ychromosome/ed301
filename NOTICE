@@ -4,6 +4,9 @@ The Phase-B curve reference adapts the project's earlier affine ED301 curve
 reference. The signature reference adapts the current Ed301-EdDSA-v1
 transcript, not the retired Ed301-Sig-v1 construction. Modified source files
 identify their adaptation; source hashes are recorded in phase-b/SOURCES.md.
+The X301 reference adapts the strict X301-v1 API to the approved v2 parameters
+and Martin's revision-2 input contract. Its Node counterimplementation uses
+the same public contract with a separate add/double scheduling implementation.
 
 The legacy Python oracles and v1 fixtures are unchanged copies of project
 work licensed under Apache-2.0 and retained solely as test controls.

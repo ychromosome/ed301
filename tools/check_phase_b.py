@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-"""Read-only replay of the Ed301-EdDSA subset of Phase B; X301 is still open."""
+"""Read-only replay of the complete Phase-B references; Gate B remains external."""
 
 from pathlib import Path
 import subprocess
@@ -8,8 +8,8 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 STEPS = [
-    ("Ed301 source/vector hashes", ROOT,
-     ["sha256sum", "--check", "phase-b/EDDSA_SOURCE_MANIFEST.sha256"]),
+    ("Phase-B source/vector hashes", ROOT,
+     ["sha256sum", "--check", "phase-b/PHASE_B_SOURCE_MANIFEST.sha256"]),
     ("unchanged Gate-A package", ROOT / "provenance/phase-a/2026-09-09",
      ["sha256sum", "--check", "PHASE_A_MANIFEST.sha256"]),
     ("unchanged signed search package", ROOT / "provenance/v2-search",
@@ -18,8 +18,12 @@ STEPS = [
      [sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests", "-v"]),
     ("Node extended-coordinate counterimplementation", ROOT,
      ["node", "reference/node/check_vectors.mjs"]),
-    ("exact deterministic vector regeneration", ROOT,
+    ("Node X301 counterimplementation and rejection boundaries", ROOT,
+     ["node", "reference/node/check_x301_vectors.mjs"]),
+    ("exact deterministic Ed301 vector regeneration", ROOT,
      [sys.executable, "-B", "tools/generate_phase_b_vectors.py", "--check", "vectors/ed301-eddsa-v2.json"]),
+    ("exact deterministic X301 vector regeneration", ROOT,
+     [sys.executable, "-B", "tools/generate_x301_vectors.py", "--check", "vectors/x301-v2.json"]),
 ]
 
 
@@ -35,7 +39,7 @@ def main():
             print(f"FAIL: {name}: exit {result.returncode}", file=sys.stderr)
             return 1
         print(f"PASS: {name}", flush=True)
-    print("PASS: Ed301-EdDSA Phase-B subset. X301 unfinished; Gate B not granted.")
+    print("PASS: complete Phase-B reference replay. Claude's Gate B is still required; no Phase C or production approval.")
     return 0
 
 
