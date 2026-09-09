@@ -1,0 +1,31 @@
+# Benchmark requirement for each delivered stage
+
+Martin added this requirement during Phase C: every delivered stage must
+include a revision-bound comparison against the established curves and v1.
+
+Signature comparison: Ed25519, Ed448, Ed301-EdDSA-v1, Ed301-EdDSA-v2.
+DH comparison: X25519, X448, X301-v1, X301-v2.
+
+Martin subsequently clarified: benchmark what is available at each stage;
+do not pull Phase-D implementation work into Phase C for the benchmark.
+In particular, the X301-v2 Rust/integration measurements follow in Phase D.
+An unavailable lane is a recorded stage boundary, not permission to change
+the implementation order or invent a timing result.
+
+The requirement supplements point 8 of the assignment; it does not authorize
+different API layers to be combined into one ranking. Measure core, EVP/
+provider and later format/TLS paths separately, on the same machine with the
+same toolchain/profile where applicable. Report repetitions, dispersion,
+input sizes, setup/caching boundaries, source and binary hashes, and gaps.
+
+If an implementation/API lane does not exist yet, explicitly mark it as
+unavailable. Never substitute Python-reference timings for a compiled v2
+implementation or compare Rust-core calls against EVP calls as one ranking.
+Do not transfer old measurements to new sources or binaries. Numeric regression
+thresholds have not been assigned; report observed differences without inventing
+a 3-percent release gate or treating timing-leak tests as speed benchmarks.
+
+Common-signature comparisons use empty contexts where all four profiles have
+the same operation shape. Ed301-specific binary/255-byte contexts are measured
+separately. Cold key expansion/import and prepared-key operations must remain
+distinguishable. DH derivation is not an authenticated TLS handshake.

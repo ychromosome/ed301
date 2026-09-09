@@ -1,0 +1,600 @@
+{
+  "schema": "ed301-phase-c-evidence-v1",
+  "status": "review-candidate-not-approved",
+  "baselines": [
+    {
+      "id": "ed301-v1",
+      "path": "/home/martin/Dokumente/ED301/ed301-eddsa-github",
+      "commit": "5c688206a15f6ab88a50d53fe503665a302cec4d"
+    },
+    {
+      "id": "x301-v1",
+      "path": "/home/martin/Dokumente/ED301/x301-integration",
+      "commit": "569dc4ff10e0e5e19d106cbe490d2a5aaeac935e"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "available-benchmarks",
+      "original_directory": "/home/martin/Dokumente/ED301/ED301-v2_C1C2-benchmark_sklybrw7",
+      "receipt": {
+        "original_path": "/home/martin/Dokumente/ED301/ED301-v2_C1C2-benchmark_sklybrw7/SHA256SUMS",
+        "sha256": "2112b9d64abc30788b7ebe93a95a93fdb9df444aaa29a43c925391db080516ff",
+        "bytes": 54969
+      },
+      "source_manifest": "V2_SOURCE_SHA256SUMS",
+      "binaries": [
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_C1C2-benchmark_sklybrw7/ed301-v1-core/target/release/ed301-benchmark",
+          "sha256": "637090096aa75536f274ce509b58f543461f787ad6f8a0100c3ceacf73759e39",
+          "bytes": 653360
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_C1C2-benchmark_sklybrw7/ed301-v2-core/target/release/ed301-benchmark",
+          "sha256": "cdddffc53b6330dd1d1a86aca86a7b86690f5f70b2fded7aa01f652e2c9f11df",
+          "bytes": 653360
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_C1C2-benchmark_sklybrw7/openssl_signature_bench",
+          "sha256": "06b760143cb154407f2efbacb30ee2ba946ae1d56304f1b824e60a7630b6938a",
+          "bytes": 14160
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_C1C2-benchmark_sklybrw7/x301_bench",
+          "sha256": "a458e178b58b15804aef647e2bb80dc7eb426947788bf6d60d6b566aa2a94b0a",
+          "bytes": 23128
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_C1C2-benchmark_sklybrw7/modules/ed301_eddsa_v1.so",
+          "sha256": "32b63db14ef9bd6bca43358d97417064da0835a74d54dd551cd67bd031173001",
+          "bytes": 611144
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_C1C2-benchmark_sklybrw7/modules/x301.so",
+          "sha256": "fe9d58269041b0b6f8492f905ed2997cad3e33500576dee0063bba537940cf33",
+          "bytes": 566656
+        },
+        {
+          "original_path": "/usr/lib64/libcrypto.so.3.5.8",
+          "sha256": "61ab039d77e416daaac2c785867744a1885b1d94dc67e5f1c9bcf22ac9c29c8b",
+          "bytes": 5622888
+        }
+      ],
+      "source_file_count": 1628,
+      "source_overrides": [
+        {
+          "source_path": "phase-c/BENCHMARK_CONTRACT.md",
+          "sha256": "e6fdb50e6d62f698c85be16d44ce2b362835b3821927bda5b653fe3937253d29",
+          "available_at": "phase-c/archived-source-blobs/e6fdb50e6d62f698c85be16d44ce2b362835b3821927bda5b653fe3937253d29"
+        },
+        {
+          "source_path": "phase-c/tools/run_core_taint.py",
+          "sha256": "1334a46e9f9bf332760038347bf92cad8ec4c9a58d8606263701ca704339e386",
+          "available_at": "phase-c/archived-source-blobs/1334a46e9f9bf332760038347bf92cad8ec4c9a58d8606263701ca704339e386"
+        },
+        {
+          "source_path": "rust/secret-taint/src/main.rs",
+          "sha256": "ec667faf34007c9bbf9ba71903b46512408606266d9f24c904cd9fe113a594f6",
+          "available_at": "phase-c/archived-source-blobs/ec667faf34007c9bbf9ba71903b46512408606266d9f24c904cd9fe113a594f6"
+        }
+      ]
+    },
+    {
+      "id": "core-matrix",
+      "original_directory": "/home/martin/Dokumente/ED301/ED301-v2_core-matrix_fo_7z8pb",
+      "receipt": {
+        "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-matrix_fo_7z8pb/SHA256SUMS",
+        "sha256": "95c405be00664f91f2fc25584aeaca14f3e92b06930fd1c1fd80ec604c7fdeda",
+        "bytes": 120519
+      },
+      "source_manifest": "V2_SOURCE_SHA256SUMS",
+      "binaries": [
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-matrix_fo_7z8pb/v1/target/release/ed301-core-matrix",
+          "sha256": "eb2f9a044169a7d2ad8824ab846a857bd4313c565ef577e80af4caec72568049",
+          "bytes": 663240
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-matrix_fo_7z8pb/v2/target/release/ed301-core-matrix",
+          "sha256": "d45bcc2d75dec6cc07fb658f3bd06c8e66e56d1bf47fc44665c013baeee06c59",
+          "bytes": 659144
+        }
+      ],
+      "source_file_count": 1640,
+      "source_overrides": [
+        {
+          "source_path": "phase-c/BERICHT_C1_C2_2026-09-10.md",
+          "sha256": "8ba6df4d2633094d091aa1b8d233f8dc3aa57ed3b4282265efb0e48d6b3bdd05",
+          "available_at": "phase-c/archived-source-blobs/8ba6df4d2633094d091aa1b8d233f8dc3aa57ed3b4282265efb0e48d6b3bdd05"
+        }
+      ]
+    },
+    {
+      "id": "microbenchmarks",
+      "original_directory": "/home/martin/Dokumente/ED301/ED301-v2_microbench_il4cilr_",
+      "receipt": {
+        "original_path": "/home/martin/Dokumente/ED301/ED301-v2_microbench_il4cilr_/SHA256SUMS",
+        "sha256": "5ca2ff2ac462d06d3f05132f10cd94166c19ebd74d8a37a0b1209220bdf3f710",
+        "bytes": 46672
+      },
+      "source_manifest": "SOURCE_SHA256SUMS",
+      "binaries": [
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_microbench_il4cilr_/v1/target/release/ed301-microbench",
+          "sha256": "92d19bb9d0c639c7b8050cd34958ea00c75e76043759374bfbe1f1de34b9faa9",
+          "bytes": 531320
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_microbench_il4cilr_/v2/target/release/ed301-microbench",
+          "sha256": "26555de8372e5783e1f988a9ac45babd4a6129ac4891c1cacd59571b6ca0b193",
+          "bytes": 535552
+        }
+      ],
+      "source_file_count": 1621,
+      "source_overrides": []
+    },
+    {
+      "id": "resources",
+      "original_directory": "/home/martin/Dokumente/ED301/ED301-v2_resources_8s_1_ann",
+      "receipt": {
+        "original_path": "/home/martin/Dokumente/ED301/ED301-v2_resources_8s_1_ann/SHA256SUMS",
+        "sha256": "f18518b3d26a8bc7b3b35015bf0b7cf4fe6c4a793a68b6cb8f48fce2f7ca8afe",
+        "bytes": 97234
+      },
+      "source_manifest": "SOURCE_SHA256SUMS",
+      "binaries": [
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_resources_8s_1_ann/binaries/ed301-resources-v1",
+          "sha256": "553797bd80ec38d081a3e2ca2f6b991b82342e152174fceb2d8c0b7a9b2cd3aa",
+          "bytes": 631312
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_resources_8s_1_ann/binaries/ed301-resources-v2",
+          "sha256": "2d6a262a341ff0884f332d9c16aa4c1faefce4ef8740a397202673fa7bbb08ee",
+          "bytes": 631320
+        }
+      ],
+      "source_file_count": 1621,
+      "source_overrides": []
+    },
+    {
+      "id": "taint",
+      "original_directory": "/home/martin/Dokumente/ED301/ED301-v2_core-taint_aif6mcv7",
+      "receipt": {
+        "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-taint_aif6mcv7/SHA256SUMS",
+        "sha256": "92778789689a26b6805b2b49d3bdd088be44d21447186235877d6af9472cb9fe",
+        "bytes": 6861
+      },
+      "source_manifest": "SOURCE_SHA256SUMS",
+      "binaries": [
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-taint_aif6mcv7/target/release/ed301-eddsa-secret-taint",
+          "sha256": "c8e4ab25d8ad1af7fa19265e2203a2edd859940a46cc271d732d89d7830ccb4f",
+          "bytes": 5396896
+        }
+      ],
+      "source_file_count": 1619,
+      "source_overrides": []
+    },
+    {
+      "id": "codegen",
+      "original_directory": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01",
+      "receipt": {
+        "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/SHA256SUMS",
+        "sha256": "c0322ec6fc169cb4a7ae1511435ca6895eae6a879e392a479b98ef4bc3af8d9f",
+        "bytes": 624
+      },
+      "source_manifest": null,
+      "binaries": [
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_C1C2-benchmark_sklybrw7/ed301-v2-core/target/release/ed301-benchmark",
+          "sha256": "cdddffc53b6330dd1d1a86aca86a7b86690f5f70b2fded7aa01f652e2c9f11df",
+          "bytes": 653360
+        }
+      ],
+      "sources_from_artifact": "available-benchmarks",
+      "additional_files": [
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/affine_negate.asm",
+          "sha256": "97fbc03a1fb010d066ceb41d13bc8161a5d156f4208b51f94a796101ad4c4e2a",
+          "bytes": 6046
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/affine_select.asm",
+          "sha256": "3deabf1585aa499bf700c3afe2eff016d835c1e1767d8d18d025864181d62534",
+          "bytes": 4657
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/basepoint_select.asm",
+          "sha256": "5351a87cd412a672f1eed96d1d1d38935ea998f19cfc09ab40092714ee94dbff",
+          "bytes": 5785
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/basepoint_select.calls",
+          "sha256": "cda7f47ce028541f285092fffde5f50aab5d841713092028d42ea3f371aa490b",
+          "bytes": 634
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/call-graph-negative-control.asm",
+          "sha256": "fccb2be004fea9404fca8933e45fc8da74692fcd47f1a777e3c756b2168a7c99",
+          "bytes": 5835
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/call-target-suffix-negative-control.asm",
+          "sha256": "6d20b8ac2ba705ad529505f1acf64da83fc55c43239cf76e67cffedb8843e11f",
+          "bytes": 96
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/call_graph_negative_control.calls",
+          "sha256": "65d7def09a68315a3ea677ee97351e8f717dd7ec6a73bc904dec7f558322a9e8",
+          "bytes": 660
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/core.nm",
+          "sha256": "369cc53b8d9871e8321697b4d7b0a8d1a63b2b4cd88a913dacd17943819d336b",
+          "bytes": 80691
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/core.nm-by-address",
+          "sha256": "56ff302b14360f975afa1b946cd3554e24e0d944fa55ec4a56c5611700f3bfaa",
+          "bytes": 80691
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/core.objdump",
+          "sha256": "8a4f1268bc71e3a3edbf999d066471ddcff677729e3ceb556c37bd245cf244cf",
+          "bytes": 4352081
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/core.relocations",
+          "sha256": "e1f847325202e7cbc37ad2d550eaddf6f9a74f75c7a4f2460a19277d9d8bc77b",
+          "bytes": 59733
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/elf-header.txt",
+          "sha256": "08424aacf3d2af1f95329ae83bc8075aa4a2529f7d1e2354b0a84fa9537db755",
+          "bytes": 980
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/elf-sections.txt",
+          "sha256": "ccd1d3f7d8b7b86ccc32281d04e6124fe26149dd310f38abc6ced1f202eecf70",
+          "bytes": 5203
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/field_invert.asm",
+          "sha256": "1b78595b156df656124d1d09cd06894767cd651ff873b535a74f74bc0cab052f",
+          "bytes": 14874
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/field_invert.branches",
+          "sha256": "7fc2e495e6caa1982a52cd6621e1f680daa6ea50b5b7630bdbcababe6a3d66e8",
+          "bytes": 32
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/field_invert.calls",
+          "sha256": "666e4937214cb406ffcd156e42148bbb7f8d19404f4c8eade5b1ba4e6e41e1d1",
+          "bytes": 370
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/in-body-trap-negative-control.asm",
+          "sha256": "ece46bb49296e6bc67c829c41245b3c7ff165bf89f4e6592396cde1382b4c3f7",
+          "bytes": 39
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/missing-local-helper-negative-control.asm",
+          "sha256": "c64fc53db6c1ff81783de595b22daf9a8479a3e7f13062f03a94344f9eb7f45a",
+          "bytes": 90
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/montgomery_mul.asm",
+          "sha256": "a9ee33f4fb4f4bb860f612c7f4566e67a33af04ac4333db393a517002b2c44ab",
+          "bytes": 5615
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/montgomery_mul.branches",
+          "sha256": "5e0f6881ca6f200455b713e1f9bd9502141a4e6488c39add93a1cd5fe4995c50",
+          "bytes": 18
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/montgomery_mul.calls",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/negative-control-detected.txt",
+          "sha256": "8ea290c94dd5f4b93314911f031daf22c10f0e222ccc0fe6a1b88304a31f78b2",
+          "bytes": 2769
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/negative-control.asm",
+          "sha256": "9fdd46610939492a10db0c4a26ee1a0aa4f76f3a6863227415cd0f86f26f578d",
+          "bytes": 23764
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/objdump-version.txt",
+          "sha256": "e98d7a9000a00d3e9d9e22df2383c798b7476a51f2bf9766173b4e41234749b2",
+          "bytes": 279
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/point_add.asm",
+          "sha256": "eefeea437fd428c227d264f4d5bf5fbe2a85f30b4da3aa16b1a5003973b22e3d",
+          "bytes": 101033
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/point_add_affine.asm",
+          "sha256": "b836633cc2eb9cba6b0dd336c5ded3e591c55905871ecf2afed4dbe86919b825",
+          "bytes": 88450
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/point_double.asm",
+          "sha256": "e93054447c2bcc01597d5ebcf747d2ef42a45fadeb4896fee7dfd3d91b5f0575",
+          "bytes": 85351
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/point_is_valid.asm",
+          "sha256": "2d6d636e5d97bfabb7466e4b12e405b9b2c2db5152af69c45670797a804cef76",
+          "bytes": 102008
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/relative-got-targets.txt",
+          "sha256": "0ca32753ba0181095c1521c6f68e61361eaae9921e3e7a788d74159b6ebedb68",
+          "bytes": 30747
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/rust-symbol-canonicalization.txt",
+          "sha256": "4785ffceb60aab38d36ca5217c6e3d8188f7de76a102b0137e66ed1bf735c0e0",
+          "bytes": 214
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/safegcd_lincomb.asm",
+          "sha256": "6c278d62dbacd6b6cbdbddcd1f238201104c0f3adc13e2fd7c4b2aea154fb3f6",
+          "bytes": 5973
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/safegcd_shift.asm",
+          "sha256": "7601a2e3551f94d6c5ab85e138a712526c007262b521dc536f6f9bded0391d43",
+          "bytes": 3161
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/safegcd_shift.branches",
+          "sha256": "bc4e1828b7dfb92ca7d0ac2b5e1695e2fdea9977a86c9d9f6bbefe7bdb0880c1",
+          "bytes": 56
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/safegcd_shift.calls",
+          "sha256": "0880b5285f24f678587336c56f46843dfa6eea66fcdbef98410e087d9d8f228e",
+          "bytes": 156
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/safegcd_shift_mod.asm",
+          "sha256": "a4c9fb25c5442ae48d13aaa5a976912bc12d04633954f72204a125710004c6e8",
+          "bytes": 6705
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/safegcd_shift_mod.branches",
+          "sha256": "1838d7a54270fa18a804de618cb79a82cea8f1121a64b5ddfd9464da6a6f8182",
+          "bytes": 73
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/safegcd_shift_mod.calls",
+          "sha256": "6cb0cb84896f7fedfc94cb30448f792b08ae9ee457f062a63ba238ea10323f09",
+          "bytes": 128
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/scalar_mul_base.asm",
+          "sha256": "097da1f463ba0478af2778d2c61a7b91217fa06989663a3d9f1a986eb7f0ab17",
+          "bytes": 5543
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/scalar_mul_base.branches",
+          "sha256": "923fabe016c48008f8eef40dc272c1f6cddee6c89481d5ac9c5b9f159d94c3f8",
+          "bytes": 111
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/scalar_mul_base.calls",
+          "sha256": "0915ac1b993231b63ce31c58a49449b2e934cf87a4a1647f830218fa1a877490",
+          "bytes": 384
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/scalar_reduce.asm",
+          "sha256": "f6482b002a7f64c3f710aa815de4f288c82056b29a9a0f67603f3f79653528d9",
+          "bytes": 7876
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/scalar_reduce.calls",
+          "sha256": "0b3d021ae28f0d9c2dbc1735b8e6ec295f4444233b8921fbcc4a4b07119fa3b7",
+          "bytes": 605
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/scalar_retrieve.asm",
+          "sha256": "c6c1ca5fd045160da9fb123a6ad3c515706d011f2c1e2ea9bdc53207b113911c",
+          "bytes": 4963
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/scalar_uint_from_le38.asm",
+          "sha256": "0fe19087d6f906e075ecb3d83de97d05220ccbfebf4bb10613448ff2ce244341",
+          "bytes": 3219
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/scalar_zeroize.asm",
+          "sha256": "9f93177eef83b70cb1450fc81f1df060faba9d5e2e7597afd277f7334b6996c8",
+          "bytes": 5102
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/summary.txt",
+          "sha256": "c0799f976b4b3acb25584cd2d8d1414f932ec8359a9cfb9a537db178206c1639",
+          "bytes": 2681
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/terminal-padding-after-call.asm",
+          "sha256": "a7115af6645d2cbd1a047ba28ef92b25251c7cd392bc4fd499ce4b20ba249e84",
+          "bytes": 86
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01/terminal-padding-after-ret.asm",
+          "sha256": "e520c3c1bb848b7acc5f6bc3bef8e4b6fa14e9a09915102380f73bee7fe033ca",
+          "bytes": 55
+        }
+      ]
+    },
+    {
+      "id": "timing-first",
+      "original_directory": "/home/martin/Dokumente/ED301/ED301-v2_core-timing_0y75y2en",
+      "receipt": {
+        "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-timing_0y75y2en/SHA256SUMS",
+        "sha256": "1f1ee0ffcb9a192e569f12becc0aecf97143b9dae76c2c1f06aeca0d6fd388dc",
+        "bytes": 4159
+      },
+      "source_manifest": "SOURCE_SHA256SUMS",
+      "binaries": [
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-timing_0y75y2en/core_timing",
+          "sha256": "d7177f49ad2d8cd5d08b491c792db0fb895860b029d07e99897cffe4313b3279",
+          "bytes": 22520
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-timing_0y75y2en/libed301_core_timing_adapter.so",
+          "sha256": "0ddd554d4914722d0e124a4b71ffa728a319e42c4a6d8b94cd3f1e91c6fe0f3f",
+          "bytes": 511472
+        }
+      ],
+      "source_file_count": 1626,
+      "source_overrides": [
+        {
+          "source_path": "phase-c/timing/src/lib.rs",
+          "sha256": "2b8f019c0204401a0d1e2a9b6da7d2dda1d5d6d8f19b4b29c51599c74c04ae87",
+          "available_at": "phase-c/archived-source-blobs/2b8f019c0204401a0d1e2a9b6da7d2dda1d5d6d8f19b4b29c51599c74c04ae87"
+        },
+        {
+          "source_path": "rust/secret-taint/src/main.rs",
+          "sha256": "ec667faf34007c9bbf9ba71903b46512408606266d9f24c904cd9fe113a594f6",
+          "available_at": "phase-c/archived-source-blobs/ec667faf34007c9bbf9ba71903b46512408606266d9f24c904cd9fe113a594f6"
+        }
+      ]
+    },
+    {
+      "id": "timing-current",
+      "original_directory": "/home/martin/Dokumente/ED301/ED301-v2_core-timing_t_imai6j",
+      "receipt": {
+        "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-timing_t_imai6j/SHA256SUMS",
+        "sha256": "1aaf6c74628de4f945377052a45e4f6374c06a2f31cf89e04c82da71871f0597",
+        "bytes": 4159
+      },
+      "source_manifest": "SOURCE_SHA256SUMS",
+      "binaries": [
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-timing_t_imai6j/core_timing",
+          "sha256": "e0f4d0665daf6061d6c021fddc9d5944f499439752b99d1fc884c817bee74798",
+          "bytes": 22520
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-timing_t_imai6j/libed301_core_timing_adapter.so",
+          "sha256": "0ddd554d4914722d0e124a4b71ffa728a319e42c4a6d8b94cd3f1e91c6fe0f3f",
+          "bytes": 511472
+        }
+      ],
+      "source_file_count": 1626,
+      "source_overrides": []
+    },
+    {
+      "id": "correctness",
+      "original_directory": "/home/martin/Dokumente/ED301/ED301-v2_core-check_c8tnk9tg",
+      "receipt": {
+        "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-check_c8tnk9tg/SHA256SUMS",
+        "sha256": "8f48d0f4c505e29b3a555ed9d38d7f615efb2bb2f0245c3fe7ccedb25d6666fe",
+        "bytes": 6262
+      },
+      "source_manifest": "SOURCE_SHA256SUMS",
+      "binaries": [
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-check_c8tnk9tg/target/release/deps/ed301_eddsa-425a6e1e37011e53",
+          "sha256": "2222be4cffda376539fe432b087e9b5e361a356f718572a780017aac8b13f622",
+          "bytes": 1734976
+        },
+        {
+          "original_path": "/home/martin/Dokumente/ED301/ED301-v2_core-check_c8tnk9tg/target/release/deps/ed301_eddsa-60c6bda66a88e78b",
+          "sha256": "51d3598ea6cf15675bbc954b13d5a4dc07bf362c829bdc29f36ab4d2bf15678d",
+          "bytes": 1734784
+        }
+      ],
+      "source_file_count": 1619,
+      "source_overrides": []
+    }
+  ],
+  "standards": {
+    "directory": "/home/martin/Dokumente/ED301/ED301-v2_GATE_C_STANDARDS_2026-09-10",
+    "receipt": {
+      "original_path": "/home/martin/Dokumente/ED301/ED301-v2_GATE_C_STANDARDS_2026-09-10/SHA256SUMS",
+      "sha256": "6ddc5ee36b7c34d8acf114eac8565bc9fcfd44d66e9d106397b79fd8f59ed227",
+      "bytes": 1447
+    }
+  },
+  "legacy_curve": {
+    "directory": "/home/martin/Dokumente/ED301/ed301_technischer_abschluss",
+    "receipt": {
+      "original_path": "/home/martin/Dokumente/ED301/ed301_technischer_abschluss/SHA256SUMS",
+      "sha256": "7b51bcaee25ddcceae44348e7a384335b5f486c4f71c7228816fbc7ed855729e",
+      "bytes": 51016
+    },
+    "parents_manifest": {
+      "original_path": "/home/martin/Dokumente/ED301/ed301_technischer_abschluss/SOURCE_SHA256SUMS",
+      "sha256": "0ce2c2b05a44b93c93d3e6a91f300585207b26ae82ec8263cc3a24c5d5aedd04",
+      "bytes": 354
+    }
+  },
+  "legacy_parents": [
+    {
+      "original_path": "/home/martin/Dokumente/ED301/ED301_Whitepaper_Retrocausal_Compatibility_Edition_v1_1.pdf",
+      "sha256": "bbb1dceb92210b042d62ad0b1cc1371b199dcb3272b9a4bf7066e31cad3c20b5",
+      "bytes": 162991
+    },
+    {
+      "original_path": "/home/martin/Dokumente/ED301/EMPFEHLUNGEN_ED301_WHITEPAPER_MATHEMATIK.md",
+      "sha256": "dbfcd3d3b0f0b16c3d1e3b674098770e157a205a1a6ed81e5ddb16b40a922d25",
+      "bytes": 27917
+    },
+    {
+      "original_path": "/home/martin/Dokumente/ED301/BRIEFING_CODEX_ED301_KURVE_UND_SIGNATUR.md",
+      "sha256": "48289acd2044c3743e5f80899018466c269b19217ee28aea09973502d36cef83",
+      "bytes": 38913
+    }
+  ],
+  "approvals": [
+    {
+      "original_path": "/home/martin/Projekte/Claude/OpenSSL-Fork/review/ed301-v2-curve-search-2026-09-09/GATE_A_FREIGABE_2026-09-09.md",
+      "sha256": "7c8857b938edf27e41d831e7da90dc21637b3142246a9d3dfcc05cca30672786",
+      "bytes": 6238
+    },
+    {
+      "original_path": "/home/martin/Projekte/Claude/OpenSSL-Fork/review/ed301-v2-curve-search-2026-09-09/GATE_B_FREIGABE_2026-09-10.md",
+      "sha256": "74bc58fa88beb6f905c4c2cd0fc480a3225cf84d0b977353c5faaf65a6e328a0",
+      "bytes": 6179
+    },
+    {
+      "original_path": "/home/martin/Projekte/Claude/OpenSSL-Fork/review/ed301-v2-curve-search-2026-09-09/gate_b_independent_check.py",
+      "sha256": "ec1bcdcaf6002d8d0afa65f50e5707fb518c8c6271a57a6aa31395bbfc81c314",
+      "bytes": 8486
+    }
+  ],
+  "context_inputs": [
+    {
+      "original_path": "/home/martin/Dokumente/ED301/AUFTRAG_EMMY_ED301-v2_IMPLEMENTIERUNG_2026-09-09.md",
+      "sha256": "9c42115fbbbf93b55963ff9bc84fc3c9cd5b0dfc5c3576c990a39061a6b785ee",
+      "bytes": 7678
+    },
+    {
+      "original_path": "/home/martin/Dokumente/ED301/VORSCHLAG_PUNKTE_5_6_7_ED301-v2_2026-09-09.md",
+      "sha256": "0683870d634911c2bb2435a9a21138540a9c786b7920219d028a739535e019d8",
+      "bytes": 11462
+    },
+    {
+      "original_path": "/home/martin/Dokumente/ED301/NEUE_KURVE_VORABFRAGEN_2026-09-09.md",
+      "sha256": "41814c58f19ff25bb5c0b8e8b8c4ddaded64366a546601896f7bed001492fa8b",
+      "bytes": 52129
+    },
+    {
+      "original_path": "/home/martin/Dokumente/ED301/X301-v2_EINGABEVERTRAG_2026-09-10.md",
+      "sha256": "b33d3fe0bf6b5b026192695902902f4b7592d4271ca98161f47920b47c6a1c2c",
+      "bytes": 5153
+    }
+  ]
+}

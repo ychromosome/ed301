@@ -1,0 +1,23 @@
+[package]
+name = "ed301-core-timing-adapter"
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+ed301-eddsa = { path = "../../rust/crates/ed301-eddsa" }
+zeroize = "1.9.0"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+panic = "unwind"
+overflow-checks = true
+
+[patch.crates-io]
+crypto-bigint = { path = "../../rust/vendor/crypto-bigint" }

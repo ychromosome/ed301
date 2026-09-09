@@ -1,0 +1,243 @@
+# Phase C: erster Rust-Kernstand und verfügbare Benchmarks
+
+Stand: 10. September 2026. C1/C2-Zwischenstand, keine Gate-C- oder Produktionsfreigabe.
+
+## Implementierung und Prüfstand
+
+Die Feldarithmetik verwendet den bestätigten Modulus p = 2^301 − 2^89 + 907,
+5×64-Bit-Limbs und einen öffentlichen Small-Multiplikator im Bereich 0 ≤ m < 2^36.
+Die Schranken, der negative Koeffizient d = −301 und die erzeugten Feld-/Skalar-/
+Basispunktkonstanten sind auf das freigegebene Gate-A/B-Paket zurückgeführt.
+Der Rust-Kern verwendet Ed301-EdDSA-v2 und SigEd301-v2; er lädt keine Parameterdatei
+zur Laufzeit. Die freigegebenen Phase-A/B-Dateien bleiben unverändert.
+
+Bisher geprüft: 54/54 Release-Tests, 54/54 Tests mit sign-self-verify,
+Clippy ohne Warnungen, deterministische Konstantenregeneration und die exakten
+Faltungsschranken. Alle Gate-B-Signiervektoren samt Zwischenwerten und Negativfällen
+werden im Rust-Kern geprüft. Die v1-Tests sind nach ihren übertragbaren
+Verhaltensanforderungen angepasst, nicht nach zufälligen alten Feldwerten.
+
+Der erweiterte Taint-Lauf besteht Schlüsselableitung und Signieren für alle neun
+Gate-B-Signierfälle, jeweils mit definierten und geheim markierten Testdaten:
+36/36 Valgrind-Läufe, einschließlich binärem und 255-Byte-Context.
+Beleg: /home/martin/Dokumente/ED301/ED301-v2_core-taint_aif6mcv7.
+Binary-SHA-256: c8e4ab25d8ad1af7fa19265e2203a2edd859940a46cc271d732d89d7830ccb4f.
+Der Harness prüft die tatsächlich gesetzten Validity-Bits jedes geheimen Inputs;
+fehlende Taint-Markierung kann somit nicht stillschweigend als Pass gelten.
+Das ist ein begrenzter
+Werkzeugnachweis, kein allgemeiner Beweis gegen alle Seitenkanäle. Der abschließende
+Codegen-Test des gemessenen x86-64-Kernbinaries und der unten abgegrenzte
+statistische Timing-Test sind inzwischen ebenfalls bestanden. Sie gelten nicht
+automatisch für spätere Provider, andere Linkartefakte oder andere Plattformen.
+
+## Codegen- und Timing-Belege
+
+Das gemessene v2-Kernbinary besteht die aus v1 übernommenen Instruktions-, festen
+Schleifen- und Aufrufkettenregeln; die negativen Kontrollen des Prüfers schlagen
+wie verlangt an. Zusätzliche Borrow-/Select-Instruktionen durch d = −301 sind
+sichtbar, ohne geheimnisabhängige Sprünge in den geprüften geradlinigen Symbolen.
+Beleg: /home/martin/Dokumente/ED301/ED301-v2_core-codegen_2026-09-10_01.
+SHA-256 der dortigen summary.txt:
+c0799f976b4b3acb25584cd2d8d1414f932ec8359a9cfb9a537db178206c1639.
+
+Für dudect wurde ein getrennter, minimaler Test-FFI-Adapter um denselben Rust-Kern
+gebaut; er ist kein Provider und kein Teil der Produkt-API. Sein unvermeidbarer
+Pointer-FFI liegt außerhalb des no_std-Kerns mit forbid(unsafe_code).
+Je Test: 200000 angeforderte Messungen plus Aufwärmbatch, nach dudects festen
+Verwerfungen 198900 verwendete rohe Messungen, zufällig auf feste/zufällige
+synthetische Seeds verteilt. 64-Byte-Nachricht, leerer Context, CPU 2.
+Signierschlüssel werden vor der Messung expandiert; die zweite Kernklasse misst
+Seedobjekt plus Expansion. Der Schwellenwert |t| > 10 folgt dem vorhandenen
+v1-dudect-Profil. Ein einmal erkannter Leakage-Zustand bleibt über alle Batches
+gespeichert; ein später kleineres t kann ihn nicht zurücknehmen.
+
+| Timing-Test | Größter beobachteter Betrag t | Abschließender Betrag t | Rohmessungen Klasse 0 / 1 | Ergebnis |
+|---|---:|---:|---:|---|
+| Absichtlich variable Positivkontrolle | 5425,896 | 5419,534 | 99682 / 99218 | erkannt |
+| Vorbereitetes Signieren | 2,639 | 1,149 | 99585 / 99315 | keine Leakage-Evidenz in diesem Test |
+| Seedexpansion | 2,074 | 1,523 | 99558 / 99342 | keine Leakage-Evidenz in diesem Test |
+
+Keine Vorbereitungs-/Operationsfehler; der FFI-Selbsttest läuft unter Valgrind
+ohne gemeldeten Speicherfehler. Dies ist eine begrenzte statistische Beobachtung,
+kein Beweis von Konstantzeit und kein Geschwindigkeitsbenchmark.
+Beleg: /home/martin/Dokumente/ED301/ED301-v2_core-timing_0y75y2en.
+SHA-256 der dortigen SUMMARY.txt:
+37f36736cca6ed36818de284bea2ed167f6e88d58f7e9df2734b637098047660.
+
+Nach der Formatierung des Testadapters wurde frisch gebaut und vollständig erneut
+gemessen; auch dieser Lauf besteht. Beide Beobachtungen bleiben erhalten, statt
+den jeweils günstigeren t-Wert auszuwählen. Der zweite Lauf überlappte mit dem
+separaten Taint-Prüflauf; er ist keine Messung auf einem exklusiv reservierten Host.
+
+| Zweiter Timing-Lauf | Größter beobachteter Betrag t | Abschließender Betrag t | Rohmessungen Klasse 0 / 1 | Ergebnis |
+|---|---:|---:|---:|---|
+| Absichtlich variable Positivkontrolle | 4762,759 | 4762,759 | 99282 / 99618 | erkannt |
+| Vorbereitetes Signieren | 2,625 | 1,517 | 99620 / 99280 | keine Leakage-Evidenz in diesem Test |
+| Seedexpansion | 2,501 | 2,501 | 99535 / 99365 | keine Leakage-Evidenz in diesem Test |
+
+Beleg des aktuellen formatierten Adapterstands:
+/home/martin/Dokumente/ED301/ED301-v2_core-timing_t_imai6j.
+
+## Messmethode und Bedeutung von EVP
+
+EVP bezeichnet die API-Schicht, nicht die Rechenimplementierung. Unter EVP können
+OpenSSL-eigene C-/Assemblerpfade oder die 301-Provider mit kompiliertem Rust liegen.
+Der EVP-Vergleich misst die real verfügbaren Implementierungen über dieselbe API;
+er isoliert nicht die Kurvenmathematik und normiert weder Optimierungsgrad noch
+Sicherheitsniveau. Die Rust-Kernmessung ist deshalb eine eigene Tabelle.
+
+Alle Zahlen wurden neu auf AMD Ryzen 9 5950X, x86-64, mit CPU-Affinität 2 gemessen.
+Rust: 1.98.0, LLVM 21.1.8, Release O3, Thin LTO, eine Codegen-Unit, panic=unwind.
+Die Profile werden pro Crate erzwungen und geprüft. Overflow-Checks sind an;
+ausschließlich der historische X301-v1-Bezugsstand behält seine vorhandene
+crypto-bigint-Ausnahme mit ausgeschalteten Overflow-Checks. Diese Ausnahme ist
+keine Empfehlung für v2 und wird nicht stillschweigend als identisches Profil ausgegeben.
+C-Messharnesses: GCC -O2. EVP-Bibliothek: OpenSSL 3.5.8, tatsächliche Bibliothek
+und alle Messbinärdateien sind gehasht. Governor und Boost wurden nicht verändert.
+
+Je Fall: ein Aufwärm-/Kalibrierlauf mit 100 Operationen; daraus feste Wiederholungszahl
+für ungefähr 200 ms gemessene Arbeit, begrenzt auf 100000 Operationen. Danach neun
+Messrunden mit alternierender Richtung und rotierendem Startfall. Die Tabellen zeigen
+den Median der neun Laufmittel, deren Stichprobenstandardabweichung σ sowie den
+kleinsten und größten Laufmittelwert. Das sind keine Einzelaufruf-Perzentile und keine
+Konfidenzintervalle. Hintergrundlast und Frequenzänderungen können die Streuung beeinflussen.
+
+## Rust-Kern: Ed301-EdDSA-v1 gegen v2
+
+Identischer Rust-Harness, 64-Byte-Nachricht aus 0x5a, leerer Context, identischer
+38-Byte-Testseed. expand umfasst Seedobjekt und Expansion; sign verwendet einen
+vorbereiteten ExpandedSigningKey, verify einen vorbereiteten VerifyingKey.
+import umfasst Public-Key-Dekodierung einschließlich Untergruppenprüfung.
+Schlüssel-/Signaturvorbereitung liegt bei sign und verify außerhalb der Messung.
+
+| Verfahren | Operation | Median µs | σ µs | Minimum–Maximum µs |
+|---|---|---:|---:|---:|
+| Ed301-EdDSA-v1 | expand | 27,807 | 1,098 | 27,330–30,911 |
+| Ed301-EdDSA-v2 | expand | 27,462 | 2,080 | 27,202–33,540 |
+| Ed301-EdDSA-v1 | sign | 28,560 | 0,219 | 28,319–29,073 |
+| Ed301-EdDSA-v2 | sign | 28,425 | 0,831 | 28,150–30,662 |
+| Ed301-EdDSA-v1 | verify | 85,955 | 1,817 | 84,921–90,634 |
+| Ed301-EdDSA-v2 | verify | 84,910 | 1,236 | 84,134–87,656 |
+| Ed301-EdDSA-v1 | import | 96,995 | 1,559 | 96,020–100,290 |
+| Ed301-EdDSA-v2 | import | 95,734 | 0,369 | 95,394–96,458 |
+
+Medianänderung v2 gegenüber v1: expand: -1,24 %; sign: -0,47 %; verify: -1,22 %; import: -1,30 %.
+Die Werte liegen nah beieinander; wegen Streuung und nur einer Plattform wird daraus
+noch kein belastbarer Geschwindigkeitsvorteil oder allgemeiner Regressionsausschluss
+abgeleitet. Es wurde keine numerische Freigabeschwelle beschlossen.
+
+### Erste Binärgrößen- und Tabellenkontrolle
+
+Am selben gemessenen Rust-Binary mit GNU size und nm -S erfasst. Größen in Byte;
+die size-Spalte text umfasst auch zugehörige Nur-Lese-Segmente und ist keine
+isolierte Größe des Kryptokerns. Die statischen Tabellen werden zur Compilezeit
+erzeugt, nicht bei jedem Schlüsselimport.
+
+| Größe | v1 | v2 |
+|---|---:|---:|
+| size: text | 530349 | 529005 |
+| size: data | 13904 | 13904 |
+| size: bss | 264 | 264 |
+| BASEPOINT_TABLE | 48640 | 48640 |
+| BASEPOINT_ODD_TABLE | 10240 | 10240 |
+
+Dies ersetzt keine noch ausstehende Messung von Stack-Spitzen, Resident Set oder
+isoliertem Vorberechnungsaufwand.
+
+## EVP-Signaturen: verfügbare Implementierungen
+
+64-Byte-Nachricht mit Byte i = (29i + 7) mod 256, leerer Context. keygen umfasst einen
+frischen EVP_PKEY_CTX, KeyGen-Initialisierung, Erzeugung und Freigabe. sign und verify
+verwenden vorbereitete Schlüssel, aber pro Operation einen frischen EVP_MD_CTX mit
+Init, einmaliger Signatur-/Verifikationsoperation und Freigabe. Verifikationsschlüssel
+bleiben über die Schleife erhalten; dies ist kein erneuter Public-Key-Import pro Aufruf.
+Der gleiche Harness wird für alle drei verfügbaren Verfahren verwendet.
+
+| Verfahren | Operation | Median µs | σ µs | Minimum–Maximum µs |
+|---|---|---:|---:|---:|
+| Ed25519 | keygen | 29,707 | 0,235 | 29,560–30,298 |
+| Ed448 | keygen | 161,326 | 1,690 | 160,722–166,010 |
+| Ed301-EdDSA-v1 | keygen | 56,753 | 0,675 | 55,869–57,620 |
+| Ed25519 | sign | 29,386 | 0,211 | 29,288–29,817 |
+| Ed448 | sign | 162,473 | 2,213 | 162,117–168,498 |
+| Ed301-EdDSA-v1 | sign | 29,406 | 2,096 | 29,241–35,549 |
+| Ed25519 | verify | 80,090 | 0,399 | 79,768–80,836 |
+| Ed448 | verify | 173,374 | 2,295 | 170,277–176,590 |
+| Ed301-EdDSA-v1 | verify | 85,573 | 1,064 | 84,610–87,540 |
+
+Ed301-EdDSA-v2 über EVP ist in diesem Zwischenstand noch nicht verfügbar und daher
+nicht gemessen. Seine Rust-Zeit wird nicht als Ersatz in diese Tabelle eingesetzt.
+
+## EVP-Schlüsselaustausch: verfügbare Implementierungen
+
+keygen enthält EVP_PKEY_Q_keygen und Freigabe. derive-setup misst den frischen
+Peer-Public-Key-Import, Context-Erzeugung, Init und Set-Peer. Für jeden derive-Fall
+wird ein neuer Context mit demselben privaten Schlüssel und einem frisch importierten
+Peer vorbereitet; Setup und Freigabe sind nicht in der derive-Zeit enthalten.
+first, second und steady messen jeweils den ersten, zweiten beziehungsweise dritten
+Derive-Aufruf dieses Contexts, mit null/einem/zwei ungemessenen vorherigen Aufrufen.
+steady ist damit der dritte Aufruf, keine unbegrenzte Langzeit-Cachemessung.
+Der gleiche Lifecycle wird bei allen drei Verfahren verwendet.
+
+| Verfahren | Operation | Median µs | σ µs | Minimum–Maximum µs |
+|---|---|---:|---:|---:|
+| X25519 | keygen | 29,116 | 0,215 | 29,036–29,681 |
+| X448 | keygen | 159,991 | 1,052 | 159,394–162,856 |
+| X301-v1 | keygen | 28,970 | 0,275 | 28,670–29,519 |
+| X25519 | derive-setup | 1,223 | 0,016 | 1,216–1,263 |
+| X448 | derive-setup | 1,212 | 0,005 | 1,206–1,221 |
+| X301-v1 | derive-setup | 1,686 | 0,010 | 1,679–1,707 |
+| X25519 | derive-first | 25,093 | 0,165 | 24,970–25,522 |
+| X448 | derive-first | 165,840 | 1,445 | 164,845–169,859 |
+| X301-v1 | derive-first | 56,605 | 0,538 | 56,477–58,178 |
+| X25519 | derive-second | 25,047 | 0,135 | 24,951–25,320 |
+| X448 | derive-second | 166,306 | 0,985 | 164,992–168,474 |
+| X301-v1 | derive-second | 56,711 | 0,236 | 56,505–57,216 |
+| X25519 | derive-steady | 24,997 | 0,155 | 24,959–25,403 |
+| X448 | derive-steady | 166,806 | 1,921 | 164,918–170,760 |
+| X301-v1 | derive-steady | 56,697 | 0,226 | 56,420–57,198 |
+
+X301-v1 ist der gebundene historische Integrationsstand, einschließlich seiner damaligen
+Eingaberegeln. Der positive Benchmark ist kein Nachweis der v2-Eingaberegeln.
+X301-v2 wird erst in Phase D implementiert und dann hier ergänzt. Diese DH-Messungen
+sind keine TLS-Handshakes und liefern keinen Authentisierungsnachweis.
+
+## Noch fehlende Mess- und Freigabepfade
+
+| Pfad | Stand |
+|---|---|
+| Ed301-v2 EVP-Provider | noch nicht implementiert/gemessen |
+| X301-v2 Rust-/EVP-Pfade | Phase D, nicht vorgezogen |
+| Encoder/Decoder und TLS-/Hybrid-Handshakes | spätere Integration, hier nicht gemessen |
+| Erweiterte Ed301-Nachrichten-/Contextlängen, kalte Signaturen, Feld-/Skalarmikrobenchmarks | für den vollständigen Phase-C-Report noch ausstehend |
+| Ressourcen-/Tabellen-/Binärgrößenvergleich | noch ausstehend |
+| Codegen und Timing für diesen x86-64-Kernstand | bestanden im oben bezeichneten Umfang; nach Änderungen erneut nötig |
+| Claudes Gate C | nicht erteilt |
+
+## Quellenbindung und Rohdaten
+
+Ed301-v1: Commit 5c688206a15f6ab88a50d53fe503665a302cec4d im unveränderten Checkout
+/home/martin/Dokumente/ED301/ed301-eddsa-github.
+X301-v1: Commit 569dc4ff10e0e5e19d106cbe490d2a5aaeac935e im unveränderten Checkout
+/home/martin/Dokumente/ED301/x301-integration. Beide Worktrees waren vor und nach
+den Messungen sauber. Alle vier Rust-Artefakte wurden frisch offline gebaut.
+
+v2-Quellmanifest SHA-256: 05ec4ffec3a2c0ac753834e9813c5204e45b504a56f204c03f9a8aba1f120b73.
+Es bindet den gemessenen C1/C2-Quellstand einschließlich der zu diesem Zeitpunkt
+vorhandenen Phase-C-Werkzeuge; spätere Berichtsdateien sind nicht rückwirkend Teil
+jenes Manifests. Der Benchmark prüft die Quellhashes vor und nach der Messung.
+
+Vollständiger Belegordner: [/home/martin/Dokumente/ED301/ED301-v2_C1C2-benchmark_sklybrw7](/home/martin/Dokumente/ED301/ED301-v2_C1C2-benchmark_sklybrw7).
+
+| Artefakt | SHA-256 |
+|---|---|
+| [/home/martin/Dokumente/ED301/ED301-v2_C1C2-benchmark_sklybrw7/SUMMARY.json](/home/martin/Dokumente/ED301/ED301-v2_C1C2-benchmark_sklybrw7/SUMMARY.json) | 703727808c2ddf633e3dc57641927f50234b61c428530566ac4a863675004007 |
+| [/home/martin/Dokumente/ED301/ED301-v2_C1C2-benchmark_sklybrw7/raw.tsv](/home/martin/Dokumente/ED301/ED301-v2_C1C2-benchmark_sklybrw7/raw.tsv) | d269d28fccabf896adfbaec7704826abaca93a391a84afc8444e3de8a0a3e8b5 |
+| [/home/martin/Dokumente/ED301/ED301-v2_C1C2-benchmark_sklybrw7/SHA256SUMS](/home/martin/Dokumente/ED301/ED301-v2_C1C2-benchmark_sklybrw7/SHA256SUMS) | 2112b9d64abc30788b7ebe93a95a93fdb9df444aaa29a43c925391db080516ff |
+
+Befehle, Einzelprotokolle, Profilmarker, Quellen- und Binärhashes stehen im Belegordner.
+Die SHA256SUMS dort bindet die Belegdateien und kopierten Provider; die großen
+Cargo-Targetbäume sind aus dieser Belegliste ausgenommen, ihre maßgeblichen Binärhashes
+stehen ausdrücklich in /home/martin/Dokumente/ED301/ED301-v2_C1C2-benchmark_sklybrw7/IDENTITY.json.
+
+Die Tabellen wurden unmittelbar aus der gebundenen SUMMARY.json erzeugt.
