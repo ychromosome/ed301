@@ -1,0 +1,28 @@
+{
+  "schema": "ed301-v2-confirmation-run-parameters-1",
+  "phase": "A2",
+  "publication_gate": "Signed tag, public release, verified external timestamp evidence, then Martin's explicit go-ahead",
+  "python": "python3",
+  "driver": "search_v3.py",
+  "arguments": ["--d", "-301", "--start", "0", "--chunk", "64", "--workers", "10", "--maximum", "1000000", "--out", "raw_v3"],
+  "execution_directory": "A new empty directory outside the source checkout, with only the rule and three manifest-bound tools copied in",
+  "output_directory": "raw_v3, initially absent, never reused",
+  "expected_first_counter": 246492,
+  "expected_winning_block": [246464, 246527],
+  "required_driver_exit": 0,
+  "required_summary_status": "OK",
+  "additional_success_checks": [
+    "No failed blocks or PARI error records",
+    "Raw file metadata and tested counts match the completed intervals",
+    "Gap-free coverage from counter 0 through the winning block",
+    "Winning counter is the numerically smallest valid hit across all required blocks",
+    "Computed candidate matches the disclosed prediction; mismatches require investigation, not substitution"
+  ],
+  "maximum_policy": "The finite operational ceiling does not alter the acceptance predicate; reaching it without the expected confirmation is not success",
+  "audit": {
+    "template": "audit_v3_template.gp",
+    "environment": ["ED301_D", "ED301_C", "ED301_Q", "ED301_QT", "ED301_OUT"],
+    "candidate_source": "Verified fresh confirmation output, not copied blindly from EXPECTED_CANDIDATE.json",
+    "output_policy": "A separate fresh directory with archived stdout, stderr and exit status"
+  }
+}
