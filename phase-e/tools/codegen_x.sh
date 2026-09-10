@@ -8,7 +8,7 @@ extract_symbol 'x301_core::x301::ladder301' "$EVIDENCE/ladder.asm"
 check_exact_call_graph ladder "$EVIDENCE/ladder.asm" 'memcpy'
 
 # One backward carry edge visits public counter values 300 through 0.
-# Scalar indexing, spill/reload and counter origin are tied to this lowering.
+# Scalar indexing, spill/reload and counter origin are tied to E7's lowering.
 extract_full_ladder_loop() {
     /usr/bin/gawk '
     /^[[:space:]]*[[:xdigit:]]+:/ {
@@ -54,7 +54,7 @@ extract_full_ladder_loop() {
             }
         }
         if (initialized != 1 || last_pre_counter_write != "mov $0x12c,%eax" ||
-            penultimate_loop_counter_write != "mov 0xf8(%rsp),%rax" ||
+            penultimate_loop_counter_write != "mov 0x1d8(%rsp),%rax" ||
             last_loop_counter_write != "add $0xffffffffffffffff,%rax")
             exit 1
     }' "$1" >"$2"
@@ -62,19 +62,19 @@ extract_full_ladder_loop() {
 extract_full_ladder_loop "$EVIDENCE/ladder.asm" "$EVIDENCE/ladder-loop.asm"
 LOOP=$EVIDENCE/ladder-loop.asm
 test -s "$LOOP"
-/usr/bin/grep -Eq 'mov[[:space:]]+%rax,0xf8\(%rsp\)$' "$LOOP"
-/usr/bin/grep -Eq 'mov[[:space:]]+0xf8\(%rsp\),%rax$' "$LOOP"
+/usr/bin/grep -Eq 'mov[[:space:]]+%rax,0x1d8\(%rsp\)$' "$LOOP"
+/usr/bin/grep -Eq 'mov[[:space:]]+0x1d8\(%rsp\),%rax$' "$LOOP"
 /usr/bin/grep -Eq 'shr[[:space:]]+\$0x3,%rax$' "$LOOP"
-/usr/bin/grep -Eq 'mov[[:space:]]+0x1e8\(%rsp\),%rcx$' "$LOOP"
-/usr/bin/grep -Eq 'and[[:space:]]+\$0x7,%ecx$' "$LOOP"
-/usr/bin/grep -Eq 'bt[[:space:]]+%ecx,%eax$' "$LOOP"
-test "$(/usr/bin/grep -Ec ',0xf8\(%rsp\)$' "$LOOP")" -eq 1
+/usr/bin/grep -Eq 'mov[[:space:]]+0x1f0\(%rsp\),%rdx$' "$LOOP"
+/usr/bin/grep -Eq 'and[[:space:]]+\$0x7,%edx$' "$LOOP"
+/usr/bin/grep -Eq 'bt[[:space:]]+%edx,%eax$' "$LOOP"
+test "$(/usr/bin/grep -Ec ',0x1d8\(%rsp\)$' "$LOOP")" -eq 1
 /usr/bin/awk '
     /^[[:space:]]*[[:xdigit:]]+:/ && $0 ~ /\([^)]*,[^)]*\)/ &&
     $2 !~ /^lea/ && index($0, "nop") == 0 { print }
 ' "$LOOP" >"$EVIDENCE/ladder-indexed-memory.txt"
 test "$(/usr/bin/awk 'END { print NR+0 }' "$EVIDENCE/ladder-indexed-memory.txt")" -eq 1
-/usr/bin/grep -Eq 'movzbl[[:space:]]+\(%rcx,%rax,1\),%eax$' "$EVIDENCE/ladder-indexed-memory.txt"
+/usr/bin/grep -Eq 'movzbl[[:space:]]+\(%rdx,%rax,1\),%eax$' "$EVIDENCE/ladder-indexed-memory.txt"
 test "$(count_mnemonic '^cmov' "$LOOP")" -ge 20
 test "$(count_mnemonic '^call' "$LOOP")" -eq 0
 if contains_forbidden_instruction "$LOOP" allow-conditional; then

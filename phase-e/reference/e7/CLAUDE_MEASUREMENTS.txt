@@ -1,0 +1,14 @@
+Claude, 2026-09-10, same machine, CPU 3, identical x301_core_bench harness, 9 runs each, medians (us), Testing commit b32cf0c tree:
+v1-ref  (x301-integration 569dc4ff, C O0 / crypto-bigint overflow-off exception)  shared 56.96 / 56.61 / 56.67   public 27.57
+v2-base (Phase E final)                                                             shared 62.68 / 62.42          public 27.53
+v2-A    scaled a24 (2 small muls + tighten)                                         shared 62.12                  public 27.27
+v2-D    v1 loop structure on v2 field (bookkeeping wrong, timing only)              shared 61.49
+v2-F    v1 row-wise square_wide only                                                shared 61.26                  public 27.35
+v2-AF   scaled a24 + v1 square                                                      shared 60.97
+v2-AFL  scaled a24 with loose mul_small_narrow (no tighten) + v1 square  [54/54 x301 tests]  shared 58.71 / 58.89   public 27.19
+v2-S    AFL + fixed-bit shortcuts (bookkeeping wrong, timing only)                  shared 59.25  -> no gain, dropped
+v2-W    AFL + in-place ct_assign swap                                               shared 58.64  -> no gain
+Synthetic round (field ops only, 2M iterations): v2 field: full-a24 round 198 ns, lazy_mul 18.1, lazy_square 18.8, loose_mul 22.8;
+                                                 v1int field: full-a24 round 196 ns, lazy_mul 18.3, lazy_square 16.6, loose_mul 23.0.
+Function-level diff x301-integration field vs v2 field (non-test): multiply_wide, reduce_wide_unreduced, accumulate_fold, conditional_select identical;
+square_wide differs (row-wise OpenSSL bn_sqr shape vs column accumulator); mul_small differs only by u64 width + assert; reduce_small differs only by fold shift.

@@ -1,0 +1,122 @@
+--- rust/crates/ed301-eddsa/src/field_5x64.rs	2026-09-10 19:40:01.074245748 +0200
++++ v2-AFL/crates/ed301-eddsa/src/field_5x64.rs	2026-09-10 19:51:59.490266472 +0200
+@@ -487,6 +487,15 @@
+ impl zeroize::DefaultIsZeroes for Fe301Lazy {}
+ 
+ impl Fe301LazyLinear {
++    /// Variant (Claude): multiply a loose value below `4p` by a PUBLIC constant
++    /// below 2^32. The product is below 2^303 * 2^32 = 2^335 < 2^338, so the
++    /// small reducer's proved bound holds; the result is in [0, 2p).
++    #[inline(always)]
++    pub(crate) fn mul_small_narrow(self, value: u64) -> Fe301Lazy {
++        assert!(value <= u32::MAX as u64, "loose small multiplier exceeds 32-bit bound");
++        Fe301Lazy(reduce_small_product_unreduced(multiply_five_by_u64(self.0, value)))
++    }
++
+     /// Multiply two values below `4p`, retaining a result below `2p`.
+     #[inline(always)]
+     pub(crate) fn mul(self, rhs: Self) -> Fe301Lazy {
+@@ -644,35 +653,43 @@
+ }
+ 
+ #[inline(always)]
++// Variant (Claude): row-wise squaring from the x301-integration field (OpenSSL bn_sqr_normal shape).
+ const fn square_wide(value: [u64; LIMBS]) -> [u64; LIMBS * 2] {
++    // OpenSSL crypto/bn/bn_sqr.c:bn_sqr_normal: double the cross products,
++    // then add the diagonals. Their sum is x^2 < 2^640, so neither overflows.
+     let mut output = [0_u64; LIMBS * 2];
+-    let mut accumulator = [0_u64; 3];
+-
+-    accumulate_product(&mut accumulator, value[0], value[0]);
+-    emit_square_column(&mut output, 0, &mut accumulator);
+-    accumulate_double_product(&mut accumulator, value[0], value[1]);
+-    emit_square_column(&mut output, 1, &mut accumulator);
+-    accumulate_double_product(&mut accumulator, value[0], value[2]);
+-    accumulate_product(&mut accumulator, value[1], value[1]);
+-    emit_square_column(&mut output, 2, &mut accumulator);
+-    accumulate_double_product(&mut accumulator, value[0], value[3]);
+-    accumulate_double_product(&mut accumulator, value[1], value[2]);
+-    emit_square_column(&mut output, 3, &mut accumulator);
+-    accumulate_double_product(&mut accumulator, value[0], value[4]);
+-    accumulate_double_product(&mut accumulator, value[1], value[3]);
+-    accumulate_product(&mut accumulator, value[2], value[2]);
+-    emit_square_column(&mut output, 4, &mut accumulator);
+-    accumulate_double_product(&mut accumulator, value[1], value[4]);
+-    accumulate_double_product(&mut accumulator, value[2], value[3]);
+-    emit_square_column(&mut output, 5, &mut accumulator);
+-    accumulate_double_product(&mut accumulator, value[2], value[4]);
+-    accumulate_product(&mut accumulator, value[3], value[3]);
+-    emit_square_column(&mut output, 6, &mut accumulator);
+-    accumulate_double_product(&mut accumulator, value[3], value[4]);
+-    emit_square_column(&mut output, 7, &mut accumulator);
+-    accumulate_product(&mut accumulator, value[4], value[4]);
+-    emit_square_column(&mut output, 8, &mut accumulator);
+-    output[9] = accumulator[0];
++    let mut i = 0;
++    while i < LIMBS - 1 {
++        let mut carry = 0_u64;
++        let mut j = i + 1;
++        while j < LIMBS {
++            let p = value[i] as u128 * value[j] as u128 + output[i + j] as u128 + carry as u128;
++            output[i + j] = p as u64;
++            carry = (p >> 64) as u64;
++            j += 1;
++        }
++        output[i + LIMBS] = carry;
++        i += 1;
++    }
++    let mut carry = 0_u64;
++    i = 0;
++    while i < LIMBS * 2 {
++        let next = output[i] >> 63;
++        output[i] = (output[i] << 1) | carry;
++        carry = next;
++        i += 1;
++    }
++    carry = 0;
++    i = 0;
++    while i < LIMBS {
++        let p = value[i] as u128 * value[i] as u128;
++        let low = output[2 * i] as u128 + (p as u64) as u128 + carry as u128;
++        output[2 * i] = low as u64;
++        let high = output[2 * i + 1] as u128 + (p >> 64) + (low >> 64);
++        output[2 * i + 1] = high as u64;
++        carry = (high >> 64) as u64;
++        i += 1;
++    }
+     output
+ }
+ 
+--- rust/crates/x301/src/x301.rs	2026-09-10 19:40:01.074857069 +0200
++++ v2-AFL/crates/x301/src/x301.rs	2026-09-10 19:51:59.490345720 +0200
+@@ -17,6 +17,11 @@
+ pub const BASE_U_BYTES: [u8; FIELD_BYTES] = crate::x_generated_parameters::BASE_U_BYTES;
+ const A24_MINUS: Fe301 = Fe301::from_canonical_words(A24_MINUS_WORDS);
+ const A24_MINUS_LAZY: Fe301Lazy = Fe301Lazy::from_fe301(A24_MINUS);
++/// (a - d) = a + 301 for d = -301; below 2^36, the public small-multiplier bound.
++const A24_SCALE_DENOMINATOR: u64 = crate::generated_parameters::EDWARDS_A + crate::generated_parameters::EDWARDS_D_MAGNITUDE;
++/// |d| = 301; the sign is applied by subtracting the scaled E term.
++const A24_SCALE_NUMERATOR_MAGNITUDE: u64 = crate::generated_parameters::EDWARDS_D_MAGNITUDE;
++const _: () = assert!(A24_SCALE_DENOMINATOR <= crate::generated_parameters::MAX_SMALL_MULTIPLIER);
+ #[cfg(test)]
+ const BASE_U: Fe301 = Fe301::from_canonical_words(crate::x_generated_parameters::BASE_U_WORDS);
+ 
+@@ -277,10 +282,14 @@
+         let cb = c.mul(b);
+         s.x3 = da.add_loose(cb).square();
+         s.z3 = s.x1.mul(da.sub_loose(cb).square());
+-        s.x2 = aa.mul(bb);
+-        // A24 remains a full field multiplication. Both final factors are
+-        // below 4p; no extra tightening is required by the wide reducer.
+-        s.z2 = e.mul(aa.add_loose(e.mul_tight(A24_MINUS_LAZY)));
++        // Variant A (Claude): a24 = (A-2)/4 = d/(a-d). Scale both projective
++        // doubling outputs by (a-d): X2 = (a-d)*AA*BB, Z2 = E*((a-d)*AA + d*E)
++        // with d = -301, so the second term is subtracted. Two public small
++        // multiplications replace the full A24 multiplication.
++        let scaled_aa = aa.mul_small(A24_SCALE_DENOMINATOR);
++        s.x2 = scaled_aa.mul(bb);
++        let scaled_e = e.mul_small_narrow(A24_SCALE_NUMERATOR_MAGNITUDE);
++        s.z2 = e.mul(scaled_aa.sub_loose(scaled_e));
+         #[cfg(test)]
+         for coordinate in [s.x1, s.x2, s.z2, s.x3, s.z3] {
+             coordinate.assert_lazy_bound_for_test();

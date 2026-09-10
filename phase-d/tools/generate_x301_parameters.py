@@ -34,6 +34,13 @@ def generate():
     assert 0 < base < modulus and 0 < a24 < modulus
     assert p["montgomery"]["A24_convention"] == "minus"
     assert 4 * a24 % modulus == (a - 2) % modulus
+    edwards_a = int(p["edwards"]["a_decimal"])
+    # Gate A stores d as its canonical positive residue, not signed -301.
+    edwards_d = int(p["edwards"]["d_decimal"]) - modulus
+    scale = edwards_a - edwards_d
+    assert edwards_d == -301 and 0 < scale < 2**36
+    assert a * scale % modulus == 2 * (edwards_a + edwards_d) % modulus
+    assert a24 * scale % modulus == edwards_d % modulus
     assert base.to_bytes(38, "little").hex() == p["basepoint"]["G_montgomery_u_little_endian_hex"]
     assert 2**300 <= nt < 2**301 and nt % 4 == 0
     assert nt.to_bytes(38, "little").hex() == "84ca911e62530d13b204a5718d1a9ada9621c5ffffffffffffffffffffffffffffffffffff1f"
@@ -45,6 +52,9 @@ def generate():
              f"pub(crate) const FIELD_BYTES: usize = {p['encoding']['field_bytes']};"]
     for name, value in (("A24_MINUS_WORDS", a24), ("BASE_U_WORDS", base)):
         words = [(value >> (64 * i)) & ((1 << 64) - 1) for i in range(5)]
+        if name == "A24_MINUS_WORDS":
+            lines.append("// Retained for the canonical ladder and E7 identity test oracles.")
+            lines.append("#[cfg(test)]")
         lines.append(f"pub(crate) const {name}: [u64; 5] = [" + ",".join(f"0x{w:016x}" for w in words) + "];")
     for name, value in (("BASE_U_BYTES", base), ("TWIST_ORDER_BYTES", nt)):
         lines.append(f"pub(crate) const {name}: [u8; 38] = [" + ",".join(f"0x{b:02x}" for b in value.to_bytes(38, "little")) + "];")

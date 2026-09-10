@@ -13,6 +13,8 @@ ROOT = Path(__file__).resolve().parents[2]
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--baseline", type=Path, required=True,
                     help="immutable approved Gate-D source tree")
+parser.add_argument("--previous", type=Path,
+                    help="also rebuild the previous Phase-E source and retain all its named tests")
 args = parser.parse_args()
 baseline = args.baseline.resolve()
 work = Path(tempfile.mkdtemp(prefix="ED301-v2_PHASE_E_core-check_", dir=ROOT.parent))
@@ -51,8 +53,12 @@ def manifest(root):
 
 before = manifest(ROOT)
 old_before = manifest(baseline)
+previous = args.previous.resolve() if args.previous else None
+previous_before = manifest(previous) if previous else None
 (work / "SOURCE_SHA256SUMS").write_text(before)
 (work / "BASELINE_RUST_SHA256SUMS").write_text(old_before)
+if previous:
+    (work / "PREVIOUS_RUST_SHA256SUMS").write_text(previous_before)
 # Historical manifests apply only to their approved source, never to optimized
 # code. Do not rewrite or bypass them to make a later phase appear unchanged.
 for seal in ("phase-c/PHASE_C_SOURCE_MANIFEST.sha256", "phase-d/D1_SOURCE_MANIFEST.sha256"):
@@ -67,7 +73,11 @@ run(["python3", "-I", "-B", ROOT / "phase-c/tools/check_field_bounds.py"], "fiel
 run(["python3", "-I", "-B", ROOT / "rust/scripts/check-vendor-forks.py"], "vendor-forks", cwd=ROOT / "rust")
 toolchain = run(["rustc", "--version", "--verbose"], "toolchain")
 inventories = {}
-for label, source in (("baseline", baseline), ("current", ROOT)):
+sources = [("baseline", baseline)]
+if previous:
+    sources.append(("previous", previous))
+sources.append(("current", ROOT))
+for label, source in sources:
     build = work / label
     for part in ("cargo-home", "target", "markers"):
         (build / part).mkdir(parents=True)
@@ -130,14 +140,22 @@ for name, count in (("ed", 54), ("x", 25)):
         raise SystemExit("FAIL: a named Gate-C/D1 test was lost")
 if inventories["current-ed"] != inventories["current-ed-self-verify"] or inventories["current-x"] != inventories["current-x-taint-feature"]:
     raise SystemExit("FAIL: feature test inventories differ")
+if previous:
+    for name in ("ed", "x"):
+        if not set(inventories["previous-" + name]).issubset(inventories["current-" + name]):
+            raise SystemExit("FAIL: a named previous Phase-E test was lost")
 run(["python3", "-B", ROOT / "tools/check_phase_b.py"], "phase-b-replay", cwd=ROOT)
 if manifest(ROOT) != before or manifest(baseline) != old_before:
     raise SystemExit("FAIL: source changed during checks")
+if previous and manifest(previous) != previous_before:
+    raise SystemExit("FAIL: previous Phase-E source changed during checks")
 (work / "TEST_INVENTORIES.json").write_text(json.dumps(inventories, indent=2) + "\n")
 summary = {"status": "PASS", "test_counts": {key: len(value) for key, value in inventories.items()},
            "all_named_gate_c_d1_tests_retained": True, "nostd_host_consumer": True,
            "phase_b_replay": "8/8", "rustc": toolchain, "source_manifest_sha256": sha(work / "SOURCE_SHA256SUMS"),
            "baseline_rust_manifest_sha256": sha(work / "BASELINE_RUST_SHA256SUMS"),
+           "all_named_previous_phase_e_tests_retained": bool(previous),
+           "previous_rust_manifest_sha256": sha(work / "PREVIOUS_RUST_SHA256SUMS") if previous else None,
            "runner_sha256": sha(Path(__file__)), "scope": "host correctness, not timing or Gate-E approval"}
 (work / "SUMMARY.json").write_text(json.dumps(summary, indent=2) + "\n")
 files = sorted(p for p in work.rglob("*") if p.is_file() and p.name != "SHA256SUMS"

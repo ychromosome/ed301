@@ -8,15 +8,26 @@ use crate::{
     field_5x64::{Fe301, Fe301Lazy},
     parameters::{FIELD_BYTES, LADDER_BITS, PUBLIC_BYTES, SECRET_BYTES, SHARED_BYTES},
     secret_taint::declassify,
-    x_generated_parameters::{A24_MINUS_WORDS, TWIST_ORDER_BYTES},
+    x_generated_parameters::TWIST_ORDER_BYTES,
 };
 
 /// Raw X301 input/output byte length.
 pub const X301_BYTES: usize = FIELD_BYTES;
 /// Canonical Montgomery coordinate of the approved v2 base point.
 pub const BASE_U_BYTES: [u8; FIELD_BYTES] = crate::x_generated_parameters::BASE_U_BYTES;
-const A24_MINUS: Fe301 = Fe301::from_canonical_words(A24_MINUS_WORDS);
-const A24_MINUS_LAZY: Fe301Lazy = Fe301Lazy::from_fe301(A24_MINUS);
+/// Nonzero common projective scale `a-d = a+301`, within the 36-bit bound.
+const A24_SCALE_DENOMINATOR: u64 =
+    crate::generated_parameters::EDWARDS_A + crate::generated_parameters::EDWARDS_D_MAGNITUDE;
+/// The negative `d` term is applied by subtracting this positive magnitude.
+const A24_SCALE_NUMERATOR_MAGNITUDE: u64 = crate::generated_parameters::EDWARDS_D_MAGNITUDE;
+const _: () = assert!(
+    A24_SCALE_DENOMINATOR > 0
+        && A24_SCALE_DENOMINATOR <= crate::generated_parameters::MAX_SMALL_MULTIPLIER
+);
+const _: () = assert!(A24_SCALE_NUMERATOR_MAGNITUDE <= u32::MAX as u64);
+#[cfg(test)]
+const A24_MINUS: Fe301 =
+    Fe301::from_canonical_words(crate::x_generated_parameters::A24_MINUS_WORDS);
 #[cfg(test)]
 const BASE_U: Fe301 = Fe301::from_canonical_words(crate::x_generated_parameters::BASE_U_WORDS);
 
@@ -277,10 +288,13 @@ fn ladder301(scalar: &[u8; SECRET_BYTES], u: Fe301) -> Zeroizing<ProjectiveOutpu
         let cb = c.mul(b);
         s.x3 = da.add_loose(cb).square();
         s.z3 = s.x1.mul(da.sub_loose(cb).square());
-        s.x2 = aa.mul(bb);
-        // A24 remains a full field multiplication. Both final factors are
-        // below 4p; no extra tightening is required by the wide reducer.
-        s.z2 = e.mul(aa.add_loose(e.mul_tight(A24_MINUS_LAZY)));
+        // A24 = d/(a-d). Multiplying both doubling coordinates by nonzero
+        // a-d preserves their ratio. With d=-301, two public small products
+        // replace the full A24 product without tightening the loose E value.
+        let scaled_aa = aa.mul_small(A24_SCALE_DENOMINATOR);
+        s.x2 = scaled_aa.mul(bb);
+        let scaled_e = e.mul_small_narrow(A24_SCALE_NUMERATOR_MAGNITUDE);
+        s.z2 = e.mul(scaled_aa.sub_loose(scaled_e));
         #[cfg(test)]
         for coordinate in [s.x1, s.x2, s.z2, s.x3, s.z3] {
             coordinate.assert_lazy_bound_for_test();
@@ -387,6 +401,51 @@ pub(crate) fn canonical_shared_for_test(
 
 fn multiply(scalar: &[u8; SECRET_BYTES], u: Fe301) -> Result<SharedSecret, X301Error> {
     finalize_projective(ladder301(scalar, u))
+}
+
+#[test]
+fn scaled_a24_doubling_matches_the_canonical_projective_formula() {
+    assert_eq!(
+        A24_MINUS
+            .mul_small(A24_SCALE_DENOMINATOR)
+            .to_canonical_bytes(),
+        Fe301::from_u64(A24_SCALE_NUMERATOR_MAGNITUDE)
+            .neg()
+            .to_canonical_bytes()
+    );
+    fn sample(state: &mut u64) -> Fe301 {
+        let mut bytes = core::array::from_fn(|_| crate::test_support::splitmix64(state) as u8);
+        bytes[FIELD_BYTES - 1] &= 0x0f;
+        Fe301::from_canonical_bytes(&bytes).expect_copied("bounded round-test field input")
+    }
+    let mut state = 0x4537_4132_3453_4341_u64;
+    for index in 0..10_004 {
+        let (aa, bb) = match index {
+            0 => (Fe301::ZERO, Fe301::ZERO),
+            1 => (Fe301::ONE, Fe301::ONE),
+            2 => (Fe301::ZERO, Fe301::ONE),
+            3 => (Fe301::ONE, Fe301::ZERO),
+            _ => (sample(&mut state), sample(&mut state)),
+        };
+        let e = aa.sub(bb);
+        let old_x = aa.mul(bb);
+        let old_z = e.mul(aa.add(A24_MINUS.mul(e)));
+        let lazy_aa = Fe301Lazy::from_fe301(aa);
+        let lazy_bb = Fe301Lazy::from_fe301(bb);
+        let loose_e = lazy_aa.sub_loose(lazy_bb);
+        let scaled_aa = lazy_aa.mul_small(A24_SCALE_DENOMINATOR);
+        let scaled_e = loose_e.mul_small_narrow(A24_SCALE_NUMERATOR_MAGNITUDE);
+        let new_x = scaled_aa.mul(lazy_bb);
+        let new_z = loose_e.mul(scaled_aa.sub_loose(scaled_e));
+        for (new, old) in [(new_x, old_x), (new_z, old_z)] {
+            new.assert_lazy_bound_for_test();
+            assert_eq!(
+                new.canonical().to_canonical_bytes(),
+                old.mul_small(A24_SCALE_DENOMINATOR).to_canonical_bytes(),
+                "scaled doubling coordinate, case {index}"
+            );
+        }
+    }
 }
 
 fn fixed_base_public(scalar: &[u8; SECRET_BYTES]) -> Result<SharedSecret, X301Error> {

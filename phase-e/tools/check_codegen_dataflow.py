@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-"""Bind reviewed E1/E3 public counters and exponent provenance in linked ELFs.
+"""Bind reviewed E1/E3/E7 counters, exponents and public scales in linked ELFs.
 
 Companion to check_codegen.sh, not a general taint engine or a universal CT
 proof. The shell policy checks every conditional edge/call and arithmetic leaf;
@@ -197,23 +197,28 @@ def exponent_sites(symbols, elf):
 
 def pow_structure(items):
     operations = [item.operation for item in items]
-    require(operations.count("mov %rdx,-0x10(%rsp)") == 1, "exponent pointer capture")
-    require([item.operation for item in items if item.operands.endswith(",-0x10(%rsp)")]
-            == ["mov %rdx,-0x10(%rsp)"], "exponent pointer slot overwritten")
-    require([item.operation for item in items if item.operands.endswith(",-0x58(%rsp)")]
-            == ["mov %rcx,-0x58(%rsp)", "mov %rdx,-0x58(%rsp)"], "public counter slots overwritten")
+    require(operations.count("mov %rdx,-0x8(%rsp)") == 1, "exponent pointer capture")
+    require([item.operation for item in items if item.operands.endswith(",-0x8(%rsp)")]
+            == ["mov %rdx,-0x8(%rsp)"], "exponent pointer slot overwritten")
     require(operations.count("mov $0x48,%ecx") == 1 and operations.count("add $0x28,%rcx") == 1
             and operations.count("cmp $0x2a0,%rcx") == 1, "15-entry precomputation bounds")
     require(operations.count("mov $0x4a,%edx") == 1 and operations.count("mov $0x128,%esi") == 1,
             "75-window counter origin")
     origin = operations.index("mov $0x4a,%edx")
     require(operations[origin:origin + 6] == ["mov $0x4a,%edx", "mov $0x128,%esi",
-            "xor %r14d,%r14d", "xor %r9d,%r9d", "xor %r10d,%r10d", "xor %r11d,%r11d"],
+            "xor %ecx,%ecx", "xor %ebp,%ebp", "xor %r10d,%r10d", "xor %r11d,%r11d"],
             "window counters overwritten before loop entry")
-    entry = operations.index("mov %rsi,-0x48(%rsp)")
+    # E7 reuses two former operand slots only after precomputation is over.
+    # Bind writes during each public counter's live range, not before it.
+    require([item.operation for item in items[:origin] if item.operands.endswith(",-0x78(%rsp)")]
+            == ["mov %rcx,-0x78(%rsp)"], "precomputation counter slot overwritten")
+    for slot, value in (("-0x30(%rsp)", "%rdx"), ("-0x38(%rsp)", "%rsi")):
+        require([item.operation for item in items[origin:] if item.operands.endswith("," + slot)]
+                == ["mov " + value + "," + slot], "window counter slot overwritten")
+    entry = operations.index("mov %rsi,-0x38(%rsp)")
     require(items[origin + 6].mnemonic == "jmp"
             and int(items[origin + 6].operands.split()[0], 16) == items[entry].address
-            and operations[entry + 1] == "mov %rdx,-0x58(%rsp)", "window counter initial edge")
+            and operations[entry + 1] == "mov %rdx,-0x30(%rsp)", "window counter initial edge")
     require(operations.count("add $0xffffffffffffffff,%rdx") == 2
             and operations.count("add $0xfffffffffffffffc,%rsi") == 2,
             "both zero/nonzero public digit paths must decrement identically")
@@ -221,44 +226,93 @@ def pow_structure(items):
     # one read of the public exponent, and five limbs at its public table digit.
     indexed = [item.operation for item in items if re.search(r"\([^)]*,[^)]*\)", item.operands)
                and not item.mnemonic.startswith("lea") and "nop" not in item.operation]
-    expected = ["mov -0x38(%rsp,%rax,1),%rcx", "mov -0x30(%rsp,%rax,1),%r8",
-                "mov -0x28(%rsp,%rax,1),%r8", "mov -0x20(%rsp,%rax,1),%r13",
-                "mov -0x18(%rsp,%rax,1),%r8", "mov %rcx,-0x10(%rsp,%rsi,1)",
-                "mov %r10,-0x8(%rsp,%rcx,1)", "mov %rax,(%rsp,%rcx,1)",
+    expected = ["mov -0x38(%rsp,%rcx,1),%rsi", "mov -0x30(%rsp,%rax,1),%r8",
+                "mov -0x28(%rsp,%rax,1),%r14", "mov -0x20(%rsp,%rax,1),%r13",
+                "mov -0x18(%rsp,%rax,1),%rbx", "mov %rcx,-0x10(%rsp,%rsi,1)",
+                "mov %r9,-0x8(%rsp,%rcx,1)", "mov %rax,(%rsp,%rcx,1)",
                 "mov %rdx,0x8(%rsp,%rcx,1)", "mov %r14,0x10(%rsp,%rcx,1)",
                 "mov (%rcx,%rax,8),%rax", "mov 0x10(%rsp,%rcx,8),%r14",
-                "mov 0x18(%rsp,%rcx,8),%r12", "mov 0x20(%rsp,%rcx,8),%r8",
-                "mov 0x28(%rsp,%rcx,8),%rdi", "mov 0x30(%rsp,%rcx,8),%rcx"]
+                "mov 0x18(%rsp,%rcx,8),%r12", "mov 0x20(%rsp,%rcx,8),%rdi",
+                "mov 0x28(%rsp,%rcx,8),%rsi", "mov 0x30(%rsp,%rcx,8),%rcx"]
     require(indexed == expected, "unclassified exponentiator indexed access")
-    for operation in expected[:5]:
+    pre_branch = next(i for i, item in enumerate(items) if item.mnemonic == "jne"
+                      and items[i - 1].operation == "cmp $0x2a0,%rcx")
+    pre_start, _ = loop(items, pre_branch)
+    require(operations[pre_start:pre_start + 2] == ["mov %rcx,-0x78(%rsp)", expected[0]]
+            and last_write(items, pre_start, "%rcx")[1].operation == "mov $0x48,%ecx",
+            "first precomputation index origin")
+    require(operations[pre_branch - 2:pre_branch] == ["add $0x28,%rcx", "cmp $0x2a0,%rcx"],
+            "precomputation counter stride")
+    for operation in expected[1:5]:
         index = operations.index(operation)
-        require(last_write(items, index, "%rax")[1].operation == "mov -0x58(%rsp),%rax",
+        require(last_write(items, index, "%rax")[1].operation == "mov -0x78(%rsp),%rax",
                 "precomputation index does not come from fixed counter")
+    for operation, counter in zip(expected[5:10], ("%rsi", "%rcx", "%rcx", "%rcx", "%rcx")):
+        require(last_write(items, operations.index(operation), counter)[1].operation
+                == "mov -0x78(%rsp)," + counter, "precomputation store index origin")
+    require(last_write(items, pre_branch - 2, "%rcx")[1].operation == "mov -0x78(%rsp),%rcx",
+            "precomputation counter reload")
     index = operations.index("mov (%rcx,%rax,8),%rax")
     require(operations[index - 3:index] == ["mov %rdx,%rax", "shr $0x4,%rax",
-                                           "mov -0x10(%rsp),%rcx"], "exponent limb index origin")
+                                           "mov -0x8(%rsp),%rcx"], "exponent limb index origin")
     require(operations[index + 1:index + 5] == ["mov %esi,%ecx", "and $0x3c,%cl",
                                                "shr %cl,%rax", "and $0xf,%rax"], "public digit extraction")
     require(items[index + 5].mnemonic == "je"
             and operations[index + 6] == "lea (%rax,%rax,4),%rcx", "public table index origin")
-    require(last_write(items, index, "%rdx")[1].operation == "mov -0x58(%rsp),%rdx"
-            and last_write(items, index, "%rsi")[1].operation == "mov -0x48(%rsp),%rsi",
+    require(last_write(items, index, "%rdx")[1].operation == "mov -0x30(%rsp),%rdx"
+            and last_write(items, index, "%rsi")[1].operation == "mov -0x38(%rsp),%rsi",
             "digit counters do not come from the public loop state")
     zero_target = int(items[index + 5].operands.split()[0], 16)
     zero_index = next(i for i, item in enumerate(items) if item.address == zero_target)
-    require(operations[zero_index:zero_index + 3] == ["mov %r13,%r14",
+    require(operations[zero_index:zero_index + 3] == ["mov -0x58(%rsp),%rcx",
             "add $0xfffffffffffffffc,%rsi", "add $0xffffffffffffffff,%rdx"],
             "zero-digit loop update")
     require(items[zero_index + 3].mnemonic == "jae" and zero_index + 4 == entry,
             "zero-digit fixed-count edge")
     updates = [i for i, item in enumerate(items) if item.operation == "add $0xffffffffffffffff,%rdx"]
     nonzero_index = updates[-1]
-    require(last_write(items, nonzero_index, "%rdx")[1].operation == "mov -0x58(%rsp),%rdx",
+    require(last_write(items, nonzero_index, "%rdx")[1].operation == "mov -0x30(%rsp),%rdx",
             "nonzero-digit counter origin")
     require(items[nonzero_index + 1].mnemonic == "jb"
             and int(items[nonzero_index + 1].operands.split()[0], 16) == items[entry].address,
             "nonzero-digit fixed-count edge")
     return {"precomputed_powers": 15, "windows": 75, "indexed_accesses": len(indexed)}
+
+
+def ladder_structure(items):
+    branches = [i for i, item in enumerate(items) if item.mnemonic.startswith("j")]
+    require(len(branches) == 1 and items[branches[0]].mnemonic == "jb", "one fixed ladder edge")
+    branch = branches[0]
+    start, body = loop(items, branch)
+    require(last_write(items, start, "%rax")[1].operation == "mov $0x12c,%eax",
+            "ladder counter origin")
+    require([item.operation for item in items if item.operands.endswith(",0x1f0(%rsp)")]
+            == ["mov %rsi,0x1f0(%rsp)"], "scalar pointer slot overwritten")
+    require([item.operation for item in body if item.operands.endswith(",0x1d8(%rsp)")]
+            == ["mov %rax,0x1d8(%rsp)"], "ladder counter slot overwritten")
+    require([item.operation for item in body[:10]] == [
+        "mov %rax,0x1d8(%rsp)", "mov %r15d,%ecx", "mov 0x1d8(%rsp),%rax",
+        "shr $0x3,%rax", "mov 0x1f0(%rsp),%rdx", "movzbl (%rdx,%rax,1),%eax",
+        "mov 0x1d8(%rsp),%rdx", "and $0x7,%edx", "bt %edx,%eax", "setb %al"],
+        "scalar byte and bit indices are not the public loop counter")
+    require(items[branch - 1].operation == "add $0xffffffffffffffff,%rax"
+            and last_write(items, branch - 1, "%rax")[1].operation == "mov 0x1d8(%rsp),%rax",
+            "ladder counter reload and decrement")
+    indexed = [item.operation for item in body if re.search(r"\([^)]*,[^)]*\)", item.operands)
+               and not item.mnemonic.startswith("lea") and "nop" not in item.operation]
+    require(indexed == ["movzbl (%rdx,%rax,1),%eax"], "unclassified ladder indexed access")
+    origins = [last_write(items, i, "%r12")[1].operation for i, item in enumerate(items)
+               if item.operation == "mul %r12"]
+    require(origins.count("movabs $0xe402d7e9e,%r12") == 5,
+            "scaled AA must use five limbs times the public 36-bit scale")
+    require(origins.count("mov $0x12d,%r12d") == 4
+            and [item.operation for item in body if "$0x12d" in item.operands]
+            == ["mov $0x12d,%r12d", "imul $0x12d,0xb0(%rsp),%r14"],
+            "scaled E must use the public numerator 301 for all five limbs")
+    return {"rounds": 301, "counter": "300 through 0", "scalar_indexed_reads": 1,
+            "public_scale": 61206265502, "public_numerator_magnitude": 301,
+            "scale_full_width_products": 5, "numerator_full_width_products": 4,
+            "numerator_bounded_top_word_products": 1}
 
 
 def rejects(action, label):
@@ -291,6 +345,14 @@ def main():
         bad_power = [replace(item, operands="$0x49,%edx") if item.operation == "mov $0x4a,%edx"
                      else item for item in power]
         result["negative_controls"].append(rejects(lambda: pow_structure(bad_power), "shortened-pow-counter"))
+        for old, new, label in (
+            ("mov %rdx,-0x8(%rsp)", "mov %rax,-0x8(%rsp)", "wrong-exponent-pointer-origin"),
+            ("mov %rcx,-0x78(%rsp)", "mov %rax,-0x78(%rsp)", "secret-precomputation-index"),
+            ("mov %rdx,-0x30(%rsp)", "mov %rax,-0x30(%rsp)", "secret-window-counter"),
+        ):
+            bad_power = [replace(item, operands=new.split(" ", 1)[1]) if item.operation == old
+                         else item for item in power]
+            result["negative_controls"].append(rejects(lambda: pow_structure(bad_power), label))
         # Corrupt only the in-memory test copy; the measured ELF stays untouched.
         exponent = bytes.fromhex(result["exponents"][0]["value"][2:].zfill(80))[::-1]
         require(elf.count(exponent) == 1, "ambiguous exponent negative-control bytes")
@@ -304,6 +366,19 @@ def main():
         mutated[first_power + 1] = replace(mutated[first_power + 1], mnemonic="je", operands="0")
         bad_symbols = dict(symbols, **{importer: [mutated]})
         result["negative_controls"].append(rejects(lambda: exponent_sites(bad_symbols, elf), "early-symbol-exit"))
+    else:
+        ladder = single(symbols, "x301_core::x301::ladder301")
+        result["ladder"] = ladder_structure(ladder)
+        for old, new, label in (
+            ("mov $0x12c,%eax", "mov $0x12b,%eax", "shortened-ladder-counter"),
+            ("mov %rsi,0x1f0(%rsp)", "mov %rax,0x1f0(%rsp)", "wrong-scalar-pointer-origin"),
+            ("mov 0x1d8(%rsp),%rdx", "mov 0x1e4(%rsp),%rdx", "secret-ladder-bit-index"),
+            ("movabs $0xe402d7e9e,%r12", "movabs $0xe402d7e9f,%r12", "wrong-public-a24-scale"),
+            ("imul $0x12d,0xb0(%rsp),%r14", "imul $0x12e,0xb0(%rsp),%r14", "wrong-public-numerator"),
+        ):
+            bad_ladder = [replace(item, operands=new.split(" ", 1)[1]) if item.operation == old
+                          else item for item in ladder]
+            result["negative_controls"].append(rejects(lambda: ladder_structure(bad_ladder), label))
     result["elf_sha256"] = hashlib.sha256(args.elf.read_bytes()).hexdigest()
     result["checker_sha256"] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     destination = args.evidence / "dataflow.json"

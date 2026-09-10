@@ -487,6 +487,21 @@ impl Default for Fe301Lazy {
 impl zeroize::DefaultIsZeroes for Fe301Lazy {}
 
 impl Fe301LazyLinear {
+    /// Multiply a value below `4p` by a PUBLIC constant below `2^32`.
+    /// The product is below `2^335`, within the small reducer's `2^338`
+    /// input bound; the result remains in `[0, 2p)` without tightening.
+    #[allow(dead_code, reason = "shared source: used by the scaled X301 ladder")]
+    #[inline(always)]
+    pub(crate) fn mul_small_narrow(self, value: u64) -> Fe301Lazy {
+        assert!(
+            value <= u32::MAX as u64,
+            "loose small multiplier exceeds 32-bit bound"
+        );
+        Fe301Lazy(reduce_small_product_unreduced(multiply_five_by_u64(
+            self.0, value,
+        )))
+    }
+
     /// Multiply two values below `4p`, retaining a result below `2p`.
     #[inline(always)]
     pub(crate) fn mul(self, rhs: Self) -> Fe301Lazy {
@@ -494,6 +509,7 @@ impl Fe301LazyLinear {
     }
 
     /// Multiply a value below `4p` by a lazy value below `2p`.
+    /// Used by mixed Edwards addition and the full-domain oracle tests.
     #[inline(always)]
     pub(crate) fn mul_tight(self, rhs: Fe301Lazy) -> Fe301Lazy {
         Fe301Lazy(reduce_wide_unreduced(multiply_wide(self.0, rhs.0)))
@@ -645,6 +661,47 @@ const fn multiply_five_by_u64(value: [u64; LIMBS], multiplier: u64) -> [u64; LIM
 
 #[inline(always)]
 const fn square_wide(value: [u64; LIMBS]) -> [u64; LIMBS * 2] {
+    // OpenSSL crypto/bn/bn_sqr.c:bn_sqr_normal: double the cross products,
+    // then add the diagonals. Their sum is x^2 < 2^640, so neither overflows.
+    let mut output = [0_u64; LIMBS * 2];
+    let mut i = 0;
+    while i < LIMBS - 1 {
+        let mut carry = 0_u64;
+        let mut j = i + 1;
+        while j < LIMBS {
+            let p = value[i] as u128 * value[j] as u128 + output[i + j] as u128 + carry as u128;
+            output[i + j] = p as u64;
+            carry = (p >> 64) as u64;
+            j += 1;
+        }
+        output[i + LIMBS] = carry;
+        i += 1;
+    }
+    let mut carry = 0_u64;
+    i = 0;
+    while i < LIMBS * 2 {
+        let next = output[i] >> 63;
+        output[i] = (output[i] << 1) | carry;
+        carry = next;
+        i += 1;
+    }
+    carry = 0;
+    i = 0;
+    while i < LIMBS {
+        let p = value[i] as u128 * value[i] as u128;
+        let low = output[2 * i] as u128 + (p as u64) as u128 + carry as u128;
+        output[2 * i] = low as u64;
+        let high = output[2 * i + 1] as u128 + (p >> 64) + (low >> 64);
+        output[2 * i + 1] = high as u64;
+        carry = (high >> 64) as u64;
+        i += 1;
+    }
+    output
+}
+
+// The pre-E7 column schedule remains an independent wide-square test oracle.
+#[cfg(test)]
+const fn square_wide_column_oracle(value: [u64; LIMBS]) -> [u64; LIMBS * 2] {
     let mut output = [0_u64; LIMBS * 2];
     let mut accumulator = [0_u64; 3];
 
@@ -676,12 +733,14 @@ const fn square_wide(value: [u64; LIMBS]) -> [u64; LIMBS * 2] {
     output
 }
 
+#[cfg(test)]
 #[inline(always)]
 const fn accumulate_product(accumulator: &mut [u64; 3], left: u64, right: u64) {
     let product = left as u128 * right as u128;
     accumulate_192(accumulator, product as u64, (product >> 64) as u64, 0);
 }
 
+#[cfg(test)]
 #[inline(always)]
 const fn accumulate_double_product(accumulator: &mut [u64; 3], left: u64, right: u64) {
     let product = left as u128 * right as u128;
@@ -690,6 +749,7 @@ const fn accumulate_double_product(accumulator: &mut [u64; 3], left: u64, right:
     accumulate_192(accumulator, low << 1, (high << 1) | (low >> 63), high >> 63);
 }
 
+#[cfg(test)]
 #[inline(always)]
 const fn accumulate_192(accumulator: &mut [u64; 3], low: u64, middle: u64, high: u64) {
     let sum = accumulator[0] as u128 + low as u128;
@@ -701,6 +761,7 @@ const fn accumulate_192(accumulator: &mut [u64; 3], low: u64, middle: u64, high:
         .wrapping_add((sum >> 64) as u64);
 }
 
+#[cfg(test)]
 #[inline(always)]
 const fn emit_square_column(
     output: &mut [u64; LIMBS * 2],
@@ -987,6 +1048,7 @@ mod tests {
                 "wide Montgomery-library oracle"
             );
             assert_eq!(square_wide(words), multiply_wide(words, words));
+            assert_eq!(square_wide(words), square_wide_column_oracle(words));
         }
 
         for words in [
@@ -1272,6 +1334,17 @@ mod tests {
             );
         }
 
+        fn assert_narrow_small(left: [u64; LIMBS], multiplier: u64) {
+            let reduced = Fe301LazyLinear(left).mul_small_narrow(multiplier);
+            assert!(below(reduced.0, MODULUS_TIMES_TWO));
+            assert_eq!(
+                reduced.canonical().to_canonical_bytes(),
+                oracle_from_words(left)
+                    .mul(Oracle::from_u64(multiplier))
+                    .to_canonical_bytes()
+            );
+        }
+
         let (four_p, carry) = add_limbs(MODULUS_TIMES_TWO, MODULUS_TIMES_TWO);
         assert_eq!(carry, 0);
         let (three_p, carry) = add_limbs(MODULUS_TIMES_TWO, MODULUS);
@@ -1291,6 +1364,9 @@ mod tests {
             for right in directed {
                 assert_reduced_product(left, right);
             }
+            for multiplier in [0, 1, 301, 1 << 31, u32::MAX as u64] {
+                assert_narrow_small(left, multiplier);
+            }
         }
 
         for bit in 0..606 {
@@ -1300,10 +1376,12 @@ mod tests {
         }
 
         let mut state = 0x4852_2d46_554c_4c34_u64;
+        let mut narrow_state = 0x4537_4e41_5252_4f57_u64;
         for _ in 0..100_000 {
             let left = random_below(&mut state, four_p);
             let right = random_below(&mut state, four_p);
             assert_reduced_product(left, right);
+            assert_narrow_small(left, splitmix64(&mut narrow_state) & u32::MAX as u64);
 
             let square = square_wide(left);
             let reduced_square = reduce_wide_unreduced(square);
@@ -1475,5 +1553,11 @@ mod tests {
     #[should_panic(expected = "public multiplier exceeds 36-bit bound")]
     fn lazy_small_multiplier_rejects_full_u64_range() {
         let _ = Fe301Lazy::from_fe301(Fe301::ONE).mul_small(u64::MAX);
+    }
+
+    #[test]
+    #[should_panic(expected = "loose small multiplier exceeds 32-bit bound")]
+    fn loose_small_multiplier_rejects_the_first_out_of_range_value() {
+        let _ = Fe301LazyLinear([0; LIMBS]).mul_small_narrow(1_u64 << 32);
     }
 }

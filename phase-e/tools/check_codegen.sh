@@ -392,6 +392,8 @@ check_exact_call_graph() {
             sub(/^\*/, "", value)
             if (value ~ /^%(r|e)?bx$/ || value ~ /^%b[lh]$/)
                 return "%rbx"
+            if (value ~ /^%(r|e)?bp$/ || value == "%bpl")
+                return "%rbp"
             if (value ~ /^%r1[2345]([dwb])?$/) {
                 sub(/[dwb]$/, "", value)
                 return value
@@ -472,7 +474,8 @@ check_exact_call_graph() {
                 source_register = canonical_register(pieces[1])
                 delete register_target[source_register]
             }
-            if (loaded_register == "%rbx" || loaded_register ~ /^%r1[2345]$/)
+            if (loaded_register == "%rbx" || loaded_register == "%rbp" ||
+                    loaded_register ~ /^%r1[2345]$/)
                 register_target[loaded_register] = loaded_target
         }
     ' "$EVIDENCE/relative-got-targets.txt" "$file" >"$observed"
@@ -688,9 +691,10 @@ fi
 printf '%s\n' 'PASS negative_control=unexpected-call-rejected' \
     | tee -a "$SUMMARY"
 
-# E1/E3 keep memcpy in additional callee-saved registers. A named GOT load
-# is required, and an intervening narrow-register write must invalidate it.
-for register in r12 r13 r14 r15; do
+# E1/E3/E7 keep memcpy in additional callee-saved registers, including rbp
+# after E7's row-wise square changes allocation in public table preparation.
+# A named GOT load is required; narrow-register writes invalidate provenance.
+for register in rbp r12 r13 r14 r15; do
     CONTROL=$EVIDENCE/memcpy-$register-positive.asm
     printf '0 <memcpy_register>:\n   0: mov 0(%%rip),%%%s # 0 <memcpy@GLIBC_2.14>\n   1: call *%%%s\n   2: ret\n' \
         "$register" "$register" >"$CONTROL"
@@ -698,7 +702,11 @@ for register in r12 r13 r14 r15; do
     for clobber in alias exchange; do
         BAD=$EVIDENCE/memcpy-$register-$clobber-negative.asm
         if [ "$clobber" = alias ]; then
-            instruction="xor %${register}d,%${register}d"
+            case "$register" in
+                rbp) narrow=ebp ;;
+                *) narrow=${register}d ;;
+            esac
+            instruction="xor %${narrow},%${narrow}"
         else
             instruction="xchg %${register},%rax"
         fi
@@ -721,7 +729,7 @@ if ! contains_forbidden_instruction "$EVIDENCE/negative-control.asm" \
     exit 1
 fi
 printf 'PASS negative_control=public-%s-entry-jcc-detected\n' "$MODE" | tee -a "$SUMMARY"
-if /usr/bin/grep -Eq '(ed301_eddsa|x301_core)::.*(tests::|rem_wide|div3by2|is_prime_subgroup_with_table)|JacobiSymbol|jacobi_symbol' "$EVIDENCE/core.nm"; then
+if /usr/bin/grep -Eq '(ed301_eddsa|x301_core)::.*(tests::|rem_wide|div3by2|is_prime_subgroup_with_table|square_wide_column_oracle|accumulate_product|accumulate_double_product|accumulate_192|emit_square_column)|JacobiSymbol|jacobi_symbol' "$EVIDENCE/core.nm"; then
     echo 'FAIL test-only arithmetic oracle in final provider DSO' >&2
     exit 1
 fi

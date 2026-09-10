@@ -4,6 +4,8 @@
 // Gate-B X301 vectors SHA-256: b675f677f0d717a09f3c1cc55bf0c2ad97d17ca14a7890565a41916222cc80f0
 pub(crate) const FIELD_BITS: usize = 301;
 pub(crate) const FIELD_BYTES: usize = 38;
+// Retained for the canonical ladder and E7 identity test oracles.
+#[cfg(test)]
 pub(crate) const A24_MINUS_WORDS: [u64; 5] = [
     0xf33d747a41a1b75e,
     0xff524d296cfa8f85,
