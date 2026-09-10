@@ -24,6 +24,11 @@ case "$PROFILE" in
 esac
 PROFILE=${PROFILE%-*}
 
+if [ "$PROFILE" = x ] && [ ! -x /usr/bin/gawk ]; then
+    echo "missing canonical codegen-gate tool: /usr/bin/gawk (GNU awk required for X301)" >&2
+    exit 127
+fi
+
 for tool in /usr/bin/awk /usr/bin/cat /usr/bin/grep /usr/bin/mkdir \
         /usr/bin/nm /usr/bin/objdump /usr/bin/readelf /usr/bin/sha256sum; do
     test -x "$tool" || {

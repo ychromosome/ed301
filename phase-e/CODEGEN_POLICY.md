@@ -7,6 +7,25 @@ The final controller binds one immutable source manifest, the functional DSO
 receipt and the receipt of the exact measured core binaries, before and after
 inspection. This remains a bounded regression gate, not a universal CT proof.
 
+## Audited toolchain and required tools
+
+The current instruction/call allowlists are reviewed for native x86-64,
+Fedora Rust 1.98.0 with LLVM 21.1.8, and the recorded release profile
+(O3, ThinLTO, one codegen unit, panic=unwind, overflow checks enabled).
+They are not a compiler-independent description of all valid lowerings.
+In the external LLVM 22.1.8 build, for example, the Ed301 fixed-base symbol
+has four memcpy calls instead of eight and no _Unwind_Resume call. That
+explains a policy rejection; it neither proves a cryptographic defect nor
+constitutes approval of the new machine code. A different compiler requires
+separate inspection of its actual binaries and a newly reviewed policy with
+all applicable negative controls, not weakened or skipped checks.
+
+The shell driver needs POSIX sh, awk, cat, grep, mkdir, sha256sum, the GNU
+binutils tools nm/objdump/readelf, and Python 3 for the dataflow checks.
+X301 additionally requires GNU awk at /usr/bin/gawk: its strtonum-based
+address checks cannot be replaced by an arbitrary /usr/bin/awk. The driver
+checks this X-only dependency before creating evidence or disassembling.
+
 ## Inherited rules
 
 The D2 parser, legacy/v0 symbol-name normalization, local relative-GOT

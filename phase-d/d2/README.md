@@ -1,5 +1,27 @@
 # D2: provider, formats and TLS integration
 
+## Historical D2 scope; reuse by Phase E
+
+The completed D2 integration snapshot is commit
+`5dcb89fa97e85e6bba14a32a29586326f5696052`. The status text below records its
+original development phase; it does not describe the later optimized E8 core.
+Historical C/D1 seals and D2 receipts continue to bind their original inputs.
+
+Phase E reuses the source-bound D2 functional/memory/CLI/TCP controllers.
+They require a complete immutable source snapshot and authenticated OpenSSL
+lane receipts, not merely a locally installed OpenSSL prefix. In particular,
+/home/martin/Dokumente/ED301/ed301/phase-d/d2/tools/verify_openssl_lane.sh
+checks the source/archive/log layout and the externally pinned lane seal.
+For --openssl-lane use the authenticated lane from the corresponding evidence
+package. Independent builds need their own evidence workflow; do not bypass
+or replace the historical digest checks to make them appear identical.
+
+Current core checks and the distinction between fresh stage execution and
+packaged replay are described in
+/home/martin/Dokumente/ED301/ed301/phase-e/README.md.
+
+## Original D2 development scope
+
 Active development on `Testing`, following D1 commit
 `67f2910e7697cdab782cc992e44dc28843f93970`.
 The approved decision input is preserved under

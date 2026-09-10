@@ -78,7 +78,7 @@ def build(variant, package, features, library, module, directory):
 for variant, package, feature, library, module in variants:
     features = "test-sanitizer" + ("," + feature if feature else "")
     build("asan-" + variant, package, features, library, module, "modules-asan")
-for index in (0, 7):
+for index in (0, 1, 7):
     variant, package, feature, library, module = variants[index]
     features = "secret-taint-instrumentation" + ("," + feature if feature else "")
     build("taint-" + variant, package, features, library, module, "modules-taint")
@@ -141,7 +141,17 @@ if not any(marker in positive for marker in ("uninitialised", "uninitialized")):
 taint_env = dict(runtime, OPENSSL_MODULES=str(out / "modules-taint"))
 for mode in ("defined", "tainted"):
     receipt.run("ed-taint-" + mode, taint + [out / "bin/provider_secret_taint", mode], taint_env)
+    for path in ("pki", "bridge"):
+        receipt.run("ed-taint-" + path + "-" + mode,
+                    taint + [out / "bin/provider_secret_taint", mode, path], taint_env)
     receipt.run("x-taint-" + mode, taint + [out / "bin/provider_x301_secret_taint", out / "modules-taint", mode], taint_env)
+for path in ("pki", "bridge"):
+    positive = receipt.run("ed-export-positive-control-" + path,
+        taint + [out / "bin/provider_secret_taint", "tainted", path, "export-control"],
+        taint_env, expected=99)
+    if ("private_export_positive_control=triggered" not in positive
+            or not any(marker in positive for marker in ("uninitialised", "uninitialized"))):
+        raise SystemExit("private export positive control did not observe tainted DER")
 for path, checksum in receipt.identity["module_sha256"].items():
     if digest(out / path) != checksum:
         raise SystemExit("instrumented module changed during memory tests")

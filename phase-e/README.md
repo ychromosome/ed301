@@ -1,5 +1,39 @@
 # Phase E: optimization under a fresh Gate E
 
+## Current correctness entry point and historical receipts
+
+Use the Phase-E runner for the optimized Ed301 and X301 sources:
+
+```sh
+python3 -I -B /home/martin/Dokumente/ED301/ed301/phase-e/tools/check_core_correctness.py \
+  --baseline /home/martin/Dokumente/ED301/ED301-v2_PHASE_E_e4_before_2026-09-10/source \
+  --previous /home/martin/Dokumente/ED301/ED301-v2_PHASE_E_e8_final_01_2026-09-10/source
+```
+
+These example arguments name existing immutable local snapshots: the approved
+pre-optimization Gate-D source and the E8 source respectively. When using an
+extracted evidence package, select its corresponding authenticated snapshots
+instead. The runner checks historical seals on the baseline, rebuilds the
+baseline/previous test inventories, and retains every named test in the
+current source. It does not treat historical C/D1 checkers as current gates:
+the C checker expects 54 tests and the D1 checker requires unchanged C inputs.
+
+Provider stages reuse the bound D2 controllers. Their full OpenSSL lane
+receipts include sources, input archive, build logs, installed files and
+external digests; an independently built prefix is not a substitute. See
+/home/martin/Dokumente/ED301/ed301/phase-d/d2/README.md.
+For replay of the completed E8 package use
+/home/martin/Dokumente/ED301/ed301/phase-e/e8_handoff/verify_handoff.py
+with the bundle and externally supplied manifest hash. Replay is not a new
+build or a full repetition of timing, memory and benchmark stages.
+
+The codegen gate requires the toolchain and GNU-awk dependency documented in
+/home/martin/Dokumente/ED301/ed301/phase-e/CODEGEN_POLICY.md.
+Old archives, reports and manifests remain tied to their original commits;
+later documentation/test follow-ups do not retroactively change their inputs.
+
+## Original Phase-E authorization and method
+
 Phase E is authorized by Martin's 2026-09-10 instruction and the hash-bound
 Gate-D approval. This is still Stage 1: x86-64, private-libctx test providers,
 OpenSSL 3.5.8 and 4.0.2, owned test inputs and localhost. Gate E remains Claude's

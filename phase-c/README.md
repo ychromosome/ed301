@@ -1,5 +1,24 @@
 # Lokaler C1/C2-Zwischenstand
 
+## Historischer Stand; aktueller Einstieg
+
+Dieser Abschnitt und die folgenden Befehle gehören zum Phase-C-Kernstand
+`0be31f50cccf3d5af4675d081661ea463c575027`; die Gate-C-Freigabe wurde in
+`2b605d77d1f940f74e090796d7b345ef812a1da1` dokumentiert. Der damalige
+Korrektheitsrunner verlangt genau 54 Tests. Er ist kein Prüfer für den
+optimierten E8-Stand mit 65 Ed301-Tests; sein Abbruch auf E8 ist erwartbar.
+Historische Quellmanifeste bleiben unverändert und werden ausschließlich
+gegen ihren gebundenen historischen Snapshot geprüft.
+
+Aktueller gemeinsamer Ed301-/X301-Korrektheitsrunner:
+/home/martin/Dokumente/ED301/ed301/phase-e/tools/check_core_correctness.py.
+Baseline-/Previous-Argumente und Hinweise zur vollständigen Quellenbindung:
+/home/martin/Dokumente/ED301/ed301/phase-e/README.md.
+Die historischen Mess- und Taint-Harnesses werden weiterhin gezielt von
+Phase E verwendet; dadurch wird der alte 54-Test-Gate nicht zum aktuellen Gate.
+
+## Ursprünglicher Zwischenbericht
+
 Statusbericht mit allen 130 Benchmarkfällen:
 [/home/martin/Dokumente/ED301/ed301/phase-c/BERICHT_C1_C2_2026-09-10.md](/home/martin/Dokumente/ED301/ed301/phase-c/BERICHT_C1_C2_2026-09-10.md).
 
