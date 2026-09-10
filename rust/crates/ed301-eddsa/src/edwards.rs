@@ -73,14 +73,14 @@ impl zeroize::Zeroize for EdwardsPoint {
 }
 
 /// Affine cached point for the mixed-addition formulas used by fixed-base and
-/// public verification tables.  `xy = x + y` and `dt = d*x*y` remove one
+/// public verification tables. `xy = x + y` and `dt_abs = |d|*x*y` remove one
 /// field multiplication and the small-constant multiply from every table add.
 #[derive(Clone, Copy)]
 pub(crate) struct AffineNielsPoint {
     x: FieldElement,
     y: FieldElement,
     xy: FieldElement,
-    dt: FieldElement,
+    dt_abs: FieldElement,
 }
 
 impl AffineNielsPoint {
@@ -88,7 +88,7 @@ impl AffineNielsPoint {
         x: FieldElement::ZERO,
         y: FieldElement::ONE,
         xy: FieldElement::ONE,
-        dt: FieldElement::ZERO,
+        dt_abs: FieldElement::ZERO,
     };
 
     fn from_projective(point: EdwardsPoint, inverse_z: FieldElement) -> Self {
@@ -98,7 +98,7 @@ impl AffineNielsPoint {
             x,
             y,
             xy: x.add(y),
-            dt: x.mul(y).mul_small(EDWARDS_D_MAGNITUDE).neg(),
+            dt_abs: x.mul(y).mul_small(EDWARDS_D_MAGNITUDE),
         }
     }
 
@@ -109,10 +109,7 @@ impl AffineNielsPoint {
             x,
             y,
             xy: x.add_const(y),
-            dt: x
-                .mul_const(y)
-                .mul_small_const(EDWARDS_D_MAGNITUDE)
-                .neg_const(),
+            dt_abs: x.mul_const(y).mul_small_const(EDWARDS_D_MAGNITUDE),
         }
     }
 
@@ -122,7 +119,7 @@ impl AffineNielsPoint {
             x,
             y: self.y,
             xy: x.add(self.y),
-            dt: self.dt.neg(),
+            dt_abs: self.dt_abs.neg(),
         }
     }
 
@@ -131,7 +128,7 @@ impl AffineNielsPoint {
             x: FieldElement::conditional_select(when_false.x, when_true.x, choice),
             y: FieldElement::conditional_select(when_false.y, when_true.y, choice),
             xy: FieldElement::conditional_select(when_false.xy, when_true.xy, choice),
-            dt: FieldElement::conditional_select(when_false.dt, when_true.dt, choice),
+            dt_abs: FieldElement::conditional_select(when_false.dt_abs, when_true.dt_abs, choice),
         }
     }
 }
@@ -166,8 +163,9 @@ impl EdwardsPoint {
     ///
     /// Intermediate products stay lazily reduced below `2p` and sums or
     /// differences below `4p` (`Fe301Lazy`, `Fe301LazyLinear`); only the four
-    /// returned coordinates are canonicalised.  The formula and its operation
-    /// order are unchanged from the canonical `add_const`.
+    /// returned coordinates are canonicalised. The negative sign of `d` is
+    /// folded into the sum/difference pair; `add_const` retains the original
+    /// canonical formula as the independent test oracle.
     pub(crate) fn add(self, rhs: Self) -> Self {
         let (x, y, z, t) = (
             Lazy::from_fe301(self.x),
@@ -183,14 +181,14 @@ impl EdwardsPoint {
         );
         let xx = x.mul(rx);
         let yy = y.mul(ry);
-        let dt = t.mul_small(EDWARDS_D_MAGNITUDE).neg().mul(rt);
+        let dt_abs = t.mul_small(EDWARDS_D_MAGNITUDE).mul(rt);
         let zz = z.mul(rz);
         let cross = x
             .add_loose(y)
             .mul(rx.add_loose(ry))
             .sub_loose(xx.add_loose(yy).tighten());
-        let difference = zz.sub_loose(dt);
-        let sum = zz.add_loose(dt);
+        let difference = zz.add_loose(dt_abs);
+        let sum = zz.sub_loose(dt_abs);
         let twisted = yy.sub_loose(xx.mul_small(EDWARDS_A));
 
         Self {
@@ -211,13 +209,13 @@ impl EdwardsPoint {
         );
         let xx = x.mul(Lazy::from_fe301(rhs.x));
         let yy = y.mul(Lazy::from_fe301(rhs.y));
-        let dt = t.mul(Lazy::from_fe301(rhs.dt));
+        let dt_abs = t.mul(Lazy::from_fe301(rhs.dt_abs));
         let cross = x
             .add_loose(y)
             .mul_tight(Lazy::from_fe301(rhs.xy))
             .sub_loose(xx.add_loose(yy).tighten());
-        let difference = z.sub_loose(dt);
-        let sum = z.add_loose(dt);
+        let difference = z.add_loose(dt_abs);
+        let sum = z.sub_loose(dt_abs);
         let twisted = yy.sub_loose(xx.mul_small(EDWARDS_A));
 
         Self {
@@ -694,9 +692,7 @@ impl EdwardsPoint {
         let zz = self.z.square();
         let extended_relation = self.x.mul(self.y).ct_eq(&self.z.mul(self.t));
         let left = xx.mul_small(EDWARDS_A).mul(zz).add(yy.mul(zz));
-        let right = zz
-            .square()
-            .add(xx.mul_small(EDWARDS_D_MAGNITUDE).neg().mul(yy));
+        let right = zz.square().sub(xx.mul_small(EDWARDS_D_MAGNITUDE).mul(yy));
 
         self.z
             .is_zero()
@@ -1008,6 +1004,53 @@ mod tests {
                 point.add_const(self_affine),
             );
             previous = point;
+        }
+    }
+
+    #[test]
+    fn folded_d_tables_and_negation_match_original_addition() {
+        fn check(cached: AffineNielsPoint) {
+            let affine = EdwardsPoint::from_affine(cached.x, cached.y);
+            assert!(affine.is_valid().to_bool());
+            assert!(cached.xy.ct_eq(&cached.x.add(cached.y)).to_bool());
+            assert!(
+                cached
+                    .dt_abs
+                    .ct_eq(&cached.x.mul(cached.y).mul_small(EDWARDS_D_MAGNITUDE))
+                    .to_bool()
+            );
+            let constant = AffineNielsPoint::from_projective_const(affine, FieldElement::ONE);
+            let runtime = AffineNielsPoint::from_projective(affine, FieldElement::ONE);
+            assert!(constant.dt_abs.ct_eq(&cached.dt_abs).to_bool());
+            assert!(runtime.dt_abs.ct_eq(&cached.dt_abs).to_bool());
+            for point in [EdwardsPoint::IDENTITY, EdwardsPoint::BASEPOINT, affine] {
+                assert!(
+                    point
+                        .add_affine(cached)
+                        .ct_eq(&point.add_const(affine))
+                        .to_bool()
+                );
+                assert!(
+                    point
+                        .add_affine(cached.negate())
+                        .ct_eq(&point.add_const(affine.negate()))
+                        .to_bool()
+                );
+            }
+        }
+        // Check every compile-time fixed-base entry, not just a regenerated
+        // runtime table, so a mixed old/new dt convention cannot pass.
+        for cached in BASEPOINT_TABLE {
+            check(cached);
+        }
+        check(AffineNielsPoint::IDENTITY);
+        for encoded in [
+            ORDER_TWO_ENCODING,
+            ORDER_FOUR_ENCODING,
+            MIXED_ORDER_FOUR_ENCODING,
+        ] {
+            let point = EdwardsPoint::decode(&encoded).expect("directed point decodes");
+            check(AffineNielsPoint::from_projective(point, FieldElement::ONE));
         }
     }
 

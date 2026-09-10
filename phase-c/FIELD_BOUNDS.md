@@ -66,10 +66,27 @@ fixed-schedule borrow correction is retained; no full-width underflow occurs
 for valid inputs (individual word borrows still propagate). Canonical callers then
 perform one conditional subtraction, lazy callers retain [0,2p).
 
-Multiplication by d uses multiplication by 301 followed by negation. Lazy
-negation computes a bounded subtraction from zero and tightens the possible
-2p representative of zero; tests include zero and 2p-1. Const tables use
-the corresponding canonical negation and are regenerated for the v2 base.
+The original multiplication by d uses multiplication by 301 followed by
+negation. This remains in the canonical `add_const` test oracle. Lazy
+negation is now test-only; it computes a bounded subtraction from zero and
+tightens the possible 2p representative of zero, including zero and 2p-1.
+
+### Phase E / E5: folded negative-d addition
+
+Runtime addition instead computes H=301*T1*T2 mod p in the lazy domain,
+then F=Z1Z2+H and G=Z1Z2-H. Mixed addition caches `dt_abs=301*x*y`
+canonically and computes H=T1*dt_abs. These are the same residues as the
+old F=Z1Z2-d*T1*T2 and G=Z1Z2+d*T1*T2 because d=-301. Both H and the
+Z product are below 2p, so their sum is at most 4p-2 and their augmented
+subtraction at most 4p-1. Swapping the plus/minus operations therefore
+preserves the existing loose-domain bounds and all subsequent product
+bounds. The cached constant and runtime tables use the same positive
+magnitude convention; point negation still negates the cached product.
+
+The validity equation uses Z^4-301*X^2*Y^2 instead of adding a negated
+product. Dedicated doubling contains no d term and is unchanged. The
+canonical `add_const` and `double_const` are unchanged oracles for 5000
+random points and directed identity, torsion, mixed and inverse cases.
 
 ## Phase E / E2: lazy X301 ladder induction
 

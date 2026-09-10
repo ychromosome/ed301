@@ -469,6 +469,8 @@ impl Fe301Lazy {
     }
 
     /// Negate within [0, 2p), including the representative zero.
+    /// Retained as a test oracle after E5 folds the runtime negative-d term.
+    #[cfg(test)]
     #[inline(always)]
     pub(crate) fn neg(self) -> Self {
         Self::from_fe301(Fe301::ZERO).sub_loose(self).tighten()
