@@ -134,6 +134,21 @@ impl FieldElement {
         CtOption::new(candidate, candidate.square().ct_eq(&self))
     }
 
+    /// Independent Euler-criterion oracle for the production Jacobi symbol.
+    #[cfg(test)]
+    pub(crate) fn legendre_euler(self) -> i8 {
+        let exponent = MODULUS.wrapping_sub(&U320::ONE).shr_vartime(1);
+        let powered = Self(self.0.pow_bounded_exp(&exponent, 300));
+        if powered.ct_eq(&Self::ONE).to_bool() {
+            1
+        } else if powered.ct_eq(&Self::ONE.neg()).to_bool() {
+            -1
+        } else {
+            assert!(powered.is_zero().to_bool());
+            0
+        }
+    }
+
     /// Return a square root of `numerator / denominator` when it exists.
     ///
     /// The result is computed with one fixed-exponent operation and verified

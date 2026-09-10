@@ -89,20 +89,17 @@ impl VerifyingKey {
             .try_into()
             .map_err(|_| SignatureError::InvalidPublicKey)?;
         // Same acceptance set as `decode_strict_subgroup`: canonical decode,
-        // nonidentity, then `[L]P = O`. The subgroup check reuses the
-        // verifier's odd-multiples table through the fixed public wNAF
-        // schedule, so an accepted import pays for that table exactly once.
-        // A rejected torsion or mixed-order point performs one bounded table
-        // construction before rejection; no `VerifyingKey` exists until every
-        // check has passed.
+        // nonidentity, then membership in 4E = E[q]. The selection-free
+        // halving criterion computes both symbols before its final decision.
+        // Build the verification table only after every check has passed.
         let point = EdwardsPoint::decode(encoded).map_err(|_| SignatureError::InvalidPublicKey)?;
         if point.is_identity().to_bool() {
             return Err(SignatureError::InvalidPublicKey);
         }
-        let odd_multiples = point.prepare_vartime_table();
-        if !point.is_prime_subgroup_with_table(&odd_multiples).to_bool() {
+        if !point.is_prime_subgroup_decoded().to_bool() {
             return Err(SignatureError::InvalidPublicKey);
         }
+        let odd_multiples = point.prepare_vartime_table();
         Ok(Self {
             encoded: *encoded,
             odd_multiples,

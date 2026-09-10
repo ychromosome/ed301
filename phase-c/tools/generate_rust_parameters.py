@@ -32,6 +32,18 @@ def generate():
 
     p, q = int(data["field"]["p_decimal"]), int(data["group"]["q_decimal"])
     a, d = int(data["edwards"]["a_decimal"]), int(data["edwards"]["d_signed"])
+    montgomery_b = int(data["montgomery"]["B_decimal"])
+    def legendre(value):
+        symbol = pow(value % p, (p - 1) // 2, p)
+        return -1 if symbol == p - 1 else symbol
+    halving = (p % 4, legendre(montgomery_b), legendre(d * (a - d)))
+    if halving != (3, -1, 1):
+        raise RuntimeError("approved curve does not satisfy selection-free halving assumptions")
+    halving_vectors = bound_json(ROOT / "vectors/ed301-v2-subgroup-halving.json",
+                                "e78ae62a636242ba9c01f4a4a0edce7d38dbe89ebb1508b144baaa3334b91737")
+    if (int(halving_vectors["B_decimal"]), halving_vectors["chi_B"],
+            halving_vectors["chi_d_times_a_minus_d"]) != (montgomery_b, halving[1], halving[2]):
+        raise RuntimeError("halving vectors disagree with approved curve assumptions")
     inv = int(data["field"]["inversion_exponent"])
     sqrt = int(data["field"]["square_root_exponent"])
     ratio = int(data["field"]["square_root_ratio_exponent"])
@@ -77,6 +89,9 @@ def generate():
     integer("EDWARDS_A", a)
     integer("EDWARDS_D", d, "i16")
     integer("EDWARDS_D_MAGNITUDE", -d)
+    integer("HALVING_P_MOD_4", halving[0], "u8")
+    integer("HALVING_CHI_B", halving[1], "i8")
+    integer("HALVING_CHI_D_A_MINUS_D", halving[2], "i8")
     integer("SMALL_MULTIPLIER_BITS", a.bit_length(), "u32")
     integer("MAX_SMALL_MULTIPLIER", (1 << a.bit_length()) - 1)
     integer("FOLD_SUBTRAHEND", subtrahend)
@@ -89,6 +104,8 @@ def generate():
     hex_constant("RADIX_304_REDUCED_HEX", pow(2, 304, q), test=True)
     for name, value in (("MODULUS_WORDS", p), ("TWO_P_WORDS", 2 * p),
                         ("INVERSION_WORDS", inv), ("SQRT_RATIO_WORDS", ratio),
+                        ("SQRT_WORDS", sqrt), ("LEGENDRE_WORDS", (p - 1) // 2),
+                        ("MONTGOMERY_B_WORDS", montgomery_b),
                         ("BASE_X_WORDS", c.G[0]), ("BASE_Y_WORDS", c.G[1]),
                         ("BASE_T_WORDS", c.G[0] * c.G[1] % p)):
         words(name, value)
@@ -114,7 +131,7 @@ def generate():
     wnaf.reverse()
     if sum(digit * (1 << position) for position, digit in wnaf) != q:
         raise RuntimeError("wNAF reconstruction failed")
-    array("PRIME_ORDER_WNAF8_DESC", wnaf, "(u16, i8)", lambda v: f"({v[0]}, {v[1]})")
+    array("PRIME_ORDER_WNAF8_DESC", wnaf, "(u16, i8)", lambda v: f"({v[0]}, {v[1]})", "test")
     array("PRIME_ORDER_SET_BITS_DESC", [i for i in range(q.bit_length() - 1, -1, -1) if (q >> i) & 1],
           "u16", str, 'any(test, feature = "sign-self-verify")')
     trace = vectors["signing"][0]["trace"]

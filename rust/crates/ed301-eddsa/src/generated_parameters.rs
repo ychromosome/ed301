@@ -6,6 +6,9 @@
 pub(crate) const EDWARDS_A: u64 = 61206265201;
 pub(crate) const EDWARDS_D: i16 = -301;
 pub(crate) const EDWARDS_D_MAGNITUDE: u64 = 301;
+pub(crate) const HALVING_P_MOD_4: u8 = 3;
+pub(crate) const HALVING_CHI_B: i8 = -1;
+pub(crate) const HALVING_CHI_D_A_MINUS_D: i8 = 1;
 pub(crate) const SMALL_MULTIPLIER_BITS: u32 = 36;
 pub(crate) const MAX_SMALL_MULTIPLIER: u64 = 68719476735;
 pub(crate) const FOLD_SUBTRAHEND: u64 = 907;
@@ -50,6 +53,27 @@ pub(crate) const SQRT_RATIO_WORDS: [u64; 5] = [
     0xffffffffffffffff,
     0xffffffffffffffff,
     0x000007ffffffffff,
+];
+pub(crate) const SQRT_WORDS: [u64; 5] = [
+    0x00000000000000e3,
+    0xffffffffff800000,
+    0xffffffffffffffff,
+    0xffffffffffffffff,
+    0x000007ffffffffff,
+];
+pub(crate) const LEGENDRE_WORDS: [u64; 5] = [
+    0x00000000000001c5,
+    0xffffffffff000000,
+    0xffffffffffffffff,
+    0xffffffffffffffff,
+    0x00000fffffffffff,
+];
+pub(crate) const MONTGOMERY_B_WORDS: [u64; 5] = [
+    0xe5cddabb2f9b3399,
+    0xd0619068e812c882,
+    0xe3a93bf614c1b337,
+    0x75321cb3ed490dc6,
+    0x00001355f8a89df5,
 ];
 pub(crate) const BASE_X_WORDS: [u64; 5] = [
     0xaae2bccce4aab28a,
@@ -124,6 +148,7 @@ pub(crate) const NONPOINT_ENCODING: [u8; 38] = [
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 ];
+#[cfg(test)]
 pub(crate) const PRIME_ORDER_WNAF8_DESC: [(u16, i8); 19] = [
     (299, 1),
     (148, 1),

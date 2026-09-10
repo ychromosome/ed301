@@ -185,6 +185,10 @@ fn native_context_vectors_and_boundaries_match() {
 #[test]
 fn complete_point_and_scalar_acceptance_matrices_match() {
     let document = fixture();
+    assert_eq!(
+        document["point_decoding"].as_array().expect("points").len(),
+        15
+    );
     for case in document["point_decoding"].as_array().expect("points") {
         let encoded = decode_hex(case["encoded_hex"].as_str().expect("encoding"));
         let exact: Option<&[u8; 38]> = encoded.as_slice().try_into().ok();
@@ -199,6 +203,22 @@ fn complete_point_and_scalar_acceptance_matrices_match() {
             validate_public_key(&encoded),
             case["id"] == "base",
             "{}",
+            case["id"]
+        );
+        let old = exact.is_some_and(|bytes| {
+            EdwardsPoint::decode(bytes).is_ok_and(|point| {
+                let table = point.prepare_vartime_table();
+                point
+                    .is_identity()
+                    .not()
+                    .and(point.is_prime_subgroup_with_table(&table))
+                    .to_bool()
+            })
+        });
+        assert_eq!(
+            validate_public_key(&encoded),
+            old,
+            "old [q] import oracle: {}",
             case["id"]
         );
     }

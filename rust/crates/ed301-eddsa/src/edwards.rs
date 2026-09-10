@@ -16,7 +16,12 @@ use crate::{
 
 #[cfg(any(test, feature = "sign-self-verify"))]
 use crate::generated_parameters::PRIME_ORDER_SET_BITS_DESC;
-use crate::generated_parameters::{EDWARDS_A, EDWARDS_D_MAGNITUDE, PRIME_ORDER_WNAF8_DESC};
+#[cfg(test)]
+use crate::generated_parameters::PRIME_ORDER_WNAF8_DESC;
+use crate::generated_parameters::{EDWARDS_A, EDWARDS_D_MAGNITUDE};
+const _: () = assert!(crate::generated_parameters::HALVING_P_MOD_4 == 3);
+const _: () = assert!(crate::generated_parameters::HALVING_CHI_B == -1);
+const _: () = assert!(crate::generated_parameters::HALVING_CHI_D_A_MINUS_D == 1);
 const BASEPOINT_TABLE_ROWS: usize = FIELD_BYTES;
 const BASEPOINT_TABLE_WIDTH: usize = 8;
 const BASEPOINT_TABLE_SIZE: usize = BASEPOINT_TABLE_ROWS * BASEPOINT_TABLE_WIDTH;
@@ -407,6 +412,7 @@ impl EdwardsPoint {
     /// control flow is input-independent even though the point additions use
     /// the variable-time mixed-addition path. Callers must pass the table
     /// built from this same point.
+    #[cfg(test)]
     pub(crate) fn is_prime_subgroup_with_table(&self, table: &VartimePointTable) -> Choice {
         let (leading_position, leading_digit) = PRIME_ORDER_WNAF8_DESC[0];
         debug_assert_eq!(leading_digit, 1);
@@ -424,6 +430,50 @@ impl EdwardsPoint {
             digit_index += 1;
         }
         accumulator.is_identity()
+    }
+
+    /// Require nonidentity membership in `4E = E[q]` after canonical decoding.
+    /// The caller must supply an affine point returned by `decode` (`Z = 1`).
+    /// Both symbols and the square-root validity mask are always computed;
+    /// no division or selection of a rational halving root is needed.
+    pub(crate) fn is_prime_subgroup_decoded(&self) -> Choice {
+        let (w, _, _, second, root_valid) = self.halving_terms();
+        let first_symbol = w.is_nonzero_square();
+        let second_symbol = second.is_nonzero_square();
+        first_symbol
+            .and(second_symbol)
+            .and(root_valid)
+            .and(self.y.ct_eq(&FieldElement::ONE.neg()).not())
+            .and(self.is_identity().not())
+    }
+
+    // Expose the actual production intermediates to the child test module.
+    // Return fields: w, delta, sqrt candidate, second symbol input, root valid.
+    fn halving_terms(
+        &self,
+    ) -> (
+        FieldElement,
+        FieldElement,
+        FieldElement,
+        FieldElement,
+        Choice,
+    ) {
+        debug_assert!(self.z.ct_eq(&FieldElement::ONE).to_bool());
+        let b = FieldElement::from_canonical_words(crate::generated_parameters::MONTGOMERY_B_WORDS);
+        let a_minus_d = FieldElement::from_u64(EDWARDS_A + EDWARDS_D_MAGNITUDE);
+        let yy = self.y.square();
+        let w = b.mul(FieldElement::ONE.sub(yy));
+        let delta =
+            a_minus_d.mul(FieldElement::from_u64(EDWARDS_A).add(yy.mul_small(EDWARDS_D_MAGNITUDE)));
+        let root = delta.sqrt_fixed();
+        let root_valid = root.is_some();
+        let candidate = root.to_inner_unchecked();
+        let second = b
+            .mul_small(EDWARDS_D_MAGNITUDE)
+            .neg()
+            .mul(self.y.add(FieldElement::ONE))
+            .mul(a_minus_d.neg().sub(candidate));
+        (w, delta, candidate, second, root_valid)
     }
 
     /// Multiply by the fixed public prime order using its sparse bit pattern.
@@ -1072,6 +1122,167 @@ mod tests {
 
         assert_eq!(rounds, 301);
         assert!(result.is_identity().to_bool());
+    }
+
+    #[test]
+    fn halving_matches_old_order_test_on_one_hundred_thousand_balanced_points() {
+        let order_four = EdwardsPoint::decode(&ORDER_FOUR_ENCODING).expect("order four");
+        let order_two = EdwardsPoint::decode(&ORDER_TWO_ENCODING).expect("order two");
+        let torsion = [
+            EdwardsPoint::IDENTITY,
+            order_two,
+            order_four,
+            order_four.negate(),
+        ];
+        let mut state = 0x4533_4841_4c56_494e_u64;
+        let mut counts = [[0_usize; 4]; 4];
+        for index in 0..100_000 {
+            let mut scalar_bytes = [0; FIELD_BYTES];
+            for byte in &mut scalar_bytes {
+                *byte = splitmix64(&mut state) as u8;
+            }
+            // k < 2^298 < q; keep k mod 4 and the torsion class independent
+            // and exactly balanced, with 6,250 cases in every joint class.
+            scalar_bytes[FIELD_BYTES - 1] &= 0x03;
+            scalar_bytes[0] = (scalar_bytes[0] & !3) | (index & 3) as u8;
+            let class = (index >> 2) & 3;
+            counts[index & 3][class] += 1;
+            let point = EdwardsPoint::scalar_mul_base_encoded(&scalar_bytes).add(torsion[class]);
+            let encoded = point.encode().expect("random point encoding");
+            let decoded = EdwardsPoint::decode(&encoded).expect("random point decoding");
+            let table = decoded.prepare_vartime_table();
+            let old = decoded
+                .is_identity()
+                .not()
+                .and(decoded.is_prime_subgroup_with_table(&table));
+            let new = decoded.is_prime_subgroup_decoded();
+            assert_eq!(
+                new.to_bool(),
+                old.to_bool(),
+                "random point {index}, torsion {class}"
+            );
+            assert_eq!(
+                new.to_bool(),
+                class == 0 && !decoded.is_identity().to_bool()
+            );
+        }
+        assert_eq!(counts, [[6_250; 4]; 4]);
+        for point in torsion.into_iter().chain([
+            EdwardsPoint::BASEPOINT,
+            EdwardsPoint::BASEPOINT.negate(),
+            EdwardsPoint::BASEPOINT.add(order_two),
+            EdwardsPoint::BASEPOINT.add(order_four),
+            EdwardsPoint::BASEPOINT.add(order_four.negate()),
+        ]) {
+            let decoded = EdwardsPoint::decode(&point.encode().expect("directed encoding"))
+                .expect("directed decoding");
+            let table = decoded.prepare_vartime_table();
+            let old = decoded
+                .is_identity()
+                .not()
+                .and(decoded.is_prime_subgroup_with_table(&table));
+            assert_eq!(decoded.is_prime_subgroup_decoded().to_bool(), old.to_bool());
+        }
+    }
+
+    #[test]
+    fn supplied_halving_vectors_match_every_production_intermediate() {
+        fn decimal(value: &serde_json::Value) -> FieldElement {
+            let integer =
+                crypto_bigint::U320::from_str_radix_vartime(value.as_str().expect("decimal"), 10)
+                    .expect("decimal field value");
+            assert!(
+                integer
+                    < crypto_bigint::U320::from_words(crate::generated_parameters::MODULUS_WORDS)
+            );
+            FieldElement::from_canonical_words(integer.to_words())
+        }
+        fn same(actual: FieldElement, expected: FieldElement, label: &str) {
+            assert_eq!(
+                actual.to_canonical_bytes(),
+                expected.to_canonical_bytes(),
+                "{label}"
+            );
+        }
+        let document: serde_json::Value = serde_json::from_str(include_str!(
+            "../../../../vectors/ed301-v2-subgroup-halving.json"
+        ))
+        .expect("halving fixture");
+        let b = FieldElement::from_canonical_words(crate::generated_parameters::MONTGOMERY_B_WORDS);
+        same(b, decimal(&document["B_decimal"]), "B");
+        assert_eq!(i8::from(b.legendre()), -1);
+        let a = FieldElement::from_u64(EDWARDS_A);
+        let d = FieldElement::from_u64(EDWARDS_D_MAGNITUDE).neg();
+        assert_eq!(i8::from(d.mul(a.sub(d)).legendre()), 1);
+        let cases = document["vectors"].as_array().expect("vector array");
+        assert_eq!(cases.len(), 25);
+        for case in cases {
+            let label = case["label"].as_str().expect("label");
+            let encoded = decode_hex_array::<FIELD_BYTES>(
+                case["encoded_hex"].as_str().expect("encoded").as_bytes(),
+            );
+            let point = EdwardsPoint::decode(&encoded).expect("supplied point decodes");
+            same(point.y, decimal(&case["y_decimal"]), label);
+            let (w, delta, root, second, valid) = point.halving_terms();
+            let in_two = point
+                .is_identity()
+                .or(point.y.ct_eq(&FieldElement::ONE.neg()))
+                .or(w.legendre().is_one());
+            assert_eq!(
+                in_two.to_bool(),
+                case["in_2E"].as_bool().expect("in 2E"),
+                "{label}"
+            );
+            let new = point.is_prime_subgroup_decoded().to_bool();
+            let old = point
+                .is_prime_subgroup_with_table(&point.prepare_vartime_table())
+                .to_bool();
+            assert_eq!(new, case["in_4E"].as_bool().expect("in 4E"), "{label}");
+            assert_eq!(
+                old,
+                case["in_4E_truth"].as_bool().expect("truth"),
+                "{label}"
+            );
+            assert_eq!(new, old, "{label}");
+            if case.get("w_decimal").is_some() {
+                same(w, decimal(&case["w_decimal"]), label);
+                assert_eq!(
+                    i8::from(w.legendre()) as i64,
+                    case["chi_w"].as_i64().expect("chi w"),
+                    "{label}"
+                );
+            }
+            if case.get("delta_decimal").is_some() {
+                assert!(valid.to_bool(), "{label}");
+                same(delta, decimal(&case["delta_decimal"]), label);
+                same(root, decimal(&case["sqrt_delta_decimal"]), label);
+                // These inversions and both roots exist only in the test.
+                let inverse = d
+                    .mul(point.y.add(FieldElement::ONE))
+                    .invert()
+                    .expect_copied("test denominator");
+                let center = d.mul(point.y).add(a);
+                for (index, numerator) in
+                    [center.add(root), center.sub(root)].into_iter().enumerate()
+                {
+                    let t = numerator.mul(inverse);
+                    same(t, decimal(&case["roots_decimal"][index]), label);
+                    let expected = case["chi_B_1_minus_t_both_roots"][index]
+                        .as_i64()
+                        .expect("root symbol");
+                    assert_eq!(
+                        i8::from(b.mul(FieldElement::ONE.sub(t)).legendre()) as i64,
+                        expected,
+                        "{label}"
+                    );
+                    assert_eq!(
+                        i8::from(second.legendre()) as i64,
+                        expected,
+                        "selection-free {label}"
+                    );
+                }
+            }
+        }
     }
 
     #[test]

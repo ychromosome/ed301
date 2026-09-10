@@ -10,6 +10,8 @@
 //! the Montgomery oracle.
 
 use crypto_bigint::{Choice, CtAssign, CtEq, CtOption};
+#[cfg(test)]
+use crypto_bigint::{JacobiSymbol, Odd, U320};
 
 use crate::generated_parameters as parameters;
 use crate::parameters::FIELD_BYTES;
@@ -23,6 +25,11 @@ const _: () = assert!(parameters::SMALL_MULTIPLIER_BITS == 36);
 
 // p in little-endian radix 2^64.
 const MODULUS: [u64; LIMBS] = parameters::MODULUS_WORDS;
+#[cfg(test)]
+const ODD_MODULUS: Odd<U320> = U320::from_words(MODULUS)
+    .to_odd()
+    .expect_copied("the generated field modulus is odd");
+const _: () = assert!(MODULUS[0] & 3 == 3);
 
 // p - 2, used only while constructing immutable affine tables at compile time.
 const INVERSION_EXPONENT: [u64; LIMBS] = parameters::INVERSION_WORDS;
@@ -197,6 +204,26 @@ impl Fe301 {
         let converted = Self::from_canonical_bytes(&root.to_inner_unchecked().to_canonical_bytes())
             .to_inner_unchecked();
         CtOption::new(converted, present)
+    }
+
+    /// Fixed-exponent square root, including an explicit validity mask.
+    pub(crate) fn sqrt_fixed(self) -> CtOption<Self> {
+        let candidate = self.pow_fixed_window4(parameters::SQRT_WORDS, 299);
+        CtOption::new(candidate, candidate.square().ct_eq(&self))
+    }
+
+    /// Euler's criterion with a fixed public exponent and branch-free result.
+    /// Zero is not a nonzero square. The library Jacobi routine remains a test
+    /// oracle: its linked enum conversion branched on the returned symbol.
+    pub(crate) fn is_nonzero_square(self) -> Choice {
+        self.pow_fixed_window4(parameters::LEGENDRE_WORDS, 300)
+            .ct_eq(&Self::ONE)
+    }
+
+    /// Additional library Jacobi oracle, never used by the compiled importer.
+    #[cfg(test)]
+    pub(crate) fn legendre(self) -> JacobiSymbol {
+        U320::from_words(self.0).jacobi_symbol(&ODD_MODULUS)
     }
 
     /// Compute and verify a square root of `numerator / denominator`.
@@ -899,6 +926,48 @@ mod tests {
                 "wide reduction diverged from the Montgomery oracle"
             );
             case_index += 1;
+        }
+    }
+
+    #[test]
+    fn fixed_jacobi_and_square_root_match_independent_euler_oracles() {
+        let mut state = 0x4841_4c56_494e_4733_u64;
+        for index in 0..100_003 {
+            let value = match index {
+                0 => Fe301::ZERO,
+                1 => Fe301::ONE,
+                2 => Fe301::ONE.neg(),
+                _ => {
+                    let mut words = [0; LIMBS];
+                    for word in &mut words {
+                        *word = splitmix64(&mut state);
+                    }
+                    words[4] &= TOP_MASK;
+                    Fe301(conditional_subtract_modulus_const(words))
+                }
+            };
+            assert_eq!(
+                i8::from(value.legendre()),
+                oracle(value).legendre_euler(),
+                "Jacobi {index}"
+            );
+            assert_eq!(
+                value.is_nonzero_square().to_bool(),
+                oracle(value).legendre_euler() == 1,
+                "production Euler {index}"
+            );
+            let root = value.sqrt_fixed();
+            let reference = value.sqrt();
+            assert_eq!(
+                root.is_some().to_bool(),
+                reference.is_some().to_bool(),
+                "root mask {index}"
+            );
+            assert_eq!(
+                root.to_inner_unchecked().to_canonical_bytes(),
+                reference.to_inner_unchecked().to_canonical_bytes(),
+                "root candidate {index}"
+            );
         }
     }
 

@@ -15,7 +15,9 @@ EXPECTED = {
     PARAMETERS: "13f0eaf541919a1447b9d3c58e6d57eb77ffab94ebe37539c70301d6fddcfaa0",
     VECTORS: "b675f677f0d717a09f3c1cc55bf0c2ad97d17ca14a7890565a41916222cc80f0",
     CONTRACT: "b33d3fe0bf6b5b026192695902902f4b7592d4271ca98161f47920b47c6a1c2c",
-    ROOT / "rust/crates/ed301-eddsa/src/generated_parameters.rs": "089321a9f25162712f02275ebafbf7f572f1e992e88c65a62544fc0d79e1b947",
+    # Phase E3 adds generated halving assumptions and constants; the original
+    # field, group, basepoint and X301 constants are unchanged.
+    ROOT / "rust/crates/ed301-eddsa/src/generated_parameters.rs": "c26f22b6f7e52ba66f68f8cdc4a411cf69ca171a20b22849efb4111d071073f3",
 }
 
 
