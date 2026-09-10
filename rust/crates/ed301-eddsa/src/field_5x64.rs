@@ -355,8 +355,9 @@ const MODULUS_TIMES_TWO: [u64; LIMBS] = parameters::TWO_P_WORDS;
 /// Lazily reduced field element in `[0, 2p)`.
 ///
 /// The group formulas keep their intermediate products in this form and
-/// canonicalise only the four coordinates they return, so the canonical
-/// `Fe301` stays the sole representation outside a single formula.
+/// canonicalise only the coordinates they return. The X301 ladder also keeps
+/// its five private state coordinates in this domain across all 301 rounds;
+/// it canonicalises only its final projective output.
 #[derive(Clone, Copy)]
 pub(crate) struct Fe301Lazy([u64; LIMBS]);
 
@@ -368,6 +369,25 @@ pub(crate) struct Fe301Lazy([u64; LIMBS]);
 pub(crate) struct Fe301LazyLinear([u64; LIMBS]);
 
 impl Fe301Lazy {
+    /// Select a whole bounded representation without input-dependent branches.
+    #[allow(dead_code, reason = "shared source: used by the X301 lazy ladder")]
+    #[inline(always)]
+    pub(crate) fn conditional_select(when_false: Self, when_true: Self, choice: Choice) -> Self {
+        let mut selected = when_false.0;
+        selected.ct_assign(&when_true.0, choice);
+        Self(selected)
+    }
+
+    #[cfg(test)]
+    pub(crate) fn assert_lazy_bound_for_test(&self) {
+        assert_eq!(subtract_limbs(self.0, MODULUS_TIMES_TWO).1, 1);
+    }
+
+    #[cfg(test)]
+    pub(crate) fn is_zero_representation_for_test(&self) -> bool {
+        self.0 == [0; LIMBS]
+    }
+
     #[inline(always)]
     pub(crate) const fn from_fe301(value: Fe301) -> Self {
         Self(value.0)
@@ -427,6 +447,15 @@ impl Fe301Lazy {
         Self::from_fe301(Fe301::ZERO).sub_loose(self).tighten()
     }
 }
+
+impl Default for Fe301Lazy {
+    fn default() -> Self {
+        Self::from_fe301(Fe301::ZERO)
+    }
+}
+
+// Like Fe301, the lazy representation's reviewed Default is all zero words.
+impl zeroize::DefaultIsZeroes for Fe301Lazy {}
 
 impl Fe301LazyLinear {
     /// Multiply two values below `4p`, retaining a result below `2p`.
@@ -958,6 +987,20 @@ mod tests {
                         .to_canonical_bytes()
                 );
             }
+        }
+    }
+
+    #[test]
+    fn lazy_selection_preserves_extrema_and_zeroize_clears_all_words() {
+        use zeroize::Zeroize;
+        let zero = Fe301Lazy::default();
+        let high = Fe301Lazy(subtract_limbs(MODULUS_TIMES_TWO, [1, 0, 0, 0, 0]).0);
+        for choice in [Choice::FALSE, Choice::TRUE] {
+            let mut selected = Fe301Lazy::conditional_select(zero, high, choice);
+            selected.assert_lazy_bound_for_test();
+            assert_eq!(selected.0, if choice.to_bool() { high.0 } else { zero.0 });
+            selected.zeroize();
+            assert!(selected.is_zero_representation_for_test());
         }
     }
 

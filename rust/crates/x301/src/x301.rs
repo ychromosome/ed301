@@ -5,7 +5,7 @@ use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
 
 use crate::{
     edwards::EdwardsPoint,
-    field_5x64::Fe301,
+    field_5x64::{Fe301, Fe301Lazy},
     parameters::{FIELD_BYTES, LADDER_BITS, PUBLIC_BYTES, SECRET_BYTES, SHARED_BYTES},
     secret_taint::declassify,
     x_generated_parameters::{A24_MINUS_WORDS, TWIST_ORDER_BYTES},
@@ -16,6 +16,7 @@ pub const X301_BYTES: usize = FIELD_BYTES;
 /// Canonical Montgomery coordinate of the approved v2 base point.
 pub const BASE_U_BYTES: [u8; FIELD_BYTES] = crate::x_generated_parameters::BASE_U_BYTES;
 const A24_MINUS: Fe301 = Fe301::from_canonical_words(A24_MINUS_WORDS);
+const A24_MINUS_LAZY: Fe301Lazy = Fe301Lazy::from_fe301(A24_MINUS);
 #[cfg(test)]
 const BASE_U: Fe301 = Fe301::from_canonical_words(crate::x_generated_parameters::BASE_U_WORDS);
 
@@ -201,13 +202,110 @@ where
 }
 
 struct LadderState {
+    x1: Fe301Lazy,
+    x2: Fe301Lazy,
+    z2: Fe301Lazy,
+    x3: Fe301Lazy,
+    z3: Fe301Lazy,
+}
+impl Zeroize for LadderState {
+    fn zeroize(&mut self) {
+        self.x1.zeroize();
+        self.x2.zeroize();
+        self.z2.zeroize();
+        self.x3.zeroize();
+        self.z3.zeroize();
+        #[cfg(test)]
+        {
+            assert!(
+                self.x1.is_zero_representation_for_test()
+                    && self.x2.is_zero_representation_for_test()
+                    && self.z2.is_zero_representation_for_test()
+                    && self.x3.is_zero_representation_for_test()
+                    && self.z3.is_zero_representation_for_test()
+            );
+            crate::tests::count_state_zeroization();
+        }
+    }
+}
+struct ProjectiveOutput {
+    x: Fe301,
+    z: Fe301,
+}
+impl Zeroize for ProjectiveOutput {
+    fn zeroize(&mut self) {
+        self.x.zeroize();
+        self.z.zeroize();
+    }
+}
+
+#[inline(always)]
+fn swap(left: &mut Fe301Lazy, right: &mut Fe301Lazy, choice: Choice) {
+    let original = *left;
+    *left = Fe301Lazy::conditional_select(*left, *right, choice);
+    *right = Fe301Lazy::conditional_select(*right, original, choice);
+}
+
+#[inline(never)]
+fn ladder301(scalar: &[u8; SECRET_BYTES], u: Fe301) -> Zeroizing<ProjectiveOutput> {
+    let mut state = Zeroizing::new(LadderState {
+        x1: Fe301Lazy::from_fe301(u),
+        x2: Fe301Lazy::from_fe301(Fe301::ONE),
+        z2: Fe301Lazy::from_fe301(Fe301::ZERO),
+        x3: Fe301Lazy::from_fe301(u),
+        z3: Fe301Lazy::from_fe301(Fe301::ONE),
+    });
+    let mut previous = Choice::FALSE;
+    #[cfg(test)]
+    crate::tests::state_failpoint();
+    for bit_index in (0..LADDER_BITS).rev() {
+        #[cfg(test)]
+        crate::tests::count_round();
+        let bit = Choice::from_u8_lsb(scalar[bit_index >> 3] >> (bit_index & 7));
+        let s = &mut *state;
+        swap(&mut s.x2, &mut s.x3, previous.xor(bit));
+        swap(&mut s.z2, &mut s.z3, previous.xor(bit));
+        previous = bit;
+        let a = s.x2.add_loose(s.z2);
+        let aa = a.square();
+        let b = s.x2.sub_loose(s.z2);
+        let bb = b.square();
+        let e = aa.sub_loose(bb);
+        let c = s.x3.add_loose(s.z3);
+        let d = s.x3.sub_loose(s.z3);
+        let da = d.mul(a);
+        let cb = c.mul(b);
+        s.x3 = da.add_loose(cb).square();
+        s.z3 = s.x1.mul(da.sub_loose(cb).square());
+        s.x2 = aa.mul(bb);
+        // A24 remains a full field multiplication. Both final factors are
+        // below 4p; no extra tightening is required by the wide reducer.
+        s.z2 = e.mul(aa.add_loose(e.mul_tight(A24_MINUS_LAZY)));
+        #[cfg(test)]
+        for coordinate in [s.x1, s.x2, s.z2, s.x3, s.z3] {
+            coordinate.assert_lazy_bound_for_test();
+        }
+    }
+    let s = &mut *state;
+    swap(&mut s.x2, &mut s.x3, previous);
+    swap(&mut s.z2, &mut s.z3, previous);
+    Zeroizing::new(ProjectiveOutput {
+        x: s.x2.canonical(),
+        z: s.z2.canonical(),
+    })
+}
+
+// The pre-E2 canonical ladder is retained as the differential test oracle.
+#[cfg(test)]
+struct CanonicalLadderState {
     x1: Fe301,
     x2: Fe301,
     z2: Fe301,
     x3: Fe301,
     z3: Fe301,
 }
-impl Zeroize for LadderState {
+#[cfg(test)]
+impl Zeroize for CanonicalLadderState {
     fn zeroize(&mut self) {
         self.x1.zeroize();
         self.x2.zeroize();
@@ -227,27 +325,19 @@ impl Zeroize for LadderState {
         }
     }
 }
-struct ProjectiveOutput {
-    x: Fe301,
-    z: Fe301,
-}
-impl Zeroize for ProjectiveOutput {
-    fn zeroize(&mut self) {
-        self.x.zeroize();
-        self.z.zeroize();
-    }
-}
 
+#[cfg(test)]
 #[inline(always)]
-fn swap(left: &mut Fe301, right: &mut Fe301, choice: Choice) {
+fn canonical_swap(left: &mut Fe301, right: &mut Fe301, choice: Choice) {
     let original = *left;
     *left = Fe301::conditional_select(*left, *right, choice);
     *right = Fe301::conditional_select(*right, original, choice);
 }
 
+#[cfg(test)]
 #[inline(never)]
-fn ladder301(scalar: &[u8; SECRET_BYTES], u: Fe301) -> Zeroizing<ProjectiveOutput> {
-    let mut state = Zeroizing::new(LadderState {
+fn canonical_ladder301(scalar: &[u8; SECRET_BYTES], u: Fe301) -> Zeroizing<ProjectiveOutput> {
+    let mut state = Zeroizing::new(CanonicalLadderState {
         x1: u,
         x2: Fe301::ONE,
         z2: Fe301::ZERO,
@@ -262,8 +352,8 @@ fn ladder301(scalar: &[u8; SECRET_BYTES], u: Fe301) -> Zeroizing<ProjectiveOutpu
         crate::tests::count_round();
         let bit = Choice::from_u8_lsb(scalar[bit_index >> 3] >> (bit_index & 7));
         let s = &mut *state;
-        swap(&mut s.x2, &mut s.x3, previous.xor(bit));
-        swap(&mut s.z2, &mut s.z3, previous.xor(bit));
+        canonical_swap(&mut s.x2, &mut s.x3, previous.xor(bit));
+        canonical_swap(&mut s.z2, &mut s.z3, previous.xor(bit));
         previous = bit;
         let a = s.x2.add(s.z2);
         let aa = a.square();
@@ -280,9 +370,19 @@ fn ladder301(scalar: &[u8; SECRET_BYTES], u: Fe301) -> Zeroizing<ProjectiveOutpu
         s.z2 = e.mul(aa.add(A24_MINUS.mul(e)));
     }
     let s = &mut *state;
-    swap(&mut s.x2, &mut s.x3, previous);
-    swap(&mut s.z2, &mut s.z3, previous);
+    canonical_swap(&mut s.x2, &mut s.x3, previous);
+    canonical_swap(&mut s.z2, &mut s.z3, previous);
     Zeroizing::new(ProjectiveOutput { x: s.x2, z: s.z2 })
+}
+
+#[cfg(test)]
+pub(crate) fn canonical_shared_for_test(
+    secret: &[u8],
+    peer: &[u8],
+) -> Result<SharedSecret, X301Error> {
+    let secret = SecretKey::from_bytes(secret)?;
+    let peer = PublicKey::from_bytes(peer)?;
+    finalize_projective(canonical_ladder301(&secret.clamped, peer.coordinate))
 }
 
 fn multiply(scalar: &[u8; SECRET_BYTES], u: Fe301) -> Result<SharedSecret, X301Error> {

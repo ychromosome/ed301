@@ -79,6 +79,31 @@ for column, count in enumerate((1, 2, 3, 4, 5, 4, 3, 2, 1)):
     carry = maximum >> 64
 require(carry < word, "last square carry fits output word nine")
 
+# E2: each round restores the lazy state bound without extra tightening.
+lazy_max = 2 * p - 1
+loose_max = 4 * p - 1
+sum_max = 2 * lazy_max
+subtraction_max = lazy_max + 2 * p
+require(sum_max == 4 * p - 2 < 1 << 320, "lazy sum has no word carry")
+require(subtraction_max == loose_max < 1 << 320, "lazy augmented subtraction has no word carry")
+require(2 * p - lazy_max == 1, "lazy augmented subtraction has no final borrow")
+ladder_products = {
+    "aa_bb": loose_max ** 2,
+    "da_cb": loose_max ** 2,
+    "x3": sum_max ** 2,
+    "difference_square": loose_max ** 2,
+    "z3": lazy_max ** 2,
+    "x2": lazy_max ** 2,
+    "a24_product": loose_max * (p - 1),
+    "z2": loose_max * sum_max,
+}
+for name, bound in ladder_products.items():
+    require(bound <= loose_max ** 2 < 1 << 606, f"lazy ladder {name} reducer input")
+    fold1 = (split - 1) + (bound >> 301) * fold
+    fold2 = (split - 1) + (fold1 >> 301) * fold
+    require(fold1 < 1 << (7 * 64), f"lazy ladder {name} first fold capacity")
+    require(fold2 < 2 * p, f"lazy ladder {name} restores state bound")
+
 print(json.dumps({
     "status": "PASS", "parameter_sha256": expected,
     "public_multiplier_bits": a.bit_length(), "public_multiplier_max": str(small_max),
@@ -88,5 +113,8 @@ print(json.dumps({
     "small_high_upper_bound": str(small_high_max), "small_penalty_upper_bound": str(penalty_max),
     "square_diagonal_products": 5, "square_doubled_cross_products": 10,
     "square_columns": square_columns,
+    "ladder_rounds": 301,
+    "ladder_lazy_max": str(lazy_max), "ladder_loose_max": str(loose_max),
+    "ladder_product_maxima": {name: str(bound) for name, bound in ladder_products.items()},
     "runtime_constant_time_claim": False,
 }, indent=2, sort_keys=True))

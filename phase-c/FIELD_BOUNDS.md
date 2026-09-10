@@ -71,6 +71,48 @@ negation computes a bounded subtraction from zero and tightens the possible
 2p representative of zero; tests include zero and 2p-1. Const tables use
 the corresponding canonical negation and are regenerated for the v2 base.
 
+## Phase E / E2: lazy X301 ladder induction
+
+Let L=2p-1 and H=4p-1 be inclusive maxima for lazy and loose values.
+At entry, all five state coordinates are canonical and hence at most L.
+The conditional swap selects complete five-word representations, preserving
+this bound. For each of the **301 rounds**, including any leading zero bits:
+
+| Intermediate | Operation | Inclusive bound before reduction | Output domain |
+|---|---|---:|---|
+| a, c | x+z | 2L=4p-2 | loose |
+| b, d | x+2p-z | L+2p=4p-1 | loose |
+| aa, bb | a², b² | H² | lazy |
+| e | aa+2p-bb | H | loose |
+| da, cb | d*a, c*b | H² | lazy |
+| x3 | (da+cb)² | (2L)² | lazy |
+| difference square | (da+2p-cb)² | H² | lazy |
+| z3 | x1*difference_square | L² | lazy |
+| x2 | aa*bb | L² | lazy |
+| A24 product | e*A24_MINUS | H*(p-1) | lazy |
+| final z2 sum | aa+A24_product | 2L | loose |
+| z2 | e*final_sum | H*(2L) | lazy |
+
+Every product in this table is <=H²<(4p)²<2^606, so the same two-fold
+reducer returns a value below 2p. Thus all five state coordinates again
+satisfy the induction hypothesis. No loose value becomes a summand or
+subtrahend of another loose addition: both inputs to each addition or
+subtraction are lazy. No extra `tighten` operation is necessary.
+
+The sums and augmented subtractions are at most 4p-1<2^303<2^320;
+their five-word carries are zero. The augmented subtraction is nonnegative
+(in fact at least one), so its terminal borrow is zero. A24 remains a full
+five-limb field multiplication by the canonical generated constant, not a
+small-integer shortcut. The final swap preserves the same bounds, then one
+conditional subtraction of p canonicalises each returned coordinate.
+The inversion, affine conversion, zero-result check and error boundary are
+unchanged. The ladder state retains its volatile Zeroize-on-scope-exit owner.
+
+The exact-integer checker emits every product bound above. Tests additionally
+assert all five state bounds after every round and compare the complete result
+or error with the pre-E2 canonical ladder on Gate-B curve/twist/error cases and
+10000 deterministic random secret/peer inputs, including u=0,1,2.
+
 ## Reproducible checks and implementation limits
 
 `phase-c/tools/check_field_bounds.py` evaluates the stated exact inclusive

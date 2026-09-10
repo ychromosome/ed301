@@ -102,6 +102,12 @@ fn all_gate_b_curve_and_twist_evaluations_match() {
         assert_eq!(rounds(), 301, "{}", case["id"]);
         assert_eq!(
             result.as_bytes(),
+            crate::x301::canonical_shared_for_test(&secret, &public)
+                .unwrap()
+                .as_bytes()
+        );
+        assert_eq!(
+            result.as_bytes(),
             &fixed(text(case, "result_hex")),
             "{}",
             case["id"]
@@ -130,6 +136,40 @@ fn fixed_base_matches_full_ladder_for_ten_thousand_raw_secrets() {
         assert_eq!(fixed.as_bytes(), ladder.as_bytes());
     }
     crate::x301::zero_scalar_fixed_base_for_test();
+}
+
+#[test]
+fn lazy_ladder_matches_canonical_oracle_for_ten_thousand_random_peers() {
+    let mut state = 0x4532_5833_3031_4c41_u64;
+    for index in 0..10_000 {
+        let mut raw = [0_u8; 38];
+        let mut peer = [0_u8; 38];
+        for bytes in [&mut raw, &mut peer] {
+            for chunk in bytes.chunks_mut(8) {
+                let word = crate::test_support::splitmix64(&mut state).to_le_bytes();
+                chunk.copy_from_slice(&word[..chunk.len()]);
+            }
+        }
+        // Generate canonical public inputs, without changing the import path.
+        peer[37] &= 0x1f;
+        if index < 3 {
+            peer.fill(0);
+            peer[0] = index as u8;
+        }
+        let public = PublicKey::from_bytes(&peer).unwrap();
+        let key = SecretKey::from_bytes(&raw).unwrap();
+        reset_rounds();
+        let actual = key.shared_secret(&public);
+        assert_eq!(rounds(), 301);
+        reset_rounds();
+        let expected = crate::x301::canonical_shared_for_test(&raw, &peer);
+        assert_eq!(rounds(), 301);
+        assert_eq!(
+            actual.map(|value| *value.as_bytes()),
+            expected.map(|value| *value.as_bytes()),
+            "sample {index}"
+        );
+    }
 }
 
 #[test]
@@ -184,6 +224,10 @@ fn all_thirty_three_gate_b_errors_have_the_correct_stage_and_no_output() {
             } else {
                 0
             }
+        );
+        assert_eq!(
+            crate::x301::canonical_shared_for_test(&secret, &public).err(),
+            Some(expected)
         );
     }
 }
