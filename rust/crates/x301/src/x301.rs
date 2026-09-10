@@ -278,22 +278,21 @@ fn ladder301(scalar: &[u8; SECRET_BYTES], u: Fe301) -> Zeroizing<ProjectiveOutpu
         swap(&mut s.z2, &mut s.z3, previous.xor(bit));
         previous = bit;
         let a = s.x2.add_loose(s.z2);
-        let aa = a.square();
         let b = s.x2.sub_loose(s.z2);
-        let bb = b.square();
-        let e = aa.sub_loose(bb);
         let c = s.x3.add_loose(s.z3);
         let d = s.x3.sub_loose(s.z3);
         let da = d.mul(a);
         let cb = c.mul(b);
-        s.x3 = da.add_loose(cb).square();
-        s.z3 = s.x1.mul(da.sub_loose(cb).square());
-        // A24 = d/(a-d). Multiplying both doubling coordinates by nonzero
-        // a-d preserves their ratio. With d=-301, two public small products
-        // replace the full A24 product without tightening the loose E value.
+        let aa = a.square();
+        let bb = b.square();
+        let sum_dc = da.add_loose(cb);
+        let diff_dc = da.sub_loose(cb);
+        let e = aa.sub_loose(bb);
         let scaled_aa = aa.mul_small(A24_SCALE_DENOMINATOR);
-        s.x2 = scaled_aa.mul(bb);
         let scaled_e = e.mul_small_narrow(A24_SCALE_NUMERATOR_MAGNITUDE);
+        s.x3 = sum_dc.square();
+        s.x2 = scaled_aa.mul(bb);
+        s.z3 = s.x1.mul(diff_dc.square());
         s.z2 = e.mul(scaled_aa.sub_loose(scaled_e));
         #[cfg(test)]
         for coordinate in [s.x1, s.x2, s.z2, s.x3, s.z3] {

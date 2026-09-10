@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-"""Bind reviewed E1/E3/E7 counters, exponents and public scales in linked ELFs.
+"""Bind reviewed E1/E3/E7/E8 counters, public boundaries and scales in linked ELFs.
 
 Companion to check_codegen.sh, not a general taint engine or a universal CT
 proof. The shell policy checks every conditional edge/call and arithmetic leaf;
@@ -168,10 +168,10 @@ def rip_origin(items, before, target):
 
 def exponent_sites(symbols, elf):
     name = "ed301_eddsa::field_5x64::Fe301::pow_fixed_window4"
-    importer = "ed301_eddsa::signature::VerifyingKey::from_bytes"
+    importer = "ed301_eddsa::signature::ValidatedPublicKey::from_bytes"
     decoder = "ed301_eddsa::edwards::EdwardsPoint::decode"
     p = (1 << 301) - (1 << 89) + 907
-    expected = {decoder: [(p - 3) // 4], importer: [(p + 1) // 4, (p - 1) // 2, (p - 1) // 2]}
+    expected = {decoder: [(p - 3) // 4], importer: [(p + 1) // 4]}
     observed = {}
     sites = []
     for symbol, instances in symbols.items():
@@ -185,14 +185,68 @@ def exponent_sites(symbols, elf):
                 sites.append({"caller": symbol, "call": hex(items[index].address),
                               "readonly_exponent": hex(address), "value": hex(value)})
             if symbol == importer:
-                require(len(calls) == 3, "halving must execute sqrt and both Euler calls")
-                require(not any(item.mnemonic.startswith("j") for item in items[calls[0]:calls[-1]]),
-                        "early branch between halving exponentiations")
-                first_later_branch = next(item for item in items[calls[-1] + 1:]
-                                          if item.mnemonic.startswith("j"))
-                require(first_later_branch.mnemonic == "je", "missing combined subgroup decision")
+                require(len(calls) == 1, "halving must execute the fixed square-root exponent")
     require(observed == expected, "linked exponent call set or constant bytes differ")
     return sites
+
+
+def public_import_boundary(symbols, relative_got):
+    importer = "ed301_eddsa::signature::ValidatedPublicKey::from_bytes"
+    jacobi = "ed301_eddsa::field_5x64::Fe301::is_nonzero_square"
+    single(symbols, importer)
+    single(symbols, jacobi)
+    # Only the public argument of the two mixed FFI callbacks is admitted;
+    # those callbacks themselves are NOT classified as public-only.
+    permitted = {
+        importer: {
+            "ed301_eddsa::signature::VerifyingKey::from_bytes",
+            "ed301_eddsa::signature::validate_public_key",
+            "ed301_eddsa_v2::sig_ffi::key_import",
+            "ed301_eddsa_v2::sig_ffi::key_set_encoded_public",
+            "ed301_benchmark::main", "phase_e_core_bench::main",
+            # The immutable benchmark's import arm only passes its public
+            # encoding. Bind its exact monomorphization, not every closure.
+            "ed301_benchmark::measure::<ed301_benchmark::main::{closure#7}>",
+            "phase_e_core_bench::measure::<phase_e_core_bench::main::{closure#7}>",
+        },
+        jacobi: {importer},
+    }
+    incoming = {importer: [], jacobi: []}
+    protected_addresses = {single(symbols, name)[0].address: name for name in permitted}
+    protected_got = {address: name for address, name in relative_got.items() if name in permitted}
+    observed_got = set()
+    for caller, instances in symbols.items():
+        for items in instances:
+            for item in items:
+                address = re.match(r"([0-9a-f]+) ", item.comment)
+                rip_address = int(address[1], 16) if address and "(%rip)" in item.operands else None
+                if rip_address in protected_got:
+                    require(item.mnemonic in ("call", "jmp") and item.operands.startswith("*"),
+                            "public-only function address escapes through a GOT load")
+                    observed_got.add(rip_address)
+                require(rip_address not in protected_addresses,
+                        "public-only function address escapes through a direct address load")
+                if item.mnemonic not in ("call", "jmp"):
+                    continue
+                target = None
+                if item.operands.startswith("*"):
+                    if "(%rip)" in item.operands:
+                        if address:
+                            target = relative_got.get(int(address[1], 16))
+                else:
+                    found = re.search(r"<(.+)>$", item.operands)
+                    if found:
+                        target = canonical(found[1])
+                if target in permitted:
+                    require(caller in permitted[target],
+                            "unclassified caller reaches public-only arithmetic: " + caller + " -> " + target)
+                    incoming[target].append({"caller": caller, "instruction": hex(item.address)})
+    require(incoming[importer], "public parser has no audited incoming edge")
+    require(observed_got == set(protected_got), "unaccounted public-only function-pointer relocation")
+    require(len(incoming[jacobi]) == 2, "public import must retain both Jacobi symbol calls")
+    return {"classification": "public-input-only; variable public timing permitted",
+            "incoming_edges": incoming,
+            "scope": "resolved direct and relative-GOT edges across explicit no-inline boundaries; complemented by source and taint checks"}
 
 
 def pow_structure(items):
@@ -284,30 +338,32 @@ def ladder_structure(items):
     require(len(branches) == 1 and items[branches[0]].mnemonic == "jb", "one fixed ladder edge")
     branch = branches[0]
     start, body = loop(items, branch)
-    require(last_write(items, start, "%rax")[1].operation == "mov $0x12c,%eax",
+    require(last_write(items, start, "%rcx")[1].operation == "mov $0x12c,%ecx",
             "ladder counter origin")
-    require([item.operation for item in items if item.operands.endswith(",0x1f0(%rsp)")]
-            == ["mov %rsi,0x1f0(%rsp)"], "scalar pointer slot overwritten")
-    require([item.operation for item in body if item.operands.endswith(",0x1d8(%rsp)")]
-            == ["mov %rax,0x1d8(%rsp)"], "ladder counter slot overwritten")
+    require([item.operation for item in items if item.operands.endswith(",0x240(%rsp)")]
+            == ["mov %rsi,0x240(%rsp)"], "scalar pointer slot overwritten")
+    require([item.operation for item in body if item.operands.endswith(",0x108(%rsp)")]
+            == ["mov %rcx,0x108(%rsp)"], "ladder counter slot overwritten")
     require([item.operation for item in body[:10]] == [
-        "mov %rax,0x1d8(%rsp)", "mov %r15d,%ecx", "mov 0x1d8(%rsp),%rax",
-        "shr $0x3,%rax", "mov 0x1f0(%rsp),%rdx", "movzbl (%rdx,%rax,1),%eax",
-        "mov 0x1d8(%rsp),%rdx", "and $0x7,%edx", "bt %edx,%eax", "setb %al"],
+        "mov %rcx,0x108(%rsp)", "mov %r15d,%eax", "mov 0x108(%rsp),%rcx",
+        "shr $0x3,%rcx", "mov 0x240(%rsp),%rdx", "movzbl (%rdx,%rcx,1),%ecx",
+        "mov 0x108(%rsp),%rdx", "and $0x7,%edx", "bt %edx,%ecx", "setb %cl"],
         "scalar byte and bit indices are not the public loop counter")
-    require(items[branch - 1].operation == "add $0xffffffffffffffff,%rax"
-            and last_write(items, branch - 1, "%rax")[1].operation == "mov 0x1d8(%rsp),%rax",
+    require(items[branch - 1].operation == "add $0xffffffffffffffff,%rcx"
+            and last_write(items, branch - 1, "%rcx")[1].operation == "mov 0x108(%rsp),%rcx",
             "ladder counter reload and decrement")
     indexed = [item.operation for item in body if re.search(r"\([^)]*,[^)]*\)", item.operands)
                and not item.mnemonic.startswith("lea") and "nop" not in item.operation]
-    require(indexed == ["movzbl (%rdx,%rax,1),%eax"], "unclassified ladder indexed access")
-    origins = [last_write(items, i, "%r12")[1].operation for i, item in enumerate(items)
-               if item.operation == "mul %r12"]
-    require(origins.count("movabs $0xe402d7e9e,%r12") == 5,
+    require(indexed == ["movzbl (%rdx,%rcx,1),%ecx"], "unclassified ladder indexed access")
+    origins = [last_write(items, i, "%r11")[1].operation for i, item in enumerate(items)
+               if item.operation == "mul %r11"]
+    require(origins.count("movabs $0xe402d7e9e,%r11") == 5,
             "scaled AA must use five limbs times the public 36-bit scale")
-    require(origins.count("mov $0x12d,%r12d") == 4
+    numerator_origins = [last_write(items, i, "%r13")[1].operation for i, item in enumerate(items)
+                         if item.operation == "mul %r13"]
+    require(numerator_origins.count("mov $0x12d,%r13d") == 4
             and [item.operation for item in body if "$0x12d" in item.operands]
-            == ["mov $0x12d,%r12d", "imul $0x12d,0xb0(%rsp),%r14"],
+            == ["mov $0x12d,%r13d", "imul $0x12d,0xb8(%rsp),%r9"],
             "scaled E must use the public numerator 301 for all five limbs")
     return {"rounds": 301, "counter": "300 through 0", "scalar_indexed_reads": 1,
             "public_scale": 61206265502, "public_numerator_magnitude": 301,
@@ -342,6 +398,11 @@ def main():
         result["pow"] = pow_structure(power)
         elf = args.elf.read_bytes()
         result["exponents"] = exponent_sites(symbols, elf)
+        relative_got = {}
+        for line in (args.evidence / "relative-got-targets.txt").read_text().splitlines():
+            address, name = line.split("\t", 1)
+            relative_got[int(address, 16)] = canonical(name)
+        result["public_import_boundary"] = public_import_boundary(symbols, relative_got)
         bad_power = [replace(item, operands="$0x49,%edx") if item.operation == "mov $0x4a,%edx"
                      else item for item in power]
         result["negative_controls"].append(rejects(lambda: pow_structure(bad_power), "shortened-pow-counter"))
@@ -358,23 +419,47 @@ def main():
         require(elf.count(exponent) == 1, "ambiguous exponent negative-control bytes")
         bad_elf = elf.replace(exponent, bytes([exponent[0] ^ 1]) + exponent[1:], 1)
         result["negative_controls"].append(rejects(lambda: exponent_sites(symbols, bad_elf), "wrong-readonly-exponent"))
-        importer = "ed301_eddsa::signature::VerifyingKey::from_bytes"
+        importer = "ed301_eddsa::signature::ValidatedPublicKey::from_bytes"
+        jacobi = "ed301_eddsa::field_5x64::Fe301::is_nonzero_square"
+        for caller, target, label in (
+            ("ed301_eddsa::signature::ExpandedSigningKey::sign_with_context", importer, "signing-calls-public-import"),
+            ("ed301_eddsa_v2::sig_ffi::key_from_seed", importer, "keygen-calls-public-import"),
+            ("ed301_eddsa::edwards::EdwardsPoint::scalar_mul_base_encoded", jacobi, "secret-scalar-calls-jacobi"),
+        ):
+            bad_symbols = dict(symbols)
+            body = list(symbols.get(caller, [[]])[0])
+            body.append(Instruction(0xdeadbeef, "call", "0 <" + target + ">", ""))
+            bad_symbols[caller] = [body]
+            result["negative_controls"].append(rejects(
+                lambda: public_import_boundary(bad_symbols, relative_got), label))
         body = single(symbols, importer)
-        first_power = next(i for i, item in enumerate(body) if item.mnemonic == "call"
-                           and "::pow_fixed_window4>" in item.operands)
-        mutated = list(body)
-        mutated[first_power + 1] = replace(mutated[first_power + 1], mnemonic="je", operands="0")
-        bad_symbols = dict(symbols, **{importer: [mutated]})
-        result["negative_controls"].append(rejects(lambda: exponent_sites(bad_symbols, elf), "early-symbol-exit"))
+        altered = [item for item in body if not (item.mnemonic == "call" and "::is_nonzero_square>" in item.operands)]
+        bad_symbols = dict(symbols, **{importer: [altered]})
+        result["negative_controls"].append(rejects(
+            lambda: public_import_boundary(bad_symbols, relative_got), "missing-public-symbol-checks"))
+        got_address = next((address for address, name in relative_got.items() if name == importer), 0xfeed0000)
+        bad_got = dict(relative_got, **{})
+        bad_got[got_address] = importer
+        caller = "ed301_eddsa::signature::ExpandedSigningKey::sign_with_context"
+        for instruction, label in (
+            (Instruction(0xdeadbeef, "call", "*0(%rip)", hex(got_address)[2:] + " <test-GOT>"),
+             "secret-caller-through-public-GOT"),
+            (Instruction(0xdeadbeef, "mov", "0(%rip),%r15", hex(got_address)[2:] + " <test-GOT>"),
+             "public-function-pointer-escape"),
+        ):
+            bad_symbols = dict(symbols)
+            bad_symbols[caller] = [list(symbols.get(caller, [[]])[0]) + [instruction]]
+            result["negative_controls"].append(rejects(
+                lambda: public_import_boundary(bad_symbols, bad_got), label))
     else:
         ladder = single(symbols, "x301_core::x301::ladder301")
         result["ladder"] = ladder_structure(ladder)
         for old, new, label in (
-            ("mov $0x12c,%eax", "mov $0x12b,%eax", "shortened-ladder-counter"),
-            ("mov %rsi,0x1f0(%rsp)", "mov %rax,0x1f0(%rsp)", "wrong-scalar-pointer-origin"),
-            ("mov 0x1d8(%rsp),%rdx", "mov 0x1e4(%rsp),%rdx", "secret-ladder-bit-index"),
-            ("movabs $0xe402d7e9e,%r12", "movabs $0xe402d7e9f,%r12", "wrong-public-a24-scale"),
-            ("imul $0x12d,0xb0(%rsp),%r14", "imul $0x12e,0xb0(%rsp),%r14", "wrong-public-numerator"),
+            ("mov $0x12c,%ecx", "mov $0x12b,%ecx", "shortened-ladder-counter"),
+            ("mov %rsi,0x240(%rsp)", "mov %rax,0x240(%rsp)", "wrong-scalar-pointer-origin"),
+            ("mov 0x108(%rsp),%rdx", "mov 0x234(%rsp),%rdx", "secret-ladder-bit-index"),
+            ("movabs $0xe402d7e9e,%r11", "movabs $0xe402d7e9f,%r11", "wrong-public-a24-scale"),
+            ("imul $0x12d,0xb8(%rsp),%r9", "imul $0x12e,0xb8(%rsp),%r9", "wrong-public-numerator"),
         ):
             bad_ladder = [replace(item, operands=new.split(" ", 1)[1]) if item.operation == old
                           else item for item in ladder]

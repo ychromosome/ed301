@@ -53,8 +53,8 @@ wrappers and every linked SecretKey drop are checked separately.
 
 ## E2: lazy ladder
 
-The full ladder still has one backward carry edge and no other jump. Its
-initial counter is 300 in eax; rax is saved exactly once per iteration at
+The full ladder still has one backward carry edge and no other jump. After
+E8b R1, its initial counter is 300 in ecx; rcx is saved once per iteration at
 the reviewed stack slot and reloaded before decrement. The only scaled
 memory access reads scalar[counter >> 3]; its bit position is counter & 7.
 No function is called inside the loop. The original >=20 conditional-move
@@ -63,7 +63,7 @@ corrections, leaving the 20 swap selections inside each round. The entire
 ladder, including final corrections outside the loop, rejects division/traps.
 Wrong-counter and earlier-decoy-counter controls both must fail.
 
-## E3: public exponents and acceptance order
+## E3/E8a: public exponents and the public-only import boundary
 
 The production exponentiator has no call. It precomputes powers 1..15 with a
 fixed 40-byte stride, then visits 75 four-bit windows. Its digit branch and
@@ -73,20 +73,54 @@ All 16 scaled-memory instructions are explicitly classified; counter and
 exponent-pointer stack slots have exact checked write inventories.
 
 Every linked call site's exponent-pointer origin is followed to read-only
-allocated ELF bytes. The decoder has exactly one (p-3)/4 call. The importer
-has exactly (p+1)/4, (p-1)/2, (p-1)/2 in that order, for
-p = 2^301 - 2^89 + 907. There is no branch between the three importer calls;
-the combined subgroup decision follows both Euler computations. Wrong
-read-only exponent bytes, a shortened window counter and an early symbol
-exit are negative controls. These mutations exist only in memory, never in
-the measured ELF. Test-only Jacobi and old subgroup-oracle symbols must not
-appear in the production binary.
+allocated ELF bytes. The decoder has one (p-3)/4 call and the importer one
+(p+1)/4 call, for p = 2^301 - 2^89 + 907. Wrong read-only exponent bytes and a
+shortened window counter remain negative controls. Both Legendre symbols now
+use the unchanged, bound crypto-bigint Jacobi implementation. The earlier
+Euler implementation remains an independent cfg(test) oracle and must not
+appear in ordinary linked artifacts.
 
-Thin LTO keeps the public verification-table builder separate in provider
-DSOs but inlines it into the measured Ed301 core importer. The latter's six
-additional, exact table-building loops begin after subgroup acceptance and
-are bound by a separate complete branch/call sequence. This is not permission
-to add an early branch in either symbol test.
+Martin explicitly approved E8a option c after the fresh result-dependent enum
+branch had been reported. Public-key validation and its Jacobi predicate are
+public-input-only, like the existing variable-time verification path. Their
+timing may depend on the input key. This is not a claim that Jacobi has a
+fixed binary structure and is not an exception for secret arithmetic.
+
+ValidatedPublicKey::from_bytes and Fe301::is_nonzero_square retain explicit
+no-inline boundaries. The linked-code gate records every direct and
+relative-GOT incoming edge, rejects unclassified callers, and rejects escaped
+public-helper addresses or unaccounted function-pointer relocations. The two
+mixed provider callbacks key_import/key_set_encoded_public are NOT themselves
+classified as public-only: only their supplied public-key argument reaches
+the public parser. Both Jacobi calls remain inside that parser. Direct and
+GOT-based secret-to-public calls and function-pointer escapes are negative
+controls. This bounded call-site check is complemented by source review,
+unit call counters and instrumented input-Vbit admission checks; it is not a
+universal whole-program information-flow proof.
+
+The ordinary and sign-self-verify core tests require key derivation and
+signing to make zero parser calls, with a real public import as the observer
+control. Instrumented core taint tests retain the same zero-call check while
+the seed is tainted. At the public parser, instrumentation observes the
+input's shadow bits before arithmetic and does not declassify the input.
+A tagged synthetic public input must be rejected by that diagnostic boundary;
+defined public inputs succeed before and after it. No diagnostic counters or
+input-admission hooks may appear in ordinary production-profile binaries.
+
+E8c keeps strict validation eager but builds the public verification table on
+first provider verification. It does not change the public-only boundary or
+allow unvalidated keys. Secret signing material is never retained by the
+public-only cache.
+
+## E8d: named returned owners
+
+The returned fixed-base signing/derivation points and encoding inverse have
+non-Copy zeroizing owners. Normal and controlled-unwind tests observe the
+actual payload's zeroization; encoding helpers borrow those owners. The
+canonical affine public output is separate from secret projective state.
+This closes the named ownership gaps, not every possible compiler-generated
+copy, register or stack spill. Existing secret-path branch/call/minimum-count
+rules remain in force and all codegen, taint and memory checks are rerun.
 
 ## Measurements and evidence
 

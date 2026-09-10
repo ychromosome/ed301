@@ -1,0 +1,3 @@
+Claude 2026-09-10, E7 tree (74d30ba), CPU 3, host loaded (VM + second Codex), interleaved medians:
+Legendre/Jacobi on Fe301 (20k ops): euler_exp (pow_fixed_window4, current) 8.71 us; sqrt_fixed 8.72 us; crypto-bigint U320::jacobi_symbol (constant-time) 2.50 us; jacobi_symbol_vartime 1.50 us; invert 2.66 us.
+Ladder round reorder (x301 shared, 7 interleaved rounds): v1 58.19 (min 56.69), E7 59.04 (min 58.68), R1 57.92 (min 57.78), R2 58.88 (min 58.56). R1 passes 56/56 x301 tests incl. 10k oracle.

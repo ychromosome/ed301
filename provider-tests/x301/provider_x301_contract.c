@@ -226,6 +226,64 @@ static int derive_exact(
     return result;
 }
 
+static int exchange_parameter_conformance(
+    OSSL_LIB_CTX *libctx,
+    EVP_PKEY *private_key,
+    EVP_PKEY *peer)
+{
+    static const char *const modes[] = {
+        OSSL_EXCHANGE_PARAM_EC_ECDH_COFACTOR_MODE, OSSL_EXCHANGE_PARAM_PAD,
+        OSSL_EXCHANGE_PARAM_KDF_TYPE, OSSL_EXCHANGE_PARAM_KDF_DIGEST,
+        OSSL_EXCHANGE_PARAM_KDF_DIGEST_PROPS, OSSL_EXCHANGE_PARAM_KDF_OUTLEN,
+        OSSL_EXCHANGE_PARAM_KDF_UKM
+    };
+    int metadata = 23;
+    OSSL_PARAM params[3];
+    unsigned char output[X301_BYTES];
+    size_t length = sizeof(output);
+    size_t index;
+    unsigned int order;
+    EVP_PKEY_CTX *context = EVP_PKEY_CTX_new_from_pkey(
+        libctx, private_key, X301_PROPERTIES);
+    int result = 0;
+
+    params[0] = OSSL_PARAM_construct_int("application-metadata", &metadata);
+    params[1] = OSSL_PARAM_construct_end();
+    if (context == NULL || EVP_PKEY_derive_init_ex(context, params) <= 0
+            || EVP_PKEY_derive_set_peer(context, peer) <= 0
+            || EVP_PKEY_derive(context, output, &length) <= 0
+            || length != sizeof(output) || memcmp(output, SHARED_AB, length) != 0
+            || EVP_PKEY_derive_init_ex(context, params) <= 0)
+        goto done;
+    memset(output, 0xa5, sizeof(output));
+    length = sizeof(output);
+    if (EVP_PKEY_derive(context, output, &length) > 0
+            || !buffer_is(output, sizeof(output), 0xa5))
+        goto done;
+    ERR_clear_error();
+    /* Reinitialization still clears the peer, including when metadata is present. */
+    length = sizeof(output);
+    if (EVP_PKEY_derive_set_peer(context, peer) <= 0
+            || EVP_PKEY_derive(context, output, &length) <= 0
+            || length != sizeof(output) || memcmp(output, SHARED_AB, length) != 0)
+        goto done;
+    for (index = 0; index < sizeof(modes) / sizeof(modes[0]); index++) {
+        for (order = 0; order < 2; order++) {
+            params[order] = OSSL_PARAM_construct_int("application-metadata", &metadata);
+            params[1 - order] = OSSL_PARAM_construct_int(modes[index], &metadata);
+            params[2] = OSSL_PARAM_construct_end();
+            if (EVP_PKEY_derive_init_ex(context, params) > 0)
+                goto done;
+            ERR_clear_error();
+        }
+    }
+    result = 1;
+done:
+    OPENSSL_cleanse(output, sizeof(output));
+    EVP_PKEY_CTX_free(context);
+    return result;
+}
+
 static int public_only_cross_libctx_export(
     OSSL_LIB_CTX *libctx,
     EVP_PKEY *private_key)
@@ -1533,6 +1591,12 @@ int main(int argc, char **argv)
         goto done;
     }
     pass("T6 raw private/public roundtrips and 38-byte size queries");
+
+    if (!exchange_parameter_conformance(libctx, private_a, public_b)) {
+        fail("E8e unknown exchange metadata ignored, modes rejected and peer reset retained");
+        goto done;
+    }
+    pass("E8e unknown exchange metadata ignored, modes rejected and peer reset retained");
 
     if (failpoint_mode != NULL && (strcmp(failpoint_mode, "active") == 0
             || strcmp(failpoint_mode, "alloc-only") == 0)) {

@@ -9,9 +9,7 @@
 //! backend, are independently verified, and are differentially tested against
 //! the Montgomery oracle.
 
-use crypto_bigint::{Choice, CtAssign, CtEq, CtOption};
-#[cfg(test)]
-use crypto_bigint::{JacobiSymbol, Odd, U320};
+use crypto_bigint::{Choice, CtAssign, CtEq, CtOption, JacobiSymbol, Odd, U320};
 
 use crate::generated_parameters as parameters;
 use crate::parameters::FIELD_BYTES;
@@ -25,11 +23,25 @@ const _: () = assert!(parameters::SMALL_MULTIPLIER_BITS == 36);
 
 // p in little-endian radix 2^64.
 const MODULUS: [u64; LIMBS] = parameters::MODULUS_WORDS;
-#[cfg(test)]
 const ODD_MODULUS: Odd<U320> = U320::from_words(MODULUS)
     .to_odd()
     .expect_copied("the generated field modulus is odd");
 const _: () = assert!(MODULUS[0] & 3 == 3);
+
+// Keep the retained Euler oracle's generated exponent bound to this modulus
+// even when the production nonzero-square predicate uses Jacobi instead.
+const _: () = {
+    let mut limb = 0;
+    while limb < LIMBS {
+        let next = if limb + 1 < LIMBS {
+            MODULUS[limb + 1]
+        } else {
+            0
+        };
+        assert!(parameters::LEGENDRE_WORDS[limb] == ((MODULUS[limb] >> 1) | (next << 63)));
+        limb += 1;
+    }
+};
 
 // p - 2, used only while constructing immutable affine tables at compile time.
 const INVERSION_EXPONENT: [u64; LIMBS] = parameters::INVERSION_WORDS;
@@ -212,16 +224,22 @@ impl Fe301 {
         CtOption::new(candidate, candidate.square().ct_eq(&self))
     }
 
-    /// Euler's criterion with a fixed public exponent and branch-free result.
-    /// Zero is not a nonzero square. The library Jacobi routine remains a test
-    /// oracle: its linked enum conversion branched on the returned symbol.
+    /// Public-input-only nonzero-square predicate using the library Jacobi API.
+    /// Its result-to-enum conversion may branch on the public symbol. This
+    /// helper must not be used for secret field elements. Zero is rejected.
+    #[inline(never)] // Keep every use visible to the public-only call-site gate.
     pub(crate) fn is_nonzero_square(self) -> Choice {
+        self.legendre().is_one()
+    }
+
+    /// Retained E3/E7 fixed-exponent implementation, independent of Jacobi.
+    #[cfg(test)]
+    pub(crate) fn is_nonzero_square_euler(self) -> Choice {
         self.pow_fixed_window4(parameters::LEGENDRE_WORDS, 300)
             .ct_eq(&Self::ONE)
     }
 
-    /// Additional library Jacobi oracle, never used by the compiled importer.
-    #[cfg(test)]
+    /// Public-input-only Jacobi symbol, with equal widths and a fixed modulus.
     pub(crate) fn legendre(self) -> JacobiSymbol {
         U320::from_words(self.0).jacobi_symbol(&ODD_MODULUS)
     }
@@ -1017,7 +1035,12 @@ mod tests {
             assert_eq!(
                 value.is_nonzero_square().to_bool(),
                 oracle(value).legendre_euler() == 1,
-                "production Euler {index}"
+                "production Jacobi {index}"
+            );
+            assert_eq!(
+                value.is_nonzero_square_euler().to_bool(),
+                value.is_nonzero_square().to_bool(),
+                "retained E3/E7 Euler {index}"
             );
             let root = value.sqrt_fixed();
             let reference = value.sqrt();

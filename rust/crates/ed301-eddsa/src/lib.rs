@@ -26,8 +26,8 @@ mod signature_hash;
 mod test_support;
 
 pub use signature::{
-    ExpandedSigningKey, Signature, SignatureError, SigningKey, VerifyingKey, sign,
-    sign_with_context, validate_public_key, verify, verify_with_context,
+    ExpandedSigningKey, Signature, SignatureError, SigningKey, ValidatedPublicKey, VerifyingKey,
+    sign, sign_with_context, validate_public_key, verify, verify_with_context,
 };
 
 #[cfg(test)]

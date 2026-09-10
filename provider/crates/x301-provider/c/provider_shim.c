@@ -237,9 +237,25 @@ static int x301_wants_public(int selection)
     return (selection & OSSL_KEYMGMT_SELECT_PUBLIC_KEY) != 0;
 }
 
-static int x301_params_are_empty(const OSSL_PARAM params[])
+static int x301_exchange_params_supported(const OSSL_PARAM params[])
 {
-    return params == NULL || params[0].key == NULL;
+    size_t index;
+
+    for (index = 0; params != NULL && params[index].key != NULL; index++) {
+        const char *key = params[index].key;
+
+        /* Raw X301 has no selectable cofactor, padding or KDF mode. */
+        if (strcmp(key, OSSL_EXCHANGE_PARAM_EC_ECDH_COFACTOR_MODE) == 0
+                || strcmp(key, OSSL_EXCHANGE_PARAM_PAD) == 0
+                || strcmp(key, OSSL_EXCHANGE_PARAM_KDF_TYPE) == 0
+                || strcmp(key, OSSL_EXCHANGE_PARAM_KDF_DIGEST) == 0
+                || strcmp(key, OSSL_EXCHANGE_PARAM_KDF_DIGEST_PROPS) == 0
+                || strcmp(key, OSSL_EXCHANGE_PARAM_KDF_OUTLEN) == 0
+                || strcmp(key, OSSL_EXCHANGE_PARAM_KDF_UKM) == 0)
+            return 0;
+        /* Unknown metadata is not interpreted as an algorithm option. */
+    }
+    return 1;
 }
 
 void x301_raise_error(
@@ -880,7 +896,7 @@ static int x301_exchange_init(
 
     if (exchange == NULL || key == NULL || exchange->provider == NULL
             || exchange->provider != key->provider || exchange->inner == NULL
-            || key->inner == NULL || !x301_params_are_empty(params))
+            || key->inner == NULL || !x301_exchange_params_supported(params))
         return 0;
     result = exchange->provider->rust->exchange_init(
         exchange->inner, key->inner);

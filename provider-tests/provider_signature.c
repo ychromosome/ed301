@@ -88,6 +88,109 @@ static int builtin_eddsa_null_key_reinit_control(
     return ok;
 }
 
+static void unknown_parameter_conformance(OSSL_LIB_CTX *libctx)
+{
+    const CONTEXT_CASE *tc = &CONTEXT_CASES[0];
+    EVP_PKEY *key = ed301v2_key_from_seed(libctx, tc->seed);
+    unsigned int order;
+    int metadata = 17;
+
+    for (order = 0; order < 2; order++) {
+        OSSL_PARAM params[4];
+        OSSL_PARAM unknown[2];
+        OSSL_PARAM query[2];
+        unsigned char context[255];
+        unsigned char signature[ED301V2_SIG_BYTES];
+        size_t length = sizeof(signature);
+        EVP_PKEY_CTX *sign = EVP_PKEY_CTX_new_from_pkey(libctx, key, ED301V2_PROP);
+        EVP_PKEY_CTX *verify = EVP_PKEY_CTX_new_from_pkey(libctx, key, ED301V2_PROP);
+        EVP_MD_CTX *digest_sign = EVP_MD_CTX_new();
+        EVP_MD_CTX *digest_verify = EVP_MD_CTX_new();
+
+        unknown[0] = OSSL_PARAM_construct_int("application-metadata", &metadata);
+        unknown[1] = OSSL_PARAM_construct_end();
+        params[order] = unknown[0];
+        params[1 - order] = OSSL_PARAM_construct_octet_string(
+            OSSL_SIGNATURE_PARAM_CONTEXT_STRING, (void *)tc->context, tc->context_len);
+        params[2] = OSSL_PARAM_construct_end();
+        query[0] = OSSL_PARAM_construct_octet_string(
+            OSSL_SIGNATURE_PARAM_CONTEXT_STRING, context, sizeof(context));
+        query[1] = OSSL_PARAM_construct_end();
+
+        ED301V2_CHECK(sign != NULL
+                && ed301v2_sign_message_init(libctx, sign, unknown)
+                && EVP_PKEY_sign(sign, signature, &length, tc->message, tc->message_len) == 1
+                && length == ED301V2_SIG_BYTES
+                && memcmp(signature, tc->empty_context_signature, length) == 0,
+            "unknown params order %u: metadata alone leaves empty-context bytes", order);
+        length = sizeof(signature);
+        ED301V2_CHECK(sign != NULL
+                && ed301v2_sign_message_init(libctx, sign, params)
+                && EVP_PKEY_CTX_set_params(sign, unknown) == 1
+                && EVP_PKEY_CTX_get_params(sign, query) == 1
+                && query[0].return_size == tc->context_len
+                && memcmp(context, tc->context, tc->context_len) == 0
+                && EVP_PKEY_sign(sign, signature, &length, tc->message, tc->message_len) == 1
+                && length == ED301V2_SIG_BYTES
+                && memcmp(signature, tc->signature, length) == 0,
+            "unknown params order %u: message sign and context readback unchanged", order);
+        ED301V2_CHECK(verify != NULL
+                && ed301v2_verify_message_init(libctx, verify, params)
+                && EVP_PKEY_CTX_set_params(verify, unknown) == 1
+                && EVP_PKEY_verify(verify, tc->signature, ED301V2_SIG_BYTES,
+                    tc->message, tc->message_len) == 1,
+            "unknown params order %u: message verification unchanged", order);
+        length = sizeof(signature);
+        ED301V2_CHECK(digest_sign != NULL
+                && EVP_DigestSignInit_ex(digest_sign, NULL, NULL, libctx,
+                    ED301V2_PROP, key, params) == 1
+                && EVP_DigestSignInit_ex(digest_sign, NULL, NULL, libctx,
+                    ED301V2_PROP, NULL, unknown) == 1
+                && EVP_DigestSign(digest_sign, signature, &length,
+                    tc->message, tc->message_len) == 1
+                && length == ED301V2_SIG_BYTES
+                && memcmp(signature, tc->signature, length) == 0,
+            "unknown params order %u: DigestSign and NULL-key reinit unchanged", order);
+        ED301V2_CHECK(digest_verify != NULL
+                && EVP_DigestVerifyInit_ex(digest_verify, NULL, NULL, libctx,
+                    ED301V2_PROP, key, params) == 1
+                && EVP_DigestVerifyInit_ex(digest_verify, NULL, NULL, libctx,
+                    ED301V2_PROP, NULL, unknown) == 1
+                && EVP_DigestVerify(digest_verify, tc->signature, ED301V2_SIG_BYTES,
+                    tc->message, tc->message_len) == 1,
+            "unknown params order %u: DigestVerify and NULL-key reinit unchanged", order);
+
+        /* Unknown metadata must not hide a later unsupported mode or cause
+         * the earlier, otherwise valid context update to commit on failure. */
+        params[1 - order] = OSSL_PARAM_construct_octet_string(
+            OSSL_SIGNATURE_PARAM_CONTEXT_STRING, NULL, 0);
+        params[2] = OSSL_PARAM_construct_utf8_string(
+            OSSL_SIGNATURE_PARAM_DIGEST, "SHA256", 0);
+        params[3] = OSSL_PARAM_construct_end();
+        ED301V2_CHECK(sign != NULL && EVP_PKEY_CTX_set_params(sign, params) != 1
+                && EVP_PKEY_CTX_get_params(sign, query) == 1
+                && query[0].return_size == tc->context_len
+                && memcmp(context, tc->context, tc->context_len) == 0,
+            "unknown params order %u: known mode rejection remains atomic", order);
+        ERR_clear_error();
+        params[2] = params[1 - order];
+        ED301V2_CHECK(sign != NULL && EVP_PKEY_CTX_set_params(sign, params) != 1,
+            "unknown params order %u: duplicate context still rejected", order);
+        ERR_clear_error();
+        params[2] = OSSL_PARAM_construct_end();
+        params[1 - order] = OSSL_PARAM_construct_utf8_string(
+            OSSL_SIGNATURE_PARAM_CONTEXT_STRING, "bad type", 0);
+        ED301V2_CHECK(sign != NULL && EVP_PKEY_CTX_set_params(sign, params) != 1,
+            "unknown params order %u: malformed known context still rejected", order);
+        ERR_clear_error();
+        EVP_MD_CTX_free(digest_verify);
+        EVP_MD_CTX_free(digest_sign);
+        EVP_PKEY_CTX_free(verify);
+        EVP_PKEY_CTX_free(sign);
+    }
+    EVP_PKEY_free(key);
+}
+
 int main(void)
 {
     ED301V2_REQUIRE_RUNTIME_BINDING();
@@ -98,6 +201,7 @@ int main(void)
     const int invert = ed301v2_policy_invert();
 
     ED301V2_CHECK(v1 != NULL, "provider load");
+    unknown_parameter_conformance(libctx);
 
     /*
      * S1/S8 -- Ed301-v2 pure-EdDSA contract and OpenSSL
@@ -1396,10 +1500,20 @@ int main(void)
         ED301V2_CHECK(ed301v2_message_sign_init_rejects(libctx, pkey, params),
             "tls-version: duplicate rejected");
 
-        /* An unknown parameter after a valid tls-version is rejected. */
+        /* Unknown metadata does not change valid TLS metadata or signature bytes. */
         params[1] = OSSL_PARAM_construct_int("unknown-param", &other);
+        pctx = EVP_PKEY_CTX_new_from_pkey(libctx, pkey, ED301V2_PROP);
+        sig_len = sizeof(sig);
+        ED301V2_CHECK(pctx != NULL
+                && ed301v2_sign_message_init(libctx, pctx, params)
+                && EVP_PKEY_sign(pctx, sig, &sig_len, tc->message, tc->message_len) == 1
+                && sig_len == ED301V2_SIG_BYTES
+                && memcmp(sig, tc->signature, sig_len) == 0,
+            "tls-version: trailing unknown parameter ignored, KAT byte-exact");
+        EVP_PKEY_CTX_free(pctx);
+        params[0] = OSSL_PARAM_construct_int(OSSL_SIGNATURE_PARAM_TLS_VERSION, &tls12);
         ED301V2_CHECK(ed301v2_message_sign_init_rejects(libctx, pkey, params),
-            "tls-version: trailing unknown parameter rejected");
+            "tls-version: unknown metadata cannot hide invalid TLS version");
 #else
         ED301V2_CHECK(pkey != NULL, "tls-version: key");
 

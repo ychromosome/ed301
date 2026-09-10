@@ -423,12 +423,19 @@ static int hybrid_kem_init(
     const OSSL_PARAM params[],
     int operation)
 {
+    size_t index;
+
     if (context == NULL || context->provider == NULL)
         return 0;
-    if (params != NULL && params[0].key != NULL) {
-        X301_RAISE(context->provider, X301_R_INVALID_PARAMETER,
-            "X301MLKEM1024 KEM parameters are unsupported");
-        return 0;
+    for (index = 0; params != NULL && params[index].key != NULL; index++) {
+        /* No alternate KEM operation or caller-supplied randomness is defined. */
+        if (strcmp(params[index].key, OSSL_KEM_PARAM_OPERATION) == 0
+                || strcmp(params[index].key, OSSL_KEM_PARAM_IKME) == 0) {
+            X301_RAISE(context->provider, X301_R_INVALID_PARAMETER,
+                "X301MLKEM1024 rejects alternate KEM modes or randomness");
+            return 0;
+        }
+        /* Ignore unknown metadata; key/provider validation below is unchanged. */
     }
     if (key == NULL || key->provider != context->provider
         || (operation == KEM_ENCAPSULATE && key->state < KEY_PUBLIC)

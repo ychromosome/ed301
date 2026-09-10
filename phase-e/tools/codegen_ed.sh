@@ -196,7 +196,7 @@ core::panicking::panic_bounds_check'
 
 # E3: this exponentiator branches/indexes only on fixed public exponents.
 # The companion dataflow check verifies every linked call site and the actual
-# read-only exponent bytes, including both Euler calls before mask acceptance.
+# read-only square-root exponent bytes. Jacobi is public-input-only (E8a).
 check_expected_branches field_pow \
     '<ed301_eddsa::field_5x64::Fe301>::pow_fixed_window4' \
     'cmp $0x2a0,%rcx|jne
@@ -204,60 +204,21 @@ add $0xffffffffffffffff,%rdx|jae
 and $0xf,%rax|je
 add $0xffffffffffffffff,%rdx|jb'
 check_exact_call_graph field_pow "$EVIDENCE/field_pow.asm" ''
-if [ "$MODE" = provider ]; then
-    # E7's row-wise square moves the public decode/halving status slot by
-    # 16 bytes. The same four conditional edges and exact calls are retained.
-    IMPORT_BRANCHES='cmp $0x26,%rdx|jne
-cmpb $0x0,0x3a0(%rsp)|jne
-cmpb $0x0,0x3a0(%rsp)|je
-cmpb $0x0,0x3a0(%rsp)|je'
-    IMPORT_CALLS='<ed301_eddsa::edwards::EdwardsPoint>::decode
-memcpy
-memcpy
-memcpy
+# E8a/c: validation is separate from preparation, with an explicit no-inline
+# boundary. These two symbols may depend on public input; no secret-path
+# branch rule is relaxed. The companion gate audits every resolved incoming
+# edge and rejects an import/Jacobi call from signing or key derivation.
+extract_symbol '<ed301_eddsa::signature::ValidatedPublicKey>::from_bytes' \
+    "$EVIDENCE/public_import.asm"
+extract_symbol '<ed301_eddsa::field_5x64::Fe301>::is_nonzero_square' \
+    "$EVIDENCE/public_jacobi.asm"
+check_exact_call_graph public_import "$EVIDENCE/public_import.asm" \
+    '<ed301_eddsa::edwards::EdwardsPoint>::decode
 <ed301_eddsa::field_5x64::Fe301>::pow_fixed_window4
-<ed301_eddsa::field_5x64::Fe301>::pow_fixed_window4
-<ed301_eddsa::field_5x64::Fe301>::pow_fixed_window4
-<ed301_eddsa::edwards::EdwardsPoint>::prepare_vartime_table
-memcpy'
-else
-    # Thin LTO inlines the unchanged public table builder into the core
-    # benchmark. All six additional loops occur after subgroup acceptance.
-    IMPORT_BRANCHES='cmp $0x26,%rdx|jne
-cmpb $0x0,0xcb0(%rsp)|jne
-cmpb $0x0,0xcb0(%rsp)|je
-cmpb $0x0,0xcb0(%rsp)|je
-cmp $0x2800,%r14|jne
-cmp $0x2760,%r12|jne
-cmp $0xa00,%rax|jne
-cmp $0xa00,%rdx|jne
-cmp $0x2800,%r14|jne
-cmp $0xfffffffffffff600,%rcx|jne'
-    IMPORT_CALLS='<ed301_eddsa::edwards::EdwardsPoint>::decode
-memcpy
-memcpy
-memcpy
-<ed301_eddsa::field_5x64::Fe301>::pow_fixed_window4
-<ed301_eddsa::field_5x64::Fe301>::pow_fixed_window4
-<ed301_eddsa::field_5x64::Fe301>::pow_fixed_window4
-memcpy
-memcpy
-memcpy
-memcpy
-<ed301_eddsa::edwards::EdwardsPoint>::double
-memcpy
-<ed301_eddsa::edwards::EdwardsPoint>::add
-memcpy
-<ed301_eddsa::field_5x64::Fe301>::invert
-memcpy
-memcpy
-memcpy
-memcpy
-memcpy'
-fi
-check_expected_branches public_import \
-    '<ed301_eddsa::signature::VerifyingKey>::from_bytes' "$IMPORT_BRANCHES"
-check_exact_call_graph public_import "$EVIDENCE/public_import.asm" "$IMPORT_CALLS"
+<ed301_eddsa::field_5x64::Fe301>::is_nonzero_square
+<ed301_eddsa::field_5x64::Fe301>::is_nonzero_square'
+printf '%s\n' 'PASS public_only=validated-public-key-import-and-jacobi variable_public_time=allowed' \
+    | tee -a "$SUMMARY"
 
 CALL_ANCHOR=basepoint_select
 if [ "$MODE" = provider ]; then

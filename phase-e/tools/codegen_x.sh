@@ -8,7 +8,7 @@ extract_symbol 'x301_core::x301::ladder301' "$EVIDENCE/ladder.asm"
 check_exact_call_graph ladder "$EVIDENCE/ladder.asm" 'memcpy'
 
 # One backward carry edge visits public counter values 300 through 0.
-# Scalar indexing, spill/reload and counter origin are tied to E7's lowering.
+# Scalar indexing, spill/reload and counter origin are tied to E8b R1 lowering.
 extract_full_ladder_loop() {
     /usr/bin/gawk '
     /^[[:space:]]*[[:xdigit:]]+:/ {
@@ -19,7 +19,7 @@ extract_full_ladder_loop() {
             if ($2 == "jb" && strtonum("0x" $3) < strtonum("0x" address)) {
                 first = strtonum("0x" $3)
                 last = strtonum("0x" address)
-                if (previous != "add $0xffffffffffffffff,%rax")
+                if (previous != "add $0xffffffffffffffff,%rcx")
                     exit 1
             }
         }
@@ -38,10 +38,10 @@ extract_full_ladder_loop() {
             split(line[i], p, /[[:space:]]+/)
             if (p[2] ~ /^[[:xdigit:]]+:$/) {
                 a = p[2]; sub(/:$/, "", a); a = strtonum("0x" a)
-                if (a < first && p[3] == "mov" && p[4] == "$0x12c,%eax")
+                if (a < first && p[3] == "mov" && p[4] == "$0x12c,%ecx")
                     initialized++
                 operands = split(p[4], operand, ",")
-                writes_counter = (operand[operands] == "%eax" || operand[operands] == "%rax") &&
+                writes_counter = (operand[operands] == "%ecx" || operand[operands] == "%rcx") &&
                     p[3] !~ /^(cmp|test|push|j|call|ret|nop)/
                 if (writes_counter && a < first)
                     last_pre_counter_write = p[3] " " p[4]
@@ -53,41 +53,41 @@ extract_full_ladder_loop() {
                     print line[i]
             }
         }
-        if (initialized != 1 || last_pre_counter_write != "mov $0x12c,%eax" ||
-            penultimate_loop_counter_write != "mov 0x1d8(%rsp),%rax" ||
-            last_loop_counter_write != "add $0xffffffffffffffff,%rax")
+        if (initialized != 1 || last_pre_counter_write != "mov $0x12c,%ecx" ||
+            penultimate_loop_counter_write != "mov 0x108(%rsp),%rcx" ||
+            last_loop_counter_write != "add $0xffffffffffffffff,%rcx")
             exit 1
     }' "$1" >"$2"
 }
 extract_full_ladder_loop "$EVIDENCE/ladder.asm" "$EVIDENCE/ladder-loop.asm"
 LOOP=$EVIDENCE/ladder-loop.asm
 test -s "$LOOP"
-/usr/bin/grep -Eq 'mov[[:space:]]+%rax,0x1d8\(%rsp\)$' "$LOOP"
-/usr/bin/grep -Eq 'mov[[:space:]]+0x1d8\(%rsp\),%rax$' "$LOOP"
-/usr/bin/grep -Eq 'shr[[:space:]]+\$0x3,%rax$' "$LOOP"
-/usr/bin/grep -Eq 'mov[[:space:]]+0x1f0\(%rsp\),%rdx$' "$LOOP"
+/usr/bin/grep -Eq 'mov[[:space:]]+%rcx,0x108\(%rsp\)$' "$LOOP"
+/usr/bin/grep -Eq 'mov[[:space:]]+0x108\(%rsp\),%rcx$' "$LOOP"
+/usr/bin/grep -Eq 'shr[[:space:]]+\$0x3,%rcx$' "$LOOP"
+/usr/bin/grep -Eq 'mov[[:space:]]+0x240\(%rsp\),%rdx$' "$LOOP"
 /usr/bin/grep -Eq 'and[[:space:]]+\$0x7,%edx$' "$LOOP"
-/usr/bin/grep -Eq 'bt[[:space:]]+%edx,%eax$' "$LOOP"
-test "$(/usr/bin/grep -Ec ',0x1d8\(%rsp\)$' "$LOOP")" -eq 1
+/usr/bin/grep -Eq 'bt[[:space:]]+%edx,%ecx$' "$LOOP"
+test "$(/usr/bin/grep -Ec ',0x108\(%rsp\)$' "$LOOP")" -eq 1
 /usr/bin/awk '
     /^[[:space:]]*[[:xdigit:]]+:/ && $0 ~ /\([^)]*,[^)]*\)/ &&
     $2 !~ /^lea/ && index($0, "nop") == 0 { print }
 ' "$LOOP" >"$EVIDENCE/ladder-indexed-memory.txt"
 test "$(/usr/bin/awk 'END { print NR+0 }' "$EVIDENCE/ladder-indexed-memory.txt")" -eq 1
-/usr/bin/grep -Eq 'movzbl[[:space:]]+\(%rdx,%rax,1\),%eax$' "$EVIDENCE/ladder-indexed-memory.txt"
+/usr/bin/grep -Eq 'movzbl[[:space:]]+\(%rdx,%rcx,1\),%ecx$' "$EVIDENCE/ladder-indexed-memory.txt"
 test "$(count_mnemonic '^cmov' "$LOOP")" -ge 20
 test "$(count_mnemonic '^call' "$LOOP")" -eq 0
 if contains_forbidden_instruction "$LOOP" allow-conditional; then
     echo 'FAIL trap or division in ladder loop' >&2
     exit 1
 fi
-/usr/bin/sed 's/\$0x12c,%eax/\$0x12d,%eax/' "$EVIDENCE/ladder.asm" >"$EVIDENCE/bad-counter.asm"
+/usr/bin/sed 's/\$0x12c,%ecx/\$0x12d,%ecx/' "$EVIDENCE/ladder.asm" >"$EVIDENCE/bad-counter.asm"
 if (extract_full_ladder_loop "$EVIDENCE/bad-counter.asm" "$EVIDENCE/bad-counter-loop.asm") >/dev/null 2>&1; then
     echo 'FAIL accepted wrong ladder counter' >&2
     exit 1
 fi
 # An earlier unrelated 300 constant cannot legitimize an overwritten counter.
-{ printf '   0: mov $0x12c,%%eax\n'; /usr/bin/cat "$EVIDENCE/bad-counter.asm"; } \
+{ printf '   0: mov $0x12c,%%ecx\n'; /usr/bin/cat "$EVIDENCE/bad-counter.asm"; } \
     >"$EVIDENCE/decoy-counter.asm"
 if (extract_full_ladder_loop "$EVIDENCE/decoy-counter.asm" "$EVIDENCE/decoy-counter-loop.asm") >/dev/null 2>&1; then
     echo 'FAIL accepted decoy counter initialization' >&2

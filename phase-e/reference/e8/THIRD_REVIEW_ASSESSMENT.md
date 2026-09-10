@@ -1,0 +1,17 @@
+# Bewertung des dritten Reviews (`ed301-74d30ba-review.md`) durch Claude
+
+Datum: 10. September 2026. Geprüft gegen den Quelltext bei `74d30ba` und meine eigenen Messungen.
+
+Gesamturteil: ein gutes, ehrliches Review. Fünf Befunde, davon vier zutreffend und zwei für uns neu; keine Übertreibung, Grenzen der eigenen Prüfung (kein Rust, OpenSSL 3.0, keine nativen Läufe) sauber benannt. Die Nichtbefunde sind genauso wertvoll: A24-Skalierung, Halbierungsbeweis (nachgerechnet, bytegleiche Vektoren), Libctx, DRBG, Codecs und TLS-Capabilities ohne Befund; die Abweichungen von RFC 7748/8032 als bewusste Vertragsentscheidungen anerkannt.
+
+| Nr. | Befund | Bewertung | Aktion |
+|---|---|---|---|
+| 1 | Zurückgegebene geheimnisabhängige Projektivpunkte (`commitment_point`, `public_point`) und die Inverse in `encode_components` liegen als `Copy`-Werte ohne Zeroizing-Besitzer | **zutreffend, neu.** Kein beobachteter Leak, aber eine Lücke in der Zeroize-Disziplin, die der X301-Pfad bereits richtig macht. Ich hatte das bei Gate C nicht gesehen. | Emmy: benannte Werte bis zur kanonischen Ausgabe in `secret`/`Zeroizing` halten, Unwind-Test nach Rückkehr aus der Festbasismultiplikation ergänzen. Klein, ohne Vertragsänderung. |
+| 2 | Unbekannte `OSSL_PARAM`-Schlüssel werden abgewiesen statt ignoriert (EdDSA-Setter, X301-Exchange-Init, Hybrid-KEM-Init) | **zutreffend, neu.** OSSL_PARAM(3) verlangt, unbekannte Schlüssel zu ignorieren und bekannte konsistent zu verarbeiten. Das ist fail-closed aus v1 geerbt und bisher nur deshalb ohne Folgen, weil libssl keine Fremdschlüssel schickt. Bei Gate D hätte ich das gegen die Provider-Konvention prüfen müssen. | Emmy: unbekannte Schlüssel ignorieren, erkannte, nicht unterstützte Modi (Digest, Prehash, Instance) weiterhin explizit abweisen, Konformitätstest mit gültigem Context plus unbekanntem Schlüssel. |
+| 3 | Nachweise nicht aus dem Commit prüfbar (Belegwurzeln lokal) | **zutreffend als Grenze, kein Defekt.** Unsere Pakete sind vollständig, liegen aber nur lokal. | Martin: die Gate-Archive (C, D, E7: 200–230 MB) als Release-Assets an das öffentliche Repo hängen, mit den bereits genannten Hashes. Dann ist jedes Review reproduzierbar. |
+| 4 | Verifikationstabelle (10 KB, 26 µs) wird für jeden Signierschlüssel beim Keygen/Import gebaut | **zutreffend, neu, guter Fang.** Fast die Hälfte der EVP-Keygen-Zeit und dauerhafter Speicher pro Schlüssel ohne Nutzen beim Signieren. | Emmy: Tabelle erst bei Verifikationsbedarf einmalig materialisieren, fehlbare Allokation und Snapshots erhalten; kommt als E8c in den laufenden Auftrag. Erwartung: EVP keygen ≈ 57 → 31 µs. |
+| 5 | X301 shared 3–5 % über v1 | **bekannt**, durch E8b adressiert (gemessen gleichauf). | keine zusätzliche Aktion |
+
+Zwei Anmerkungen des Reviews, die wir übernehmen sollten: Der Hinweis, dass ein zusätzlicher R-Untergruppentest oder ein Verbot von S = 0 keine zulässige "Härtung" wäre, deckt sich mit unserem Vertrag und gehört als Satz in die Spezifikation. Und die Feststellung, dass gleich lange Rohschlüssel keinen Herkunftstag tragen, steht bereits im Integrationsvertrag.
+
+Konsequenz für den laufenden Auftrag: E8 wird um E8c (Befund 4), E8d (Befund 1) und E8e (Befund 2) erweitert; alle drei sind klein, keine Vertragsänderung, alle Gates danach neu. Gate-E-Nachtrag durch mich nach E8a–E8e. Die Veröffentlichung der Archive (Befund 3) ist Martins Entscheidung und unabhängig davon.

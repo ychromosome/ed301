@@ -295,6 +295,34 @@ done:
     return failed;
 }
 
+static int allocation_fail_lazy_verifier(OSSL_LIB_CTX *libctx)
+{
+    const POSITIVE_CASE *tc = &POSITIVE_CASES[0];
+    EVP_PKEY *pkey = ed301v2_key_from_seed(libctx, tc->seed);
+    EVP_PKEY_CTX *context = EVP_PKEY_CTX_new_from_pkey(
+        libctx, pkey, ED301V2_FAILPOINT_PROP);
+    int failed = 0;
+
+    if (context != NULL && set_alloc_failpoint("signature_verify_init"))
+        failed = !ed301v2_verify_message_init(libctx, context, NULL);
+    clear_alloc_failpoint();
+    ERR_clear_error();
+    failed = failed && ed301v2_verify_message_init(libctx, context, NULL)
+        && EVP_PKEY_verify(context, tc->signature, ED301V2_SIG_BYTES,
+            tc->message, tc->message_len) == 1;
+    /* Reusing the same validated key needs no second table allocation. */
+    if (failed && set_alloc_failpoint("signature_verify_init"))
+        failed = ed301v2_verify_message_init(libctx, context, NULL)
+            && EVP_PKEY_verify(context, tc->signature, ED301V2_SIG_BYTES,
+                tc->message, tc->message_len) == 1;
+    else
+        failed = 0;
+    clear_alloc_failpoint();
+    EVP_PKEY_CTX_free(context);
+    EVP_PKEY_free(pkey);
+    return failed;
+}
+
 int main(void)
 {
     const int rust_alloc_only =
@@ -387,6 +415,8 @@ int main(void)
             "signature_new allocation failpoint fails closed and recovers");
         ED301V2_CHECK(allocation_fail_signature_duplicate(libctx),
             "signature_duplicate allocation failpoint fails closed and recovers");
+        ED301V2_CHECK(allocation_fail_lazy_verifier(libctx),
+            "lazy verifier allocation fails closed, retries and then shares the table");
 
         /* The focused allocation-only Valgrind lane excludes panic-hook
          * symbolization. Full panic recovery is a separate mandatory run;

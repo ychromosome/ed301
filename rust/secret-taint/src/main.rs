@@ -1,7 +1,7 @@
 use std::{env, process::ExitCode};
 
 use ed301_eddsa::{
-    SigningKey,
+    SigningKey, ValidatedPublicKey,
     parameters::{PUBLIC_KEY_BYTES, SEED_BYTES, SIGNATURE_BYTES},
 };
 use ed301_valgrind_client::{get_vbits, make_defined, mark_undefined, running_on_valgrind};
@@ -50,6 +50,7 @@ fn run() -> Result<(), String> {
     match case.as_str() {
         "public" => run_public(mode)?,
         "sign" => run_sign(mode)?,
+        "import" => run_import(mode)?,
         _ => return Err(format!("unsupported case: {case}")),
     }
     println!(
@@ -68,12 +69,14 @@ fn run_public(mode: Mode) -> Result<(), String> {
     let mut seed = required_array::<SEED_BYTES>(SECRET_ENV)?;
     let expected = required_array::<PUBLIC_KEY_BYTES>(EXPECTED_PUBLIC_ENV)?;
     apply_mode(mode, &mut seed)?;
+    let import_count = import_count();
     let key = SigningKey::from_seed(&seed).map_err(|_| "key import failed")?;
     let public = key
         .verifying_key()
         .map_err(|_| "public derivation failed")?
         .to_bytes();
     require_public_vbits(mode, &public)?;
+    require_no_import(import_count)?;
     make_defined(&mut seed);
     if public != expected {
         return Err("public KAT mismatch".into());
@@ -87,6 +90,7 @@ fn run_sign(mode: Mode) -> Result<(), String> {
     let message = required_bytes("ED301_CT_MESSAGE_HEX")?;
     let context = required_bytes("ED301_CT_CONTEXT_HEX")?;
     apply_mode(mode, &mut seed)?;
+    let import_count = import_count();
     let key = SigningKey::from_seed(&seed).map_err(|_| "key import failed")?;
     let signature = key
         .sign_with_context(&message, &context)
@@ -95,10 +99,41 @@ fn run_sign(mode: Mode) -> Result<(), String> {
         return Err("public signature retains non-wire state".into());
     }
     require_public_vbits(mode, signature.as_bytes())?;
+    require_no_import(import_count)?;
     make_defined(&mut seed);
     if signature.to_bytes() != expected {
         return Err("signature KAT mismatch".into());
     }
+    Ok(())
+}
+
+fn import_count() -> usize {
+    #[cfg(feature = "instrumented")]
+    return ed301_eddsa::signature::public_import_count_for_diagnostics();
+    #[cfg(not(feature = "instrumented"))]
+    0
+}
+
+fn require_no_import(before: usize) -> Result<(), String> {
+    if import_count() != before {
+        return Err("secret operation entered the public import path".into());
+    }
+    Ok(())
+}
+
+fn run_import(mode: Mode) -> Result<(), String> {
+    let mut public = required_array::<PUBLIC_KEY_BYTES>(EXPECTED_PUBLIC_ENV)?;
+    apply_mode(mode, &mut public)?;
+    let before = import_count();
+    let parsed = ValidatedPublicKey::from_bytes(&public).map_err(|_| "public import failed")?;
+    #[cfg(feature = "instrumented")]
+    if import_count() != before + 1 {
+        return Err("public import observer did not execute".into());
+    }
+    #[cfg(not(feature = "instrumented"))]
+    let _ = before;
+    require_public_vbits(mode, parsed.as_bytes())?;
+    make_defined(&mut public);
     Ok(())
 }
 

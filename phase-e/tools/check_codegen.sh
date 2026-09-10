@@ -602,7 +602,10 @@ check_expected_branches() {
 
 /usr/bin/python3 -I -B "$TOOLS/check_codegen_dataflow.py" \
     --profile "$PROFILE" --elf "$MODULE" --evidence "$EVIDENCE" \
-    | tee -a "$SUMMARY"
+    >"$EVIDENCE/dataflow.stdout"
+# Do not pipe the checker into tee: POSIX sh would otherwise report tee's
+# success even when the dataflow checker rejects the linked binary.
+/usr/bin/cat "$EVIDENCE/dataflow.stdout" | tee -a "$SUMMARY"
 
 # Both accepted core harness identities contain the identical historical
 # harness source. Exactly one must be linked; this changes only the public
@@ -729,8 +732,14 @@ if ! contains_forbidden_instruction "$EVIDENCE/negative-control.asm" \
     exit 1
 fi
 printf 'PASS negative_control=public-%s-entry-jcc-detected\n' "$MODE" | tee -a "$SUMMARY"
-if /usr/bin/grep -Eq '(ed301_eddsa|x301_core)::.*(tests::|rem_wide|div3by2|is_prime_subgroup_with_table|square_wide_column_oracle|accumulate_product|accumulate_double_product|accumulate_192|emit_square_column)|JacobiSymbol|jacobi_symbol' "$EVIDENCE/core.nm"; then
+if /usr/bin/grep -Eq '(ed301_eddsa|x301_core)::.*(tests::|rem_wide|div3by2|is_prime_subgroup_with_table|is_nonzero_square_euler|audit_public_import|public_import_count_for_diagnostics|square_wide_column_oracle|accumulate_product|accumulate_double_product|accumulate_192|emit_square_column)' "$EVIDENCE/core.nm"; then
     echo 'FAIL test-only arithmetic oracle in final provider DSO' >&2
+    exit 1
+fi
+# The pinned Jacobi implementation is inlined into the separately classified
+# Ed301 public predicate. New standalone variants require their own review.
+if /usr/bin/grep -Eq 'JacobiSymbol|jacobi_symbol' "$EVIDENCE/core.nm"; then
+    echo 'FAIL unclassified standalone Jacobi implementation in final ELF' >&2
     exit 1
 fi
 /usr/bin/sha256sum "$MODULE" "$TOOLCHAIN" "$DUMP" "$SUMMARY" >"$EVIDENCE/SHA256SUMS"

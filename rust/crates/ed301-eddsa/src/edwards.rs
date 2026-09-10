@@ -11,6 +11,7 @@ use crate::{
     field_5x64::{Fe301 as FieldElement, Fe301Lazy as Lazy},
     parameters::{FIELD_BITS, FIELD_BYTES},
     scalar::Scalar,
+    secret::secret,
     secret_taint::declassify,
 };
 
@@ -68,6 +69,21 @@ impl zeroize::Zeroize for EdwardsPoint {
                     .to_bool()
             );
             tests::record_point_zeroization();
+        }
+    }
+}
+
+// A distinct non-Copy payload keeps the encoder's normalization inverse in a
+// logical zeroizing owner, including a failed presence check or unwinding.
+struct EncodingInverse(FieldElement);
+
+impl zeroize::Zeroize for EncodingInverse {
+    fn zeroize(&mut self) {
+        self.0.zeroize();
+        #[cfg(test)]
+        {
+            assert!(self.0.is_zero().to_bool());
+            tests::record_inverse_zeroization();
         }
     }
 }
@@ -134,6 +150,11 @@ impl AffineNielsPoint {
 }
 
 impl EdwardsPoint {
+    #[cfg(test)]
+    pub(crate) fn zeroization_count_for_test() -> usize {
+        tests::point_zeroizations()
+    }
+
     /// Edwards identity `(0, 1)`.
     pub(crate) const IDENTITY: Self = Self {
         x: FieldElement::ZERO,
@@ -432,6 +453,7 @@ impl EdwardsPoint {
 
     /// Require nonidentity membership in `4E = E[q]` after canonical decoding.
     /// The caller must supply an affine point returned by `decode` (`Z = 1`).
+    /// This is a public-input-only path, not a constant-time secret-point test.
     /// Both symbols and the square-root validity mask are always computed;
     /// no division or selection of a rational halving root is needed.
     pub(crate) fn is_prime_subgroup_decoded(&self) -> Choice {
@@ -445,6 +467,7 @@ impl EdwardsPoint {
             .and(self.is_identity().not())
     }
 
+    // Public-input-only halving terms; never use on secret projective state.
     // Expose the actual production intermediates to the child test module.
     // Return fields: w, delta, sqrt candidate, second symbol input, root valid.
     fn halving_terms(
@@ -543,14 +566,14 @@ impl EdwardsPoint {
 
     /// Encode a valid point as the canonical 38-byte compressed representation.
     #[cfg(test)]
-    pub(crate) fn encode(self) -> Result<[u8; FIELD_BYTES], EdwardsPointError> {
+    pub(crate) fn encode(&self) -> Result<[u8; FIELD_BYTES], EdwardsPointError> {
         self.encode_inner(false)
     }
 
     /// Encode a secret-derived point whose completed bytes are a public wire
     /// artifact, declassifying only impossible invariant-fault predicates in
     /// the Valgrind instrumentation build.
-    pub(crate) fn encode_public_artifact(self) -> Result<[u8; FIELD_BYTES], EdwardsPointError> {
+    pub(crate) fn encode_public_artifact(&self) -> Result<[u8; FIELD_BYTES], EdwardsPointError> {
         self.encode_inner(true)
     }
 
@@ -562,7 +585,7 @@ impl EdwardsPoint {
     /// projective `Z` coordinate is deliberately discarded rather than being
     /// treated as public.
     pub(crate) fn canonical_public_artifact(
-        self,
+        &self,
     ) -> Result<([u8; FIELD_BYTES], Self), EdwardsPointError> {
         let (mut encoded, affine_x, affine_y) = self.encode_components(true)?;
         let mut canonical_point = Self::from_affine(affine_x, affine_y);
@@ -573,7 +596,7 @@ impl EdwardsPoint {
 
     #[inline(always)]
     fn encode_inner(
-        self,
+        &self,
         declassify_fault_predicates: bool,
     ) -> Result<[u8; FIELD_BYTES], EdwardsPointError> {
         let (encoded, _, _) = self.encode_components(declassify_fault_predicates)?;
@@ -581,7 +604,7 @@ impl EdwardsPoint {
     }
 
     fn encode_components(
-        self,
+        &self,
         declassify_fault_predicates: bool,
     ) -> Result<([u8; FIELD_BYTES], FieldElement, FieldElement), EdwardsPointError> {
         let mut point_is_valid = self.is_valid();
@@ -591,7 +614,9 @@ impl EdwardsPoint {
         if !point_is_valid.to_bool() {
             return Err(EdwardsPointError);
         }
-        let inverse = self.z.invert();
+        let inverse = self.z.invert().map(|value| secret(EncodingInverse(value)));
+        #[cfg(test)]
+        tests::encoding_inverse_failpoint();
         let mut inverse_is_present = inverse.is_some();
         if declassify_fault_predicates {
             declassify(&mut inverse_is_present);
@@ -599,9 +624,9 @@ impl EdwardsPoint {
         if !inverse_is_present.to_bool() {
             return Err(EdwardsPointError);
         }
-        let inverse = inverse.to_inner_unchecked();
-        let affine_x = self.x.mul(inverse);
-        let affine_y = self.y.mul(inverse);
+        let inverse_value = &inverse.as_inner_unchecked().0;
+        let affine_x = self.x.mul(*inverse_value);
+        let affine_y = self.y.mul(*inverse_value);
         let mut encoded = affine_y.to_canonical_bytes();
         encoded[FIELD_BYTES - 1] |= affine_x.is_odd().to_u8() << 7;
         Ok((encoded, affine_x, affine_y))
@@ -870,6 +895,21 @@ mod tests {
     std::thread_local! {
         static FIXED_BASE_FAIL: core::cell::Cell<bool> = const { core::cell::Cell::new(false) };
         static POINT_DROPS: core::cell::Cell<usize> = const { core::cell::Cell::new(0) };
+        static INVERSE_FAIL: core::cell::Cell<bool> = const { core::cell::Cell::new(false) };
+        static INVERSE_DROPS: core::cell::Cell<usize> = const { core::cell::Cell::new(0) };
+    }
+
+    pub(super) fn point_zeroizations() -> usize {
+        POINT_DROPS.with(core::cell::Cell::get)
+    }
+
+    pub(super) fn record_inverse_zeroization() {
+        INVERSE_DROPS.with(|count| count.set(count.get() + 1));
+    }
+
+    pub(super) fn encoding_inverse_failpoint() {
+        INVERSE_FAIL
+            .with(|fail| assert!(!fail.replace(false), "controlled encoding-inverse unwind"));
     }
 
     pub(super) fn record_point_zeroization() {
@@ -891,6 +931,21 @@ mod tests {
         assert_eq!(POINT_DROPS.with(core::cell::Cell::get), 1);
         let point = EdwardsPoint::scalar_mul_base_pruned(&TEST_PRUNED_SECRET);
         assert_eq!(point.encode(), Ok(TEST_PUBLIC_ENCODING));
+    }
+
+    #[test]
+    fn encoding_inverse_owner_zeroizes_on_return_and_unwind() {
+        let before = INVERSE_DROPS.with(core::cell::Cell::get);
+        assert_eq!(EdwardsPoint::BASEPOINT.encode(), Ok(BASEPOINT_ENCODING));
+        assert_eq!(INVERSE_DROPS.with(core::cell::Cell::get), before + 1);
+
+        INVERSE_FAIL.with(|fail| fail.set(true));
+        let outcome = std::panic::catch_unwind(|| EdwardsPoint::BASEPOINT.encode());
+        assert!(outcome.is_err());
+        assert_eq!(INVERSE_DROPS.with(core::cell::Cell::get), before + 2);
+
+        assert_eq!(EdwardsPoint::BASEPOINT.encode(), Ok(BASEPOINT_ENCODING));
+        assert_eq!(INVERSE_DROPS.with(core::cell::Cell::get), before + 3);
     }
 
     const SCALAR_12345: [u8; FIELD_BYTES] = decode_hex_array(

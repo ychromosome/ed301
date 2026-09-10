@@ -318,6 +318,62 @@ static void unit_test_digest_reinit_contract(
         "valid new-key %s reinit remains supported", operation);
 }
 
+static void unit_test_parameter_contract(ED301V2_SIGNATURE_RUST_API *api)
+{
+    static const char *const modes[] = {
+        "digest", "digest-size", "properties", "instance", "nonce-type",
+        "deterministic", "additional-random", "test-entropy", "signature",
+        "prehash", "streaming"
+    };
+    ED301V2_PROVIDER_CONTEXT provider = { 0 };
+    ED301V2_SIGNATURE_CONTEXT signature = { 0 };
+    OSSL_PARAM params[4];
+    unsigned char context[] = { 0x00, 0x80, 0xff };
+    int value = 17;
+    int inner = 1;
+    size_t index;
+    unsigned int order;
+    void *generation;
+
+    provider.rust = api;
+    provider.zalloc = unit_zalloc;
+    provider.clear_free = unit_clear_free;
+    signature.provider = &provider;
+    signature.inner = &inner;
+    params[0] = OSSL_PARAM_construct_int("application-metadata", &value);
+    params[1] = OSSL_PARAM_construct_end();
+    generation = ed301v2_key_gen_init(&provider, OSSL_KEYMGMT_SELECT_KEYPAIR, params);
+    ED301V2_CHECK(generation != NULL, "keygen init ignores unknown metadata");
+    ed301v2_key_gen_cleanup(generation);
+    params[1] = OSSL_PARAM_construct_int(OSSL_PKEY_PARAM_BITS, &value);
+    params[2] = OSSL_PARAM_construct_end();
+    generation = ed301v2_key_gen_init(&provider, OSSL_KEYMGMT_SELECT_KEYPAIR, params);
+    ED301V2_CHECK(generation == NULL, "keygen unknown metadata cannot hide a key-size request");
+    ed301v2_key_gen_cleanup(generation);
+    params[1] = OSSL_PARAM_construct_utf8_string(OSSL_PKEY_PARAM_GROUP_NAME, "other", 0);
+    generation = ed301v2_key_gen_init(&provider, OSSL_KEYMGMT_SELECT_KEYPAIR, params);
+    ED301V2_CHECK(generation == NULL, "keygen unknown metadata cannot hide a group request");
+    ed301v2_key_gen_cleanup(generation);
+
+    for (order = 0; order < 2; order++) {
+        params[order] = OSSL_PARAM_construct_int("application-metadata", &value);
+        params[1 - order] = OSSL_PARAM_construct_octet_string(
+            OSSL_SIGNATURE_PARAM_CONTEXT_STRING, context, sizeof(context));
+        params[2] = OSSL_PARAM_construct_end();
+        ED301V2_CHECK(ed301v2_signature_set_context_params(&signature, params) == 1
+                && unit_context_length == sizeof(context)
+                && memcmp(unit_context, context, sizeof(context)) == 0,
+            "direct setter accepts context plus unknown metadata order %u", order);
+        for (index = 0; index < sizeof(modes) / sizeof(modes[0]); index++) {
+            params[1 - order] = OSSL_PARAM_construct_int(modes[index], &value);
+            ED301V2_CHECK(ed301v2_signature_set_context_params(&signature, params) == 0
+                    && unit_context_length == sizeof(context)
+                    && memcmp(unit_context, context, sizeof(context)) == 0,
+                "unknown metadata cannot hide known %s request order %u", modes[index], order);
+        }
+    }
+}
+
 static void unit_fill_api(ED301V2_SIGNATURE_RUST_API *api)
 {
     memset(api, 0, sizeof(*api));
@@ -488,6 +544,7 @@ int main(void)
 
     unit_test_digest_reinit_contract(&api, 0);
     unit_test_digest_reinit_contract(&api, 1);
+    unit_test_parameter_contract(&api);
 
 #if OPENSSL_VERSION_MAJOR == 3
     ED301V2_CHECK(!ed301v2_core_version_text_is_supported("3.0.0"),

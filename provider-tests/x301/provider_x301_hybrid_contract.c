@@ -344,6 +344,54 @@ static int decapsulate(
     return result;
 }
 
+static int kem_parameter_conformance(
+    OSSL_LIB_CTX *libctx, EVP_PKEY *public_key, EVP_PKEY *private_key)
+{
+    static const char *const modes[] = { OSSL_KEM_PARAM_OPERATION, OSSL_KEM_PARAM_IKME };
+    EVP_PKEY_CTX *encap = EVP_PKEY_CTX_new_from_pkey(libctx, public_key, X301_PROPERTIES);
+    EVP_PKEY_CTX *decap = EVP_PKEY_CTX_new_from_pkey(libctx, private_key, X301_PROPERTIES);
+    unsigned char ciphertext[HYBRID_CIPHERTEXT_BYTES];
+    unsigned char first[HYBRID_SECRET_BYTES];
+    unsigned char second[HYBRID_SECRET_BYTES];
+    size_t ciphertext_length = sizeof(ciphertext);
+    size_t first_length = sizeof(first);
+    size_t second_length = sizeof(second);
+    int metadata = 29;
+    OSSL_PARAM params[3];
+    size_t index;
+    unsigned int order;
+    int result = 0;
+
+    params[0] = OSSL_PARAM_construct_int("application-metadata", &metadata);
+    params[1] = OSSL_PARAM_construct_end();
+    if (encap == NULL || decap == NULL
+            || EVP_PKEY_encapsulate_init(encap, params) <= 0
+            || EVP_PKEY_decapsulate_init(decap, params) <= 0
+            || EVP_PKEY_encapsulate(encap, ciphertext, &ciphertext_length, first, &first_length) <= 0
+            || ciphertext_length != sizeof(ciphertext) || first_length != sizeof(first)
+            || EVP_PKEY_decapsulate(decap, second, &second_length, ciphertext, ciphertext_length) <= 0
+            || second_length != sizeof(second) || CRYPTO_memcmp(first, second, sizeof(first)) != 0)
+        goto done;
+    for (index = 0; index < sizeof(modes) / sizeof(modes[0]); index++) {
+        for (order = 0; order < 2; order++) {
+            params[order] = OSSL_PARAM_construct_int("application-metadata", &metadata);
+            params[1 - order] = OSSL_PARAM_construct_int(modes[index], &metadata);
+            params[2] = OSSL_PARAM_construct_end();
+            if (EVP_PKEY_encapsulate_init(encap, params) > 0
+                    || EVP_PKEY_decapsulate_init(decap, params) > 0)
+                goto done;
+            ERR_clear_error();
+        }
+    }
+    result = 1;
+done:
+    OPENSSL_cleanse(first, sizeof(first));
+    OPENSSL_cleanse(second, sizeof(second));
+    EVP_PKEY_CTX_free(decap);
+    EVP_PKEY_CTX_free(encap);
+    return result;
+}
+
 static int full_hybrid_cycle(const char *module_directory)
 {
     OSSL_LIB_CTX *libctx = NULL;
@@ -1330,6 +1378,12 @@ int main(int argc, char **argv)
         goto done;
     }
     pass("H2 server-share delete/insert at offset 1568 reject atomically");
+
+    if (!kem_parameter_conformance(libctx, public_key, private_key)) {
+        fail("E8e unknown KEM metadata ignored while alternate modes remain rejected");
+        goto done;
+    }
+    pass("E8e unknown KEM metadata ignored while alternate modes remain rejected");
 
     if (!oversized_success_preserves_tail(libctx, public_key, private_key)) {
         fail("H2 successful KEM writes exact lengths and preserves canaries");

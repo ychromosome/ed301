@@ -64,6 +64,17 @@ if previous:
 for seal in ("phase-c/PHASE_C_SOURCE_MANIFEST.sha256", "phase-d/D1_SOURCE_MANIFEST.sha256"):
     run(["sha256sum", "--strict", "--check", "--status", baseline / seal],
         "baseline-" + Path(seal).stem, cwd=baseline)
+# Phase-B steps 2/3 cover packages outside PHASE_B_SOURCE_MANIFEST. Check the
+# current packages before building; a later baseline replay cannot attest them.
+for directory, package_manifest, label in (
+    ("provenance/phase-a/2026-09-09", "PHASE_A_MANIFEST.sha256", "current-gate-a-package"),
+    ("provenance/v2-search", "RUN_MANIFEST.sha256", "current-signed-search-package"),
+):
+    current_package = ROOT / directory
+    historical_package = baseline / directory
+    if (current_package / package_manifest).read_bytes() != (historical_package / package_manifest).read_bytes():
+        raise SystemExit("FAIL: current provenance manifest differs from the approved baseline: " + directory)
+    run(["sha256sum", "--strict", "--check", package_manifest], label, cwd=current_package)
 for runner, output in (
     ("phase-c/tools/generate_rust_parameters.py", "rust/crates/ed301-eddsa/src/generated_parameters.rs"),
     ("phase-d/tools/generate_x301_parameters.py", "rust/crates/x301/src/x_generated_parameters.rs"),
@@ -144,7 +155,45 @@ if previous:
     for name in ("ed", "x"):
         if not set(inventories["previous-" + name]).issubset(inventories["current-" + name]):
             raise SystemExit("FAIL: a named previous Phase-E test was lost")
-run(["python3", "-B", ROOT / "tools/check_phase_b.py"], "phase-b-replay", cwd=ROOT)
+# E8a adds a public-input timing contract to one specification. The historical
+# Gate-B manifest remains immutable. Bind every current Phase-B input to the
+# approved baseline, permit only this exact documentation insertion, then run
+# the original eight-step replay from that hash-verified baseline.
+phase_b_manifest = "phase-b/PHASE_B_SOURCE_MANIFEST.sha256"
+if (ROOT / phase_b_manifest).read_bytes() != (baseline / phase_b_manifest).read_bytes():
+    raise SystemExit("FAIL: historical Phase-B manifest was changed")
+public_import_note = (
+    "\nPublic-key import processes only public data; its running time may depend on\n"
+    "the supplied public key. Callers must not pass confidential data to this path.\n"
+    "Secret-key derivation and signing do not use the public-key import checks.\n"
+    "This API does not promise to conceal a public key that an application has\n"
+    "chosen to keep confidential.\n"
+).encode()
+anchor = ("A public key must decode canonically, differ from the identity, and satisfy\n"
+          "`[q]A = O`. R must decode canonically, but need not have prime order.\n").encode()
+phase_b_binding = []
+for line in (baseline / phase_b_manifest).read_text().splitlines():
+    expected, name = line.split("  ", 1)
+    relative = Path(name)
+    if relative.is_absolute() or ".." in relative.parts:
+        raise SystemExit("FAIL: unsafe historical Phase-B input name")
+    old = baseline / relative
+    new = ROOT / relative
+    if sha(old) != expected:
+        raise SystemExit("FAIL: historical Phase-B input differs: " + name)
+    old_bytes = old.read_bytes()
+    new_bytes = new.read_bytes()
+    if name == "specifications/Ed301-EdDSA-v2.md":
+        if old_bytes.count(anchor) != 1 or new_bytes != old_bytes.replace(anchor, anchor + public_import_note, 1):
+            raise SystemExit("FAIL: specification differs beyond the authorized E8 public-import note")
+        change = "exact public-input timing note; no byte-contract change"
+    else:
+        if new_bytes != old_bytes:
+            raise SystemExit("FAIL: current Phase-B executable/reference input changed: " + name)
+        change = "byte-identical"
+    phase_b_binding.append({"path": name, "baseline_sha256": expected, "current_sha256": sha(new), "change": change})
+(work / "PHASE_B_CURRENT_BINDING.json").write_text(json.dumps(phase_b_binding, indent=2) + "\n")
+run(["python3", "-B", baseline / "tools/check_phase_b.py"], "phase-b-replay", cwd=baseline)
 if manifest(ROOT) != before or manifest(baseline) != old_before:
     raise SystemExit("FAIL: source changed during checks")
 if previous and manifest(previous) != previous_before:
@@ -152,7 +201,8 @@ if previous and manifest(previous) != previous_before:
 (work / "TEST_INVENTORIES.json").write_text(json.dumps(inventories, indent=2) + "\n")
 summary = {"status": "PASS", "test_counts": {key: len(value) for key, value in inventories.items()},
            "all_named_gate_c_d1_tests_retained": True, "nostd_host_consumer": True,
-           "phase_b_replay": "8/8", "rustc": toolchain, "source_manifest_sha256": sha(work / "SOURCE_SHA256SUMS"),
+           "phase_b_replay": "8/8", "phase_b_current_binding": "all executable/reference inputs byte-identical; exact E8 public-import documentation insertion only",
+           "rustc": toolchain, "source_manifest_sha256": sha(work / "SOURCE_SHA256SUMS"),
            "baseline_rust_manifest_sha256": sha(work / "BASELINE_RUST_SHA256SUMS"),
            "all_named_previous_phase_e_tests_retained": bool(previous),
            "previous_rust_manifest_sha256": sha(work / "PREVIOUS_RUST_SHA256SUMS") if previous else None,

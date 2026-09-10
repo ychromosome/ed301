@@ -20,10 +20,11 @@ mod allocation;
 use allocation::try_box;
 use allocation::{Shared, try_box_at};
 use std::panic::{AssertUnwindSafe, catch_unwind};
+use std::sync::Mutex;
 
 use crypto_bigint::CtEq;
 use ed301_eddsa::{
-    ExpandedSigningKey, SigningKey, VerifyingKey,
+    ExpandedSigningKey, SigningKey, ValidatedPublicKey, VerifyingKey,
     parameters::{MAX_CONTEXT_BYTES, PUBLIC_KEY_BYTES, SEED_BYTES, SIGNATURE_BYTES},
 };
 use zeroize::Zeroize;
@@ -125,10 +126,45 @@ impl Clone for PrivateKeyMaterial {
     }
 }
 
+struct PublicKeyMaterial {
+    validated: ValidatedPublicKey,
+    verifier: Mutex<Option<Shared<VerifyingKey>>>,
+}
+
+impl PublicKeyMaterial {
+    fn new(validated: ValidatedPublicKey) -> Self {
+        Self {
+            validated,
+            verifier: Mutex::new(None),
+        }
+    }
+
+    fn as_bytes(&self) -> &[u8; PUBLIC_KEY_BYTES] {
+        self.validated.as_bytes()
+    }
+
+    fn prepare(&self) -> Option<Shared<VerifyingKey>> {
+        // A failed allocation or unwind cannot publish partial state: the
+        // only mutation installs a fully prepared, successfully allocated
+        // verifier. A poisoned lock therefore still contains None or a valid
+        // immutable snapshot and can safely be retried.
+        let mut verifier = self
+            .verifier
+            .lock()
+            .unwrap_or_else(|error| error.into_inner());
+        if verifier.is_none() {
+            let prepared = self.validated.prepare();
+            let prepared = Shared::try_new_at("signature_verify_init", prepared)?;
+            *verifier = Some(prepared);
+        }
+        verifier.clone()
+    }
+}
+
 #[derive(Clone, Default)]
 pub(crate) struct V2Key {
     private: Option<PrivateKeyMaterial>,
-    public: Option<Shared<VerifyingKey>>,
+    public: Option<Shared<PublicKeyMaterial>>,
 }
 
 #[derive(Clone, Default)]
@@ -201,22 +237,42 @@ fn hit_panic_failpoint(_name: &str) {}
 /// `signature_duplicate`), that callback reports
 /// allocation failure by returning null or zero instead of panicking;
 /// `key_import` and `key_set_encoded_public` cover the newly shared immutable
-/// key-state allocations as well. Clearing the variable restores normal
+/// key-state allocations as well; `signature_verify_init` covers the lazy
+/// verification table. Clearing the variable restores normal
 /// allocation. The ordinary module is built
 /// without this feature and contains neither the hook nor the
 /// variable-name string.
 #[cfg(feature = "test-failpoint")]
 fn hit_alloc_failpoint(name: &str) -> bool {
-    matches!(
-        std::env::var("ED301_EDDSA_V2_ALLOC_FAILPOINT"),
-        Ok(value) if value == name
-    )
+    unit_alloc_failpoint(name)
+        || matches!(
+            std::env::var("ED301_EDDSA_V2_ALLOC_FAILPOINT"),
+            Ok(value) if value == name
+        )
 }
 
 #[cfg(not(feature = "test-failpoint"))]
 #[inline(always)]
-fn hit_alloc_failpoint(_name: &str) -> bool {
-    false
+fn hit_alloc_failpoint(name: &str) -> bool {
+    unit_alloc_failpoint(name)
+}
+
+#[cfg(test)]
+std::thread_local! {
+    static UNIT_ALLOC_FAILPOINT: core::cell::Cell<Option<&'static str>> = const {
+        core::cell::Cell::new(None)
+    };
+}
+
+#[inline(always)]
+fn unit_alloc_failpoint(name: &str) -> bool {
+    #[cfg(test)]
+    return UNIT_ALLOC_FAILPOINT.with(|slot| slot.get() == Some(name));
+    #[cfg(not(test))]
+    {
+        let _ = name;
+        false
+    }
 }
 
 fn ffi_int(operation: impl FnOnce() -> c_int) -> c_int {
@@ -290,7 +346,7 @@ pub(crate) unsafe extern "C" fn key_import(
             let Some(encoded) = raw_public else {
                 return 0;
             };
-            let Ok(public) = VerifyingKey::from_bytes(&encoded) else {
+            let Ok(public) = ValidatedPublicKey::from_bytes(&encoded) else {
                 return 0;
             };
             if key.private.as_ref().is_some_and(|private| {
@@ -298,7 +354,8 @@ pub(crate) unsafe extern "C" fn key_import(
             }) {
                 return 0;
             }
-            let Some(public) = Shared::try_new_at("key_import", public) else {
+            let Some(public) = Shared::try_new_at("key_import", PublicKeyMaterial::new(public))
+            else {
                 return 0;
             };
             key.public = Some(public);
@@ -314,7 +371,7 @@ pub(crate) unsafe extern "C" fn key_import(
         };
 
         let supplied_public = match raw_public {
-            Some(public) => match VerifyingKey::from_bytes(&public) {
+            Some(public) => match ValidatedPublicKey::from_bytes(&public) {
                 Ok(public) => Some(public),
                 Err(_) => return 0,
             },
@@ -330,13 +387,16 @@ pub(crate) unsafe extern "C" fn key_import(
 
         let public = match (private.as_ref(), supplied_public) {
             (Some(_), Some(public)) | (None, Some(public)) => {
-                match Shared::try_new_at("key_import", public) {
+                match Shared::try_new_at("key_import", PublicKeyMaterial::new(public)) {
                     Some(public) => Some(public),
                     None => return 0,
                 }
             }
             (Some(private), None) => {
-                match Shared::try_new_at("key_import", private.expanded.verifying_key()) {
+                match Shared::try_new_at(
+                    "key_import",
+                    PublicKeyMaterial::new(private.expanded.validated_public_key()),
+                ) {
                     Some(public) => Some(public),
                     None => return 0,
                 }
@@ -365,7 +425,7 @@ pub(crate) unsafe extern "C" fn key_set_encoded_public(
         else {
             return 0;
         };
-        let Ok(public) = VerifyingKey::from_bytes(&encoded) else {
+        let Ok(public) = ValidatedPublicKey::from_bytes(&encoded) else {
             return 0;
         };
         if key
@@ -381,7 +441,9 @@ pub(crate) unsafe extern "C" fn key_set_encoded_public(
             return 0;
         }
 
-        let Some(public) = Shared::try_new_at("key_set_encoded_public", public) else {
+        let Some(public) =
+            Shared::try_new_at("key_set_encoded_public", PublicKeyMaterial::new(public))
+        else {
             return 0;
         };
         key.public = Some(public);
@@ -402,8 +464,10 @@ pub(crate) unsafe extern "C" fn key_from_seed(seed: *const u8, seed_len: usize) 
         let Some(private) = prepare_private(seed, "key_generate") else {
             return core::ptr::null_mut();
         };
-        let Some(public) = Shared::try_new_at("key_generate", private.expanded.verifying_key())
-        else {
+        let Some(public) = Shared::try_new_at(
+            "key_generate",
+            PublicKeyMaterial::new(private.expanded.validated_public_key()),
+        ) else {
             return core::ptr::null_mut();
         };
 
@@ -770,7 +834,10 @@ pub(crate) unsafe extern "C" fn signature_verify_init(
             return 0;
         };
 
-        context.operation = SignatureOperation::Verify(public.clone());
+        let Some(verifier) = public.prepare() else {
+            return 0;
+        };
+        context.operation = SignatureOperation::Verify(verifier);
         1
     })
 }
@@ -968,6 +1035,10 @@ mod tests {
         Shared::try_new_at("unit_test", value).expect("small test allocation")
     }
 
+    fn public_material(expanded: &ExpandedSigningKey) -> Shared<PublicKeyMaterial> {
+        shared(PublicKeyMaterial::new(expanded.validated_public_key()))
+    }
+
     #[test]
     fn try_box_zero_sized_allocates_and_drops_once() {
         let before = ZST_DROPS.load(Ordering::SeqCst);
@@ -1039,7 +1110,7 @@ mod tests {
     fn key_duplicate_honors_component_selection_exactly() {
         let expanded = shared(expanded_key(0x11));
         let source = V2Key {
-            public: Some(shared(expanded.verifying_key())),
+            public: Some(public_material(&expanded)),
             private: Some(PrivateKeyMaterial {
                 seed: SecretSeed([0x11; SEED_BYTES]),
                 expanded: expanded.clone(),
@@ -1059,6 +1130,10 @@ mod tests {
             let duplicate = unsafe { Box::from_raw(duplicate.cast::<V2Key>()) };
             assert_eq!(duplicate.private.is_some(), include_private != 0);
             assert_eq!(duplicate.public.is_some(), include_public != 0);
+            assert_eq!(
+                expanded.reference_count(),
+                2 + usize::from(include_private != 0)
+            );
         }
     }
 
@@ -1068,7 +1143,7 @@ mod tests {
         let matching_public = *first.verifying_key_bytes();
         let other_public = *expanded_key(0x32).verifying_key_bytes();
         let mut key = V2Key {
-            public: Some(shared(first.verifying_key())),
+            public: Some(public_material(&first)),
             private: Some(PrivateKeyMaterial {
                 seed: SecretSeed([0x31; SEED_BYTES]),
                 expanded: shared(first),
@@ -1323,7 +1398,7 @@ mod tests {
     #[test]
     fn signature_contexts_share_prepared_key_state() {
         let expanded = shared(expanded_key(0x27));
-        let public = shared(expanded.verifying_key());
+        let public = public_material(&expanded);
         let key = V2Key {
             private: Some(PrivateKeyMaterial {
                 seed: SecretSeed([0x27; SEED_BYTES]),
@@ -1333,6 +1408,7 @@ mod tests {
         };
         assert_eq!(expanded.reference_count(), 2);
         assert_eq!(public.reference_count(), 2);
+        assert!(public.verifier.lock().unwrap().is_none());
 
         let mut sign_context = V2SignatureContext::default();
         assert_eq!(
@@ -1365,9 +1441,309 @@ mod tests {
             },
             1
         );
-        assert_eq!(public.reference_count(), 3);
+        assert_eq!(public.reference_count(), 2);
+        assert_eq!(
+            public
+                .verifier
+                .lock()
+                .unwrap()
+                .as_ref()
+                .unwrap()
+                .reference_count(),
+            2
+        );
         unsafe { signature_reset((&mut verify_context as *mut V2SignatureContext).cast()) };
         assert_eq!(public.reference_count(), 2);
+        assert_eq!(
+            public
+                .verifier
+                .lock()
+                .unwrap()
+                .as_ref()
+                .unwrap()
+                .reference_count(),
+            1
+        );
+    }
+
+    #[test]
+    fn signing_key_lifecycle_does_not_prepare_a_verification_table() {
+        let seed = [0x45; SEED_BYTES];
+        let key = unsafe { key_from_seed(seed.as_ptr(), seed.len()) };
+        assert!(!key.is_null());
+        let key = unsafe { Box::from_raw(key.cast::<V2Key>()) };
+        let pointer = (&*key as *const V2Key).cast();
+        let public = key.public.as_ref().unwrap();
+        assert!(public.verifier.lock().unwrap().is_none());
+        let mut bytes = [0; PUBLIC_KEY_BYTES];
+        assert_eq!(
+            unsafe { key_get_public(pointer, bytes.as_mut_ptr(), bytes.len()) },
+            1
+        );
+        assert_eq!(unsafe { key_has(pointer, 1, 1) }, 1);
+        assert_eq!(unsafe { key_validate(pointer, 1, 1) }, 1);
+        let duplicate = unsafe { key_duplicate(pointer, 0, 1) };
+        assert!(!duplicate.is_null());
+        let duplicate = unsafe { Box::from_raw(duplicate.cast::<V2Key>()) };
+        assert!(duplicate.private.is_none());
+        assert_eq!(key.private.as_ref().unwrap().expanded.reference_count(), 1);
+        assert_eq!(
+            unsafe { key_match(pointer, (&*duplicate as *const V2Key).cast(), 0, 1) },
+            1
+        );
+
+        let mut context = V2SignatureContext::default();
+        let context_pointer = (&mut context as *mut V2SignatureContext).cast();
+        assert_eq!(unsafe { signature_sign_init(context_pointer, pointer) }, 1);
+        let mut signature = [0; SIGNATURE_BYTES];
+        assert_eq!(
+            unsafe {
+                signature_sign(
+                    context_pointer,
+                    b"test".as_ptr(),
+                    4,
+                    signature.as_mut_ptr(),
+                    signature.len(),
+                )
+            },
+            1
+        );
+        assert!(public.verifier.lock().unwrap().is_none());
+
+        let mut imported = V2Key::default();
+        let imported_pointer = (&mut imported as *mut V2Key).cast();
+        assert_eq!(
+            unsafe {
+                key_import(
+                    imported_pointer,
+                    seed.as_ptr(),
+                    seed.len(),
+                    core::ptr::null(),
+                    0,
+                )
+            },
+            1
+        );
+        assert!(
+            imported
+                .public
+                .as_ref()
+                .unwrap()
+                .verifier
+                .lock()
+                .unwrap()
+                .is_none()
+        );
+        let mut external = V2Key::default();
+        assert_eq!(
+            unsafe {
+                key_import(
+                    (&mut external as *mut V2Key).cast(),
+                    core::ptr::null(),
+                    0,
+                    bytes.as_ptr(),
+                    bytes.len(),
+                )
+            },
+            1
+        );
+        assert!(
+            external
+                .public
+                .as_ref()
+                .unwrap()
+                .verifier
+                .lock()
+                .unwrap()
+                .is_none()
+        );
+        drop(key);
+        assert_eq!(
+            unsafe { signature_verify_init(context_pointer, (&*duplicate as *const V2Key).cast()) },
+            1
+        );
+        assert_eq!(
+            unsafe {
+                signature_verify(
+                    context_pointer,
+                    b"test".as_ptr(),
+                    4,
+                    signature.as_ptr(),
+                    signature.len(),
+                )
+            },
+            1
+        );
+    }
+
+    #[test]
+    fn lazy_verifier_allocation_failure_is_atomic_and_retryable() {
+        struct Reset;
+        impl Drop for Reset {
+            fn drop(&mut self) {
+                UNIT_ALLOC_FAILPOINT.with(|slot| slot.set(None));
+            }
+        }
+        let _reset = Reset;
+        let expanded = shared(expanded_key(0x46));
+        let public = public_material(&expanded);
+        let key = V2Key {
+            private: None,
+            public: Some(public.clone()),
+        };
+        let mut context = V2SignatureContext {
+            operation: SignatureOperation::Sign(expanded),
+            ..V2SignatureContext::default()
+        };
+        let context_pointer = (&mut context as *mut V2SignatureContext).cast();
+        let key_pointer = (&key as *const V2Key).cast();
+        UNIT_ALLOC_FAILPOINT.with(|slot| slot.set(Some("signature_verify_init")));
+        assert_eq!(
+            unsafe { signature_verify_init(context_pointer, key_pointer) },
+            0
+        );
+        assert!(matches!(
+            context.operation,
+            SignatureOperation::Uninitialized
+        ));
+        assert!(public.verifier.lock().unwrap().is_none());
+        UNIT_ALLOC_FAILPOINT.with(|slot| slot.set(None));
+        assert_eq!(
+            unsafe { signature_verify_init(context_pointer, key_pointer) },
+            1
+        );
+        assert!(matches!(context.operation, SignatureOperation::Verify(_)));
+        UNIT_ALLOC_FAILPOINT.with(|slot| slot.set(Some("signature_verify_init")));
+        // An already published table requires no further allocation.
+        assert_eq!(
+            unsafe { signature_verify_init(context_pointer, key_pointer) },
+            1
+        );
+    }
+
+    #[test]
+    fn concurrent_verification_shares_one_lazily_prepared_snapshot() {
+        let public = public_material(&expanded_key(0x47));
+        let barrier = std::sync::Barrier::new(8);
+        let prepared = std::thread::scope(|scope| {
+            let workers: Vec<_> = (0..8)
+                .map(|_| {
+                    let public = public.clone();
+                    let barrier = &barrier;
+                    scope.spawn(move || {
+                        barrier.wait();
+                        public.prepare().expect("lazy preparation")
+                    })
+                })
+                .collect();
+            workers
+                .into_iter()
+                .map(|worker| worker.join().unwrap())
+                .collect::<Vec<_>>()
+        });
+        assert_eq!(prepared[0].reference_count(), 9);
+        for verifier in &prepared {
+            assert!(core::ptr::eq(&*prepared[0], &**verifier));
+        }
+    }
+
+    #[test]
+    fn lazy_verifier_recovers_only_complete_state_after_lock_poisoning() {
+        let public = public_material(&expanded_key(0x48));
+        assert!(
+            catch_unwind(AssertUnwindSafe(|| {
+                let _lock = public.verifier.lock().unwrap();
+                panic!("controlled unwind before cache publication");
+            }))
+            .is_err()
+        );
+        let first = public
+            .prepare()
+            .expect("retry after an empty poisoned cache");
+        let second = public.prepare().expect("reuse complete cached verifier");
+        assert!(core::ptr::eq(&*first, &*second));
+    }
+
+    #[test]
+    fn key_replacement_preserves_the_initialized_verification_snapshot() {
+        let first = expanded_key(0x49);
+        let second = expanded_key(0x4a);
+        let message = b"immutable verifier snapshot";
+        let first_signature = first.sign(message).unwrap().to_bytes();
+        let second_signature = second.sign(message).unwrap().to_bytes();
+        let mut key = V2Key {
+            private: None,
+            public: Some(public_material(&first)),
+        };
+        let mut context = V2SignatureContext::default();
+        let context_pointer = (&mut context as *mut V2SignatureContext).cast();
+        let key_pointer = (&mut key as *mut V2Key).cast();
+        assert_eq!(
+            unsafe { signature_verify_init(context_pointer, key_pointer) },
+            1
+        );
+        let second_bytes = second.verifying_key_bytes();
+        assert_eq!(
+            unsafe {
+                key_import(
+                    key_pointer,
+                    core::ptr::null(),
+                    0,
+                    second_bytes.as_ptr(),
+                    second_bytes.len(),
+                )
+            },
+            1
+        );
+        assert!(
+            key.public
+                .as_ref()
+                .unwrap()
+                .verifier
+                .lock()
+                .unwrap()
+                .is_none()
+        );
+        assert_eq!(
+            unsafe {
+                signature_verify(
+                    context_pointer,
+                    message.as_ptr(),
+                    message.len(),
+                    first_signature.as_ptr(),
+                    first_signature.len(),
+                )
+            },
+            1
+        );
+        assert_eq!(
+            unsafe {
+                signature_verify(
+                    context_pointer,
+                    message.as_ptr(),
+                    message.len(),
+                    second_signature.as_ptr(),
+                    second_signature.len(),
+                )
+            },
+            0
+        );
+        assert_eq!(
+            unsafe { signature_verify_init(context_pointer, key_pointer) },
+            1
+        );
+        assert_eq!(
+            unsafe {
+                signature_verify(
+                    context_pointer,
+                    message.as_ptr(),
+                    message.len(),
+                    second_signature.as_ptr(),
+                    second_signature.len(),
+                )
+            },
+            1
+        );
     }
 
     #[test]

@@ -75,7 +75,55 @@ impl SigningKey {
     }
 }
 
-/// Fully validated public verification key.
+/// Fully validated public key without a verification table.
+///
+/// Validation is eager; only preparation for repeated verification is deferred.
+/// This value contains public state only and does not retain a signing key.
+#[derive(Clone)]
+pub struct ValidatedPublicKey {
+    encoded: [u8; PUBLIC_KEY_BYTES],
+    point: EdwardsPoint,
+}
+
+impl ValidatedPublicKey {
+    /// Parse and fully validate a 38-byte public key without preparing a table.
+    ///
+    /// The input must be public: running time may depend on its bytes. Secret
+    /// derivation and signing use their internally constructed public state
+    /// instead of this parser.
+    #[inline(never)] // Preserve the public-input boundary for linked-code call-site audits.
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, SignatureError> {
+        let encoded: &[u8; PUBLIC_KEY_BYTES] = bytes
+            .try_into()
+            .map_err(|_| SignatureError::InvalidPublicKey)?;
+        #[cfg(any(test, feature = "secret-taint-instrumentation"))]
+        audit_public_import(encoded);
+        // Same acceptance set as `decode_strict_subgroup`: canonical decode,
+        // nonidentity, then membership in 4E = E[q]. Both symbols are evaluated.
+        let point = EdwardsPoint::decode(encoded).map_err(|_| SignatureError::InvalidPublicKey)?;
+        if point.is_identity().to_bool() || !point.is_prime_subgroup_decoded().to_bool() {
+            return Err(SignatureError::InvalidPublicKey);
+        }
+        Ok(Self {
+            encoded: *encoded,
+            point,
+        })
+    }
+
+    /// Borrow the canonical public-key bytes.
+    #[must_use]
+    pub const fn as_bytes(&self) -> &[u8; PUBLIC_KEY_BYTES] {
+        &self.encoded
+    }
+
+    /// Build the table used by repeated public verification.
+    #[must_use]
+    pub fn prepare(&self) -> VerifyingKey {
+        VerifyingKey::from_validated_point(self.encoded, self.point)
+    }
+}
+
+/// Fully validated public verification key with its prepared table.
 #[derive(Clone)]
 pub struct VerifyingKey {
     encoded: [u8; PUBLIC_KEY_BYTES],
@@ -83,27 +131,10 @@ pub struct VerifyingKey {
 }
 
 impl VerifyingKey {
-    /// Parse and fully validate a 38-byte public key.
+    /// Parse and fully validate a 38-byte public key with public-dependent time.
+    /// The input must not contain confidential data.
     pub fn from_bytes(bytes: &[u8]) -> Result<Self, SignatureError> {
-        let encoded: &[u8; PUBLIC_KEY_BYTES] = bytes
-            .try_into()
-            .map_err(|_| SignatureError::InvalidPublicKey)?;
-        // Same acceptance set as `decode_strict_subgroup`: canonical decode,
-        // nonidentity, then membership in 4E = E[q]. The selection-free
-        // halving criterion computes both symbols before its final decision.
-        // Build the verification table only after every check has passed.
-        let point = EdwardsPoint::decode(encoded).map_err(|_| SignatureError::InvalidPublicKey)?;
-        if point.is_identity().to_bool() {
-            return Err(SignatureError::InvalidPublicKey);
-        }
-        if !point.is_prime_subgroup_decoded().to_bool() {
-            return Err(SignatureError::InvalidPublicKey);
-        }
-        let odd_multiples = point.prepare_vartime_table();
-        Ok(Self {
-            encoded: *encoded,
-            odd_multiples,
-        })
+        Ok(ValidatedPublicKey::from_bytes(bytes)?.prepare())
     }
 
     /// Return the canonical public-key bytes.
@@ -182,6 +213,46 @@ impl VerifyingKey {
             odd_multiples: point.prepare_vartime_table(),
         }
     }
+}
+
+#[cfg(test)]
+std::thread_local! {
+    static PUBLIC_IMPORT_CALLS: core::cell::Cell<usize> = const { core::cell::Cell::new(0) };
+}
+
+#[cfg(feature = "secret-taint-instrumentation")]
+static DIAGNOSTIC_PUBLIC_IMPORT_CALLS: core::sync::atomic::AtomicUsize =
+    core::sync::atomic::AtomicUsize::new(0);
+
+/// Process-wide import-entry counter for single-threaded instrumented tests.
+/// This diagnostic is absent from ordinary builds and is not an application API.
+#[cfg(feature = "secret-taint-instrumentation")]
+#[must_use]
+pub fn public_import_count_for_diagnostics() -> usize {
+    DIAGNOSTIC_PUBLIC_IMPORT_CALLS.load(core::sync::atomic::Ordering::Relaxed)
+}
+
+#[cfg(any(test, feature = "secret-taint-instrumentation"))]
+fn audit_public_import(encoded: &[u8; PUBLIC_KEY_BYTES]) {
+    #[cfg(test)]
+    PUBLIC_IMPORT_CALLS.with(|count| count.set(count.get() + 1));
+    #[cfg(feature = "secret-taint-instrumentation")]
+    {
+        DIAGNOSTIC_PUBLIC_IMPORT_CALLS.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+        if ed301_valgrind_client::running_on_valgrind() != 0 {
+            // Inspect only shadow metadata; never declassify the supplied key.
+            let mut vbits = [0_u8; PUBLIC_KEY_BYTES];
+            let status = ed301_valgrind_client::get_vbits(encoded, &mut vbits);
+            ed301_valgrind_client::make_defined(&mut vbits);
+            assert_eq!(status, 1, "public-key import V-bit observation failed");
+            assert!(
+                vbits.iter().all(|byte| *byte == 0),
+                "public-key import received secret-tainted input"
+            );
+        }
+    }
+    #[cfg(not(feature = "secret-taint-instrumentation"))]
+    let _ = encoded;
 }
 
 struct ParsedSignature {
@@ -273,7 +344,7 @@ pub fn sign_with_context(
 /// Apply the full profile public-key validation rule.
 #[must_use]
 pub fn validate_public_key(public_key: &[u8]) -> bool {
-    VerifyingKey::from_bytes(public_key).is_ok()
+    ValidatedPublicKey::from_bytes(public_key).is_ok()
 }
 
 /// Parse and verify a signature, returning one fail-closed boolean.
@@ -305,7 +376,9 @@ fn sign_expanded(
     let domain = Domain::new(context).ok_or(SignatureError::InvalidContextLength)?;
     let nonce_digest = nonce_hash(domain, &expanded.prefix, message);
     let nonce = hash_to_scalar(nonce_digest);
-    let commitment_point = EdwardsPoint::scalar_mul_base(&nonce);
+    let commitment_point = secret(EdwardsPoint::scalar_mul_base(&nonce));
+    #[cfg(test)]
+    hit_secret_failpoint(SecretFailpoint::CommitmentPoint);
 
     let mut commitment = match commitment_point.encode_public_artifact() {
         Ok(commitment) => commitment,
@@ -370,7 +443,17 @@ impl ExpandedSigningKey {
     /// call this once and retain the returned value.
     #[must_use]
     pub fn verifying_key(&self) -> VerifyingKey {
-        VerifyingKey::from_validated_point(self.public_key, self.public_point)
+        self.validated_public_key().prepare()
+    }
+
+    /// Return only the validated public state, without a verification table
+    /// or any reference to the secret signing state.
+    #[must_use]
+    pub fn validated_public_key(&self) -> ValidatedPublicKey {
+        ValidatedPublicKey {
+            encoded: self.public_key,
+            point: self.public_point,
+        }
     }
 
     /// Borrow the canonical public-key bytes without cloning the prepared
@@ -406,7 +489,9 @@ impl ExpandedSigningKey {
         let reduced_scalar = Scalar::reduce_pruned_le(&pruned_scalar);
         #[cfg(test)]
         hit_secret_failpoint(SecretFailpoint::ExpandedSecret);
-        let public_point = EdwardsPoint::scalar_mul_base_pruned(&pruned_scalar);
+        let public_point = secret(EdwardsPoint::scalar_mul_base_pruned(&pruned_scalar));
+        #[cfg(test)]
+        hit_secret_failpoint(SecretFailpoint::ExpandedPoint);
 
         // Identity is mathematically impossible for the pruned scalar below,
         // so this cheap declassified predicate is an internal fault check, not
@@ -455,6 +540,8 @@ impl ExpandedSigningKey {
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum SecretFailpoint {
     ExpandedSecret,
+    ExpandedPoint,
+    CommitmentPoint,
     SignIntermediates,
 }
 
@@ -560,6 +647,8 @@ pub(crate) mod test_support {
 
         for point in [
             SecretFailpoint::ExpandedSecret,
+            SecretFailpoint::ExpandedPoint,
+            SecretFailpoint::CommitmentPoint,
             SecretFailpoint::SignIntermediates,
         ] {
             arm_secret_failpoint(point);
@@ -574,6 +663,59 @@ pub(crate) mod test_support {
         }
 
         assert!(core::mem::needs_drop::<ExpandedSigningKey>());
+    }
+
+    #[cfg(panic = "unwind")]
+    #[test]
+    fn returned_fixed_base_points_zeroize_on_return_and_unwind() {
+        use std::panic::{AssertUnwindSafe, catch_unwind};
+
+        let key = SigningKey::from_seed(&[0x5a; SEED_BYTES]).expect("fixed seed");
+        let before = EdwardsPoint::zeroization_count_for_test();
+        let expanded = key.expand().expect("seed expansion");
+        // The internal accumulator and the returned projective point are
+        // distinct owners; the retained canonical affine point is public.
+        assert_eq!(EdwardsPoint::zeroization_count_for_test(), before + 2);
+        let expected = expanded.sign(b"returned point owners").expect("signing");
+        assert_eq!(EdwardsPoint::zeroization_count_for_test(), before + 4);
+
+        arm_secret_failpoint(SecretFailpoint::ExpandedPoint);
+        assert!(catch_unwind(AssertUnwindSafe(|| key.expand())).is_err());
+        assert_eq!(EdwardsPoint::zeroization_count_for_test(), before + 6);
+
+        arm_secret_failpoint(SecretFailpoint::CommitmentPoint);
+        assert!(
+            catch_unwind(AssertUnwindSafe(|| expanded.sign(b"returned point owners"))).is_err()
+        );
+        assert_eq!(EdwardsPoint::zeroization_count_for_test(), before + 8);
+        assert_eq!(
+            expanded
+                .sign(b"returned point owners")
+                .expect("recovery")
+                .to_bytes(),
+            expected.to_bytes()
+        );
+        assert_eq!(EdwardsPoint::zeroization_count_for_test(), before + 10);
+    }
+
+    #[test]
+    fn signing_and_key_derivation_never_enter_public_import_checks() {
+        let before = PUBLIC_IMPORT_CALLS.with(core::cell::Cell::get);
+        let key = SigningKey::from_seed(&[0x54; SEED_BYTES]).expect("fixed seed");
+        let expanded = key.expand().expect("seed expansion");
+        let public = key.verifying_key().expect("public derivation");
+        let signature = key.sign(b"import boundary").expect("one-shot signature");
+        let prepared_signature = expanded
+            .sign(b"import boundary")
+            .expect("prepared signature");
+        assert_eq!(signature.to_bytes(), prepared_signature.to_bytes());
+        assert!(public.verify(b"import boundary", &signature));
+        assert_eq!(PUBLIC_IMPORT_CALLS.with(core::cell::Cell::get), before);
+
+        // Prove that the observer reaches the real parser, not a dead hook.
+        let imported = VerifyingKey::from_bytes(public.as_bytes()).expect("external public import");
+        assert_eq!(PUBLIC_IMPORT_CALLS.with(core::cell::Cell::get), before + 1);
+        assert!(imported.verify(b"import boundary", &signature));
     }
 
     #[test]
@@ -595,6 +737,11 @@ pub(crate) mod test_support {
                 .expect("internal public derivation");
             let derived = expanded.verifying_key();
             let encoded = derived.to_bytes();
+            let lightweight = expanded.validated_public_key();
+            let parsed_lightweight = ValidatedPublicKey::from_bytes(&encoded)
+                .expect("the lightweight representation has the same strict policy");
+            assert_eq!(lightweight.as_bytes(), &encoded);
+            assert_eq!(parsed_lightweight.as_bytes(), &encoded);
             let reparsed = VerifyingKey::from_bytes(&encoded)
                 .expect("every internally derived key must pass the external policy");
             assert_eq!(encoded, *expanded.verifying_key_bytes());
@@ -604,6 +751,8 @@ pub(crate) mod test_support {
                 let signature = expanded.sign(&message).expect("deterministic signature");
                 assert!(derived.verify(&message, &signature));
                 assert!(reparsed.verify(&message, &signature));
+                assert!(lightweight.prepare().verify(&message, &signature));
+                assert!(parsed_lightweight.prepare().verify(&message, &signature));
             }
         }
     }
@@ -619,5 +768,7 @@ pub(crate) mod test_support {
         assert_eq!(core::mem::size_of::<Signature>(), SIGNATURE_BYTES);
         assert_eq!(core::mem::size_of_val(&signature), SIGNATURE_BYTES);
         assert_eq!(signature.as_bytes(), &signature.to_bytes());
+        assert!(core::mem::size_of::<ValidatedPublicKey>() < 1024);
+        assert!(core::mem::size_of::<VerifyingKey>() > 10 * 1024);
     }
 }

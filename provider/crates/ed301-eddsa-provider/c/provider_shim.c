@@ -328,8 +328,9 @@ static const OSSL_PARAM ED301V2_SETTABLE_KEY_PARAMS[] = {
 
 /*
  * Ed301-EdDSA-v2 accepts one opaque native context and defines no digest,
- * prehash, streaming or randomized signing mode. Unsupported parameters are
- * rejected rather than accepted-and-ignored. The transport-metadata exception
+ * prehash, streaming or randomized signing mode. Recognized requests for those
+ * modes are rejected; unknown keys are ignored as recommended by OSSL_PARAM(3).
+ * The transport-metadata exception
  * is the TLS version on the OpenSSL 4.0 lane: its libssl announces it to
  * the signature provider as a signed int constructed with
  * OSSL_PARAM_construct_int(OSSL_SIGNATURE_PARAM_TLS_VERSION, &s->version),
@@ -851,16 +852,26 @@ static void *ed301v2_key_gen_init(
 {
     ED301V2_PROVIDER_CONTEXT *provider = provider_context;
     ED301V2_GEN_CONTEXT *generation;
+    size_t index;
     const int generates_keypair =
         (selection & OSSL_KEYMGMT_SELECT_KEYPAIR)
             == OSSL_KEYMGMT_SELECT_KEYPAIR;
 
     if (provider == NULL || provider->rust == NULL
-            || !generates_keypair || !ed301v2_selection_supported(selection)
-            || (params != NULL && params[0].key != NULL)) {
+            || !generates_keypair || !ed301v2_selection_supported(selection)) {
         ed301v2_raise(provider, ED301V2_R_INVALID_PARAMETER,
             "invalid Ed301-EdDSA-v2 key generation parameters");
         return NULL;
+    }
+    for (index = 0; params != NULL && params[index].key != NULL; index++) {
+        /* This fixed profile has no selectable group or key size. */
+        if (strcmp(params[index].key, OSSL_PKEY_PARAM_GROUP_NAME) == 0
+                || strcmp(params[index].key, OSSL_PKEY_PARAM_BITS) == 0) {
+            ed301v2_raise(provider, ED301V2_R_INVALID_PARAMETER,
+                "Ed301-EdDSA-v2 key generation has a fixed group and size");
+            return NULL;
+        }
+        /* Unknown metadata has no bearing on private RAND or the key. */
     }
 
     generation = ed301v2_allocate(provider, sizeof(*generation));
@@ -1075,7 +1086,30 @@ static const OSSL_PARAM *ed301v2_signature_gettable_context_params(
     return ED301V2_GETTABLE_CTX_PARAMS;
 }
 
-/* Validate all parameters before atomically replacing the native context. */
+static int ed301v2_is_unsupported_signature_parameter(const char *key)
+{
+    static const char *const unsupported[] = {
+        OSSL_SIGNATURE_PARAM_DIGEST,
+        OSSL_SIGNATURE_PARAM_DIGEST_SIZE,
+        OSSL_SIGNATURE_PARAM_PROPERTIES,
+        OSSL_SIGNATURE_PARAM_INSTANCE,
+        OSSL_SIGNATURE_PARAM_NONCE_TYPE,
+        OSSL_SIGNATURE_PARAM_DETERMINISTIC,
+        OSSL_SIGNATURE_PARAM_ADD_RANDOM,
+        OSSL_SIGNATURE_PARAM_TEST_ENTROPY,
+        OSSL_SIGNATURE_PARAM_SIGNATURE,
+        "prehash", "streaming"
+    };
+    size_t index;
+
+    for (index = 0; index < sizeof(unsupported) / sizeof(unsupported[0]); index++) {
+        if (strcmp(key, unsupported[index]) == 0)
+            return 1;
+    }
+    return 0;
+}
+
+/* Validate recognized parameters before atomically replacing the context. */
 static int ed301v2_signature_apply_params(
     ED301V2_SIGNATURE_CONTEXT *signature,
     const OSSL_PARAM params[])
@@ -1110,35 +1144,39 @@ static int ed301v2_signature_apply_params(
             context_seen = 1;
             continue;
         }
+        if (strcmp(parameter->key, "tls-version") == 0) {
 #if ED301V2_ACCEPT_TLS_VERSION_PARAM
-        /*
-         * OpenSSL 4.0 transport metadata only: at most one
-         * OSSL_PARAM_INTEGER of exactly sizeof(int) whose value is
-         * exactly TLS 1.3.  It is neither stored nor hashed nor added
-         * to the Ed301-EdDSA-v2 transcript and enables no mode; the whole
-         * array is still walked so a valid tls-version cannot shadow
-         * a later unsupported parameter.
-         */
-        if (strcmp(parameter->key, OSSL_SIGNATURE_PARAM_TLS_VERSION) == 0
-                && !tls_version_seen
-                && parameter->data_type == OSSL_PARAM_INTEGER
-                && parameter->data != NULL
-                && parameter->data_size == sizeof(int)) {
-            int tls_version = 0;
+            /*
+             * OpenSSL 4.0 transport metadata only: at most one
+             * OSSL_PARAM_INTEGER of exactly sizeof(int) whose value is
+             * exactly TLS 1.3. It is neither stored nor hashed nor added
+             * to the transcript. The remaining parameters are still checked.
+             */
+            if (!tls_version_seen
+                    && parameter->data_type == OSSL_PARAM_INTEGER
+                    && parameter->data != NULL
+                    && parameter->data_size == sizeof(int)) {
+                int tls_version = 0;
 
-            memcpy(&tls_version, parameter->data, sizeof(tls_version));
-            if (tls_version == ED301V2_TLS_VERSION_1_3) {
-                tls_version_seen = 1;
-                continue;
+                memcpy(&tls_version, parameter->data, sizeof(tls_version));
+                if (tls_version == ED301V2_TLS_VERSION_1_3) {
+                    tls_version_seen = 1;
+                    continue;
+                }
             }
-        }
 #endif
-        if (signature != NULL)
+            ed301v2_raise(signature->provider, ED301V2_R_UNSUPPORTED_MODE,
+                "Ed301-EdDSA-v2 rejects unsupported TLS metadata");
+            return 0;
+        }
+        if (ed301v2_is_unsupported_signature_parameter(parameter->key)) {
             ed301v2_raise(signature->provider, ED301V2_R_UNSUPPORTED_MODE,
                 "Ed301-EdDSA-v2 rejects parameter '%s': no digest, prehash, "
                 "instance, streaming or randomized mode is defined",
-                params[index].key);
-        return 0;
+                parameter->key);
+            return 0;
+        }
+        /* Unknown keys are ignored without inspecting their type or value. */
     }
     (void)tls_version_seen;
     if (context_seen
