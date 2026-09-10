@@ -870,6 +870,51 @@ mod tests {
     }
 
     #[test]
+    fn specialized_wide_square_retains_every_cross_product_carry() {
+        fn check(words: [u64; LIMBS]) {
+            let value = crypto_bigint::Uint::<LIMBS>::from_words(words);
+            let (low, high) = value.widening_mul(&value);
+            let mut expected = [0_u64; LIMBS * 2];
+            expected[..LIMBS].copy_from_slice(&low.to_words());
+            expected[LIMBS..].copy_from_slice(&high.to_words());
+            assert_eq!(
+                square_wide(words),
+                expected,
+                "wide Montgomery-library oracle"
+            );
+            assert_eq!(square_wide(words), multiply_wide(words, words));
+        }
+
+        for words in [
+            [0; LIMBS],
+            [1; LIMBS],
+            [u64::MAX; LIMBS],
+            [0xaaaa_aaaa_aaaa_aaaa; LIMBS],
+            [0x5555_5555_5555_5555; LIMBS],
+        ] {
+            check(words);
+        }
+        for bit in 0..LIMBS * 64 {
+            let mut words = [0_u64; LIMBS];
+            words[bit / 64] = 1_u64 << (bit % 64);
+            check(words);
+        }
+        for first in 0..LIMBS {
+            for second in first + 1..LIMBS {
+                let mut words = [0_u64; LIMBS];
+                words[first] = u64::MAX;
+                words[second] = u64::MAX;
+                check(words);
+            }
+        }
+        let mut state = 0x4534_5351_5541_5245_u64;
+        for _ in 0..100_000 {
+            let words = core::array::from_fn(|_| splitmix64(&mut state));
+            check(words);
+        }
+    }
+
+    #[test]
     fn specialized_arithmetic_matches_the_montgomery_oracle() {
         let mut state = 0x4645_3330_312d_5231_u64;
         for _ in 0..10_000 {

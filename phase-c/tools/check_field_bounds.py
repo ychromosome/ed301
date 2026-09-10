@@ -61,6 +61,24 @@ require((word - 1) * small_max + (small_max - 1) < 1 << 100, "small multiply-acc
 # A 5x5 square column has at most five products plus propagated carry.
 require(5 * (word - 1) ** 2 + 5 * (word - 1) < 1 << 131 < 1 << 192, "square column accumulator bound")
 
+# E4: exact maxima for the existing 5 diagonal + 10 doubled-cross schedule.
+# Full-width words deliberately cover a superset of all field representations.
+require((word - 1) ** 2 < 1 << 128, "single square product fits u128")
+require(1 << 128 <= 2 * (word - 1) ** 2 < 1 << 129, "doubled cross needs the retained 129th bit")
+require(2 * word - 2 < 1 << 128 and 2 * word - 1 < 1 << 128, "192-bit helper low and middle additions")
+square_columns = []
+carry = 0
+for column, count in enumerate((1, 2, 3, 4, 5, 4, 3, 2, 1)):
+    maximum = carry + count * (word - 1) ** 2
+    require(carry <= 5 * (word - 1), f"square carry into column {column}")
+    require(maximum < 1 << 131, f"square column {column} fits 131 bits")
+    require(maximum >> 128 <= 4, f"square high-word additions cannot wrap in column {column}")
+    square_columns.append({"column": column, "weighted_products": count,
+                           "carry_in_max": str(carry), "accumulator_max": str(maximum),
+                           "carry_out_max": str(maximum >> 64)})
+    carry = maximum >> 64
+require(carry < word, "last square carry fits output word nine")
+
 print(json.dumps({
     "status": "PASS", "parameter_sha256": expected,
     "public_multiplier_bits": a.bit_length(), "public_multiplier_max": str(small_max),
@@ -68,5 +86,7 @@ print(json.dumps({
     "second_fold_upper_bound": str(fold2_max), "two_p": str(2 * p),
     "small_product_upper_bound": str(small_product_max),
     "small_high_upper_bound": str(small_high_max), "small_penalty_upper_bound": str(penalty_max),
+    "square_diagonal_products": 5, "square_doubled_cross_products": 10,
+    "square_columns": square_columns,
     "runtime_constant_time_claim": False,
 }, indent=2, sort_keys=True))
