@@ -81,6 +81,11 @@ Without explicit raw selection, a raw-only peer must fail or a mutually
 configured non-raw group must be selected. Both client and server roles are
 tested. These are private-use allocations, not IANA registrations.
 
+When both groups are explicitly enabled, the tested OpenSSL lanes follow the
+client's key-share order: a raw-first client can negotiate Raw X301 even if
+the server lists Hybrid first. To enforce Hybrid, the server must enable only
+Hybrid and omit Raw; server preference alone does not enforce that policy.
+
 The hybrid delegates ML-KEM-1024 to OpenSSL in the provider child context:
 
 | Value | Layout |
