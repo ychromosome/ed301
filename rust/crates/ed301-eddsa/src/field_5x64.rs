@@ -293,6 +293,10 @@ impl Default for Fe301 {
     }
 }
 
+// The representation is Copy and its reviewed Default is the all-zero field
+// value. zeroize provides volatile writes and its optimization barrier.
+impl zeroize::DefaultIsZeroes for Fe301 {}
+
 /// Fold a sparse six-limb product below `2^338` into `[0, 2p)`.
 ///
 /// One fold of `2^301 = 2^89 - 907` leaves `low + high * 2^89 - high * 907`

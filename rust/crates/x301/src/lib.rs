@@ -24,6 +24,23 @@ mod field_5x64;
 )]
 #[path = "../../ed301-eddsa/src/generated_parameters.rs"]
 mod generated_parameters;
+// Share the actual Edwards table/formulas, not a fork or a public EdDSA API.
+// The scalar module satisfies the shared Edwards module's unused EdDSA entry
+// points; X301 passes its exact clamp bytes directly, never through Scalar.
+#[allow(
+    dead_code,
+    reason = "shared group also contains EdDSA verification helpers"
+)]
+#[path = "../../ed301-eddsa/src/edwards.rs"]
+mod edwards;
+#[allow(
+    dead_code,
+    reason = "shared group also contains canonical EdDSA scalar APIs"
+)]
+#[path = "../../ed301-eddsa/src/scalar.rs"]
+mod scalar;
+#[path = "../../ed301-eddsa/src/secret.rs"]
+mod secret;
 #[path = "../../ed301-eddsa/src/secret_taint.rs"]
 mod secret_taint;
 mod x_generated_parameters;
@@ -34,10 +51,6 @@ pub use x301::{
     PublicKey, SecretKey, SharedSecret, X301Error, X301KeyGenError, canonicalize_public_encoding,
     keygen, public_from_secret, shared_secret, validate_public_encoding, x301,
 };
-
-// Fe301 is a Copy canonical five-word value and its reviewed Default is zero.
-// zeroize supplies the volatile overwrite and optimization barrier.
-impl zeroize::DefaultIsZeroes for field_5x64::Fe301 {}
 
 #[cfg(test)]
 extern crate std;

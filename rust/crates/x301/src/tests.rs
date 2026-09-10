@@ -66,7 +66,12 @@ fn all_gate_b_keys_preserve_raw_import_and_exact_clamp() {
         assert_eq!(key.clamped_for_test(), &fixed(text(case, "clamped_hex")));
         reset_rounds();
         let public = key.public_key().unwrap();
-        assert_eq!(rounds(), 301);
+        assert_eq!(rounds(), 0, "public derivation uses the fixed table");
+        let ladder = key
+            .shared_secret(&PublicKey::from_bytes(&BASE_U_BYTES).unwrap())
+            .unwrap();
+        assert_eq!(rounds(), 301, "the ladder oracle still consumes every bit");
+        assert_eq!(public.as_bytes(), ladder.as_bytes());
         assert_eq!(public.as_bytes(), &fixed(text(case, "public_hex")));
         assert_eq!(public_from_secret(&raw).unwrap(), public.to_bytes());
         assert_eq!(
@@ -104,6 +109,27 @@ fn all_gate_b_curve_and_twist_evaluations_match() {
         assert_eq!(result.as_bytes()[37] & 0xe0, 0);
         assert!(result.as_bytes().iter().any(|b| *b != 0));
     }
+}
+
+#[test]
+fn fixed_base_matches_full_ladder_for_ten_thousand_raw_secrets() {
+    let mut state = 0x4531_5833_3031_5055_u64;
+    let base = PublicKey::from_bytes(&BASE_U_BYTES).unwrap();
+    for _ in 0..10_000 {
+        let mut raw = [0_u8; 38];
+        for chunk in raw.chunks_mut(8) {
+            let word = crate::test_support::splitmix64(&mut state).to_le_bytes();
+            chunk.copy_from_slice(&word[..chunk.len()]);
+        }
+        let key = SecretKey::from_bytes(&raw).unwrap();
+        reset_rounds();
+        let fixed = key.public_key().unwrap();
+        assert_eq!(rounds(), 0);
+        let ladder = key.shared_secret(&base).unwrap();
+        assert_eq!(rounds(), 301);
+        assert_eq!(fixed.as_bytes(), ladder.as_bytes());
+    }
+    crate::x301::zero_scalar_fixed_base_for_test();
 }
 
 #[test]
@@ -210,7 +236,11 @@ fn keygen_retries_every_weak_alias_but_not_random_source_errors() {
     })
     .unwrap();
     assert_eq!(calls, 65);
-    assert_eq!(rounds(), 301);
+    assert_eq!(
+        rounds(),
+        0,
+        "key generation uses the fixed-base public path"
+    );
     assert_eq!(generated.0.as_bytes(), &valid);
     assert_eq!(
         generated.1.to_bytes(),
@@ -286,7 +316,7 @@ fn secret_owners_zeroize_and_real_ladder_scope_unwinds_safely() {
     assert_eq!(key.clamped_for_test(), &[0_u8; 38]);
     STATE_DROPS.with(|x| x.set(0));
     PANIC_AFTER_STATE.with(|x| x.set(true));
-    let outcome = std::panic::catch_unwind(|| public_from_secret(&raw));
+    let outcome = std::panic::catch_unwind(|| shared_secret(&raw, &BASE_U_BYTES));
     assert!(outcome.is_err());
     assert_eq!(STATE_DROPS.with(Cell::get), 1);
     assert!(public_from_secret(&raw).is_ok());

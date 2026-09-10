@@ -4,10 +4,11 @@ use crypto_bigint::{Choice, CtEq};
 use zeroize::{Zeroize, ZeroizeOnDrop, Zeroizing};
 
 use crate::{
+    edwards::EdwardsPoint,
     field_5x64::Fe301,
     parameters::{FIELD_BYTES, LADDER_BITS, PUBLIC_BYTES, SECRET_BYTES, SHARED_BYTES},
     secret_taint::declassify,
-    x_generated_parameters::{A24_MINUS_WORDS, BASE_U_WORDS, TWIST_ORDER_BYTES},
+    x_generated_parameters::{A24_MINUS_WORDS, TWIST_ORDER_BYTES},
 };
 
 /// Raw X301 input/output byte length.
@@ -15,7 +16,8 @@ pub const X301_BYTES: usize = FIELD_BYTES;
 /// Canonical Montgomery coordinate of the approved v2 base point.
 pub const BASE_U_BYTES: [u8; FIELD_BYTES] = crate::x_generated_parameters::BASE_U_BYTES;
 const A24_MINUS: Fe301 = Fe301::from_canonical_words(A24_MINUS_WORDS);
-const BASE_U: Fe301 = Fe301::from_canonical_words(BASE_U_WORDS);
+#[cfg(test)]
+const BASE_U: Fe301 = Fe301::from_canonical_words(crate::x_generated_parameters::BASE_U_WORDS);
 
 /// Failure without a partial output value.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -74,9 +76,10 @@ impl SecretKey {
         &self.raw
     }
 
-    /// Derive a public key with the complete 301-round Montgomery ladder.
+    /// Derive a public key with the shared constant-time Edwards fixed-base table.
+    /// The validated X301 clamp is used unchanged, followed by u=(Z+Y)/(Z-Y).
     pub fn public_key(&self) -> Result<PublicKey, X301Error> {
-        let output = multiply(&self.clamped, BASE_U)?;
+        let output = fixed_base_public(&self.clamped)?;
         let mut public = *output.as_bytes();
         declassify(&mut public);
         PublicKey::from_bytes(&public)
@@ -283,7 +286,21 @@ fn ladder301(scalar: &[u8; SECRET_BYTES], u: Fe301) -> Zeroizing<ProjectiveOutpu
 }
 
 fn multiply(scalar: &[u8; SECRET_BYTES], u: Fe301) -> Result<SharedSecret, X301Error> {
-    let projective = ladder301(scalar, u);
+    finalize_projective(ladder301(scalar, u))
+}
+
+fn fixed_base_public(scalar: &[u8; SECRET_BYTES]) -> Result<SharedSecret, X301Error> {
+    // The shared routine consumes all 301 encoded bits. No EdDSA seed expansion,
+    // pruning, reduction modulo q or X301 fixed-bit ladder shortcut is applied.
+    let point = Zeroizing::new(EdwardsPoint::scalar_mul_base_pruned(scalar));
+    let coordinates = Zeroizing::new(point.montgomery_projective());
+    finalize_projective(Zeroizing::new(ProjectiveOutput {
+        x: coordinates[0],
+        z: coordinates[1],
+    }))
+}
+
+fn finalize_projective(projective: Zeroizing<ProjectiveOutput>) -> Result<SharedSecret, X301Error> {
     let inverse = Zeroizing::new(projective.z.invert().to_inner_unchecked());
     let affine = Zeroizing::new(projective.x.mul(*inverse));
     let output = Zeroizing::new(affine.to_canonical_bytes());
@@ -299,6 +316,14 @@ fn multiply(scalar: &[u8; SECRET_BYTES], u: Fe301) -> Result<SharedSecret, X301E
 pub(crate) fn zero_scalar_ladder_for_test() {
     let output = ladder301(&[0_u8; SECRET_BYTES], BASE_U);
     assert!(output.z.is_zero().to_bool());
+}
+
+#[cfg(test)]
+pub(crate) fn zero_scalar_fixed_base_for_test() {
+    assert!(matches!(
+        fixed_base_public(&[0; SECRET_BYTES]),
+        Err(X301Error::AllZeroSharedSecret)
+    ));
 }
 
 #[cfg(test)]

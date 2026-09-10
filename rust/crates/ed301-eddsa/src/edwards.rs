@@ -46,6 +46,27 @@ pub(crate) struct EdwardsPoint {
     t: FieldElement,
 }
 
+impl zeroize::Zeroize for EdwardsPoint {
+    fn zeroize(&mut self) {
+        self.x.zeroize();
+        self.y.zeroize();
+        self.z.zeroize();
+        self.t.zeroize();
+        #[cfg(test)]
+        {
+            assert!(
+                self.x
+                    .is_zero()
+                    .and(self.y.is_zero())
+                    .and(self.z.is_zero())
+                    .and(self.t.is_zero())
+                    .to_bool()
+            );
+            tests::record_point_zeroization();
+        }
+    }
+}
+
 /// Affine cached point for the mixed-addition formulas used by fixed-base and
 /// public verification tables.  `xy = x + y` and `dt = d*x*y` remove one
 /// field multiplication and the small-constant multiply from every table add.
@@ -331,23 +352,35 @@ impl EdwardsPoint {
         Self::scalar_mul_base_encoded(scalar)
     }
 
+    /// Numerator and denominator of u=(Z+Y)/(Z-Y), without normalization.
+    /// X301 owns these secret intermediates and handles the zero denominator.
+    #[allow(
+        dead_code,
+        reason = "shared Edwards module also serves X301 fixed-base derivation"
+    )]
+    pub(crate) fn montgomery_projective(&self) -> [FieldElement; 2] {
+        [self.z.add(self.y), self.z.sub(self.y)]
+    }
+
     fn scalar_mul_base_encoded(scalar: &[u8; FIELD_BYTES]) -> Self {
         let digits = signed_radix16(scalar);
-        let mut result = Self::IDENTITY;
+        let mut result = crate::secret::secret(Self::IDENTITY);
+        #[cfg(test)]
+        tests::fixed_base_state_failpoint();
         let mut digit_index = 1;
 
         while digit_index < RADIX16_DIGITS {
-            result = result.add_affine(select_basepoint(digit_index >> 1, digits[digit_index]));
+            *result = result.add_affine(select_basepoint(digit_index >> 1, digits[digit_index]));
             digit_index += 2;
         }
 
-        result = result.double().double().double().double();
+        *result = result.double().double().double().double();
         digit_index = 0;
         while digit_index < RADIX16_DIGITS {
-            result = result.add_affine(select_basepoint(digit_index >> 1, digits[digit_index]));
+            *result = result.add_affine(select_basepoint(digit_index >> 1, digits[digit_index]));
             digit_index += 2;
         }
-        result
+        *result
     }
 
     #[cfg(test)]
@@ -783,8 +816,36 @@ fn select_basepoint(row: usize, digit: i8) -> AffineNielsPoint {
 
 #[cfg(test)]
 mod tests {
+    extern crate std;
+
     use super::*;
     use crate::test_support::{decode_hex_array, splitmix64};
+
+    std::thread_local! {
+        static FIXED_BASE_FAIL: core::cell::Cell<bool> = const { core::cell::Cell::new(false) };
+        static POINT_DROPS: core::cell::Cell<usize> = const { core::cell::Cell::new(0) };
+    }
+
+    pub(super) fn record_point_zeroization() {
+        POINT_DROPS.with(|count| count.set(count.get() + 1));
+    }
+
+    pub(super) fn fixed_base_state_failpoint() {
+        FIXED_BASE_FAIL
+            .with(|fail| assert!(!fail.replace(false), "controlled fixed-base state unwind"));
+    }
+
+    #[test]
+    fn fixed_base_secret_accumulator_zeroizes_during_unwind() {
+        POINT_DROPS.with(|count| count.set(0));
+        FIXED_BASE_FAIL.with(|fail| fail.set(true));
+        let outcome =
+            std::panic::catch_unwind(|| EdwardsPoint::scalar_mul_base_pruned(&TEST_PRUNED_SECRET));
+        assert!(outcome.is_err());
+        assert_eq!(POINT_DROPS.with(core::cell::Cell::get), 1);
+        let point = EdwardsPoint::scalar_mul_base_pruned(&TEST_PRUNED_SECRET);
+        assert_eq!(point.encode(), Ok(TEST_PUBLIC_ENCODING));
+    }
 
     const SCALAR_12345: [u8; FIELD_BYTES] = decode_hex_array(
         b"3930000000000000000000000000000000000000000000000000000000000000000000000000",
