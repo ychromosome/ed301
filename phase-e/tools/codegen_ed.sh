@@ -205,10 +205,12 @@ and $0xf,%rax|je
 add $0xffffffffffffffff,%rdx|jb'
 check_exact_call_graph field_pow "$EVIDENCE/field_pow.asm" ''
 if [ "$MODE" = provider ]; then
+    # E7's row-wise square moves the public decode/halving status slot by
+    # 16 bytes. The same four conditional edges and exact calls are retained.
     IMPORT_BRANCHES='cmp $0x26,%rdx|jne
-cmpb $0x0,0x3b0(%rsp)|jne
-cmpb $0x0,0x3b0(%rsp)|je
-cmpb $0x0,0x3b0(%rsp)|je'
+cmpb $0x0,0x3a0(%rsp)|jne
+cmpb $0x0,0x3a0(%rsp)|je
+cmpb $0x0,0x3a0(%rsp)|je'
     IMPORT_CALLS='<ed301_eddsa::edwards::EdwardsPoint>::decode
 memcpy
 memcpy

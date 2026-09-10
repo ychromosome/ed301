@@ -118,3 +118,24 @@ und verifizierte Übergabe. Frühere E1–E6-PASS-Belege werden dafür nicht
 übertragen. Gate E bleibt bei Claude/Martin; weiterer Optimierungsaufwand für
 den Restabstand benötigt Martins Entscheidung. Kein Push, keine Installation,
 keine Aktivierung, keine RPMs und kein Stage 2.
+
+### Nachtrag: Provider-Lowering vor dem vollständigen Abschlusslauf
+
+Die ersten frischen Provider-Bauten bestehen beide nichtvernetzten
+Funktionsläufe (je 137 Schritte). Ed301-Taint 36/36, X301-Taint 526/526 und
+der unabhängige Halbierungs-Replay sind ebenfalls bestanden. Die
+schreibgeschützte Kandidaten-Evidenz liegt unter
+/home/martin/Dokumente/ED301/ED301-v2_PHASE_E_e7_final_01_2026-09-10/.
+
+In den Ed301-DSOs verwendet der unveränderte öffentliche Decoder-/Halbierungs-
+Status nach E7 den Stackplatz `0x3a0` statt `0x3b0`. Die Adresse des Decoder-
+Rückgabewerts, seine Prüfung und die spätere kombinierte Akzeptanzprüfung
+wurden im Disassembly nachvollzogen. Ausschließlich diese drei exakten
+Operanden wurden in der Provider-Regel angepasst. Alle acht normalen/TLS-
+DSOs beider ABIs bestehen damit die vollständige Codegen-Zwischenprüfung.
+Die Kompilierquellen bleiben identisch, Manifest
+`ce0a57d9763452a99e3b2632f83f102c85399e18bacb82913167724a6b81291d`.
+Für den konsistenten Abschlusslauf wird ein neuer vollständiger Quellenstand
+einschließlich dieser Prüfregel eingefroren; frühere Kandidaten bleiben
+unverändert erhalten. Die endgültigen Codegen-Belege werden anschließend
+wieder direkt an die tatsächlich abschließend gemessenen Programme gebunden.
