@@ -624,7 +624,7 @@ int main(void)
     f.libctx = OSSL_LIB_CTX_new();
     f.ed = ed301v2_load_named(f.libctx, &f.deflt, ED301V2_TLS_PROVIDER);
     if (f.ed != NULL)
-        f.x = curve301_v2_load_checked(f.libctx, "x301_v2_tls_test");
+        f.x = curve301_v2_load_checked(f.libctx, "x301_v2_tls");
     if (f.x != NULL) {
         f.ca_key = ed301v2_keygen(f.libctx);
         f.server_key = ed301v2_keygen(f.libctx);
@@ -672,7 +672,7 @@ int main(void)
     OSSL_PROVIDER_unload(f.deflt);
     OSSL_LIB_CTX_free(f.libctx);
     ED301V2_CHECK(OSSL_PROVIDER_available(NULL, ED301V2_TLS_PROVIDER) == 0
-            && OSSL_PROVIDER_available(NULL, "x301_v2_tls_test") == 0,
+            && OSSL_PROVIDER_available(NULL, "x301_v2_tls") == 0,
         "v2 providers absent from the process default libctx");
     return ed301v2_summary("provider_tls_tcp");
 }

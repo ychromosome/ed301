@@ -44,7 +44,7 @@
 #include "vectors.h"
 
 #define ED301V2_TLS_SIGALG_CODE_POINT 0xfe85U
-#define ED301V2_TLS_SIGALG_IANA_NAME "ed301_eddsa_v2_test"
+#define ED301V2_TLS_SIGALG_IANA_NAME "ed301_eddsa_v2"
 #define SSL3_MT_CERTIFICATE_VERIFY_LOCAL 15
 #define ED301V2_CV_WIRE_BYTES ((size_t)(8 + ED301V2_SIG_BYTES))
 

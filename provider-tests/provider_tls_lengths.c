@@ -178,7 +178,7 @@ int main(void)
     ED301V2_REQUIRE_TLS_RUNTIME_BINDING();
     libctx = OSSL_LIB_CTX_new();
     deflt = curve301_v2_load_checked(libctx, "default");
-    x = curve301_v2_load_checked(libctx, "x301_v2_tls_test");
+    x = curve301_v2_load_checked(libctx, "x301_v2_tls");
     if (deflt == NULL || x == NULL)
         goto done;
     key = EVP_PKEY_Q_keygen(libctx, "provider=default", "EC", "prime256v1");

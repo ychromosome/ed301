@@ -225,11 +225,11 @@ int main(int argc, char **argv)
     }
     ready = endpoint_setup(&old_ed, old_ed_directory, "ed301_eddsa_v1_tls_test",
                 "Ed301-EdDSA-v1", "Ed301-EdDSA-v1", "X25519", 29, 0xfe84)
-        && endpoint_setup(&new_ed, argv[2], "ed301_eddsa_v2_tls_test",
+        && endpoint_setup(&new_ed, argv[2], "ed301_eddsa_v2_tls",
                 "Ed301-EdDSA", "Ed301-EdDSA", "X25519", 29, 0xfe85)
         && endpoint_setup(&old_x, old_x_directory, "x301", "EC",
                 "ecdsa_secp256r1_sha256", "X301MLKEM1024", 0xfe2e, 0x0403)
-        && endpoint_setup(&new_x, argv[2], "x301_v2_tls_test", "EC",
+        && endpoint_setup(&new_x, argv[2], "x301_v2_tls", "EC",
                 "ecdsa_secp256r1_sha256", "X301MLKEM1024", 0xfe2f, 0x0403);
     ED301V2_CHECK(ready, "four private endpoints with separately loaded v1/v2 modules and fresh credentials");
     if (ready) {
@@ -247,9 +247,9 @@ int main(int argc, char **argv)
     endpoint_free(&new_ed);
     endpoint_free(&old_ed);
     ED301V2_CHECK(OSSL_PROVIDER_available(NULL, "ed301_eddsa_v1_tls_test") == 0
-            && OSSL_PROVIDER_available(NULL, "ed301_eddsa_v2_tls_test") == 0
+            && OSSL_PROVIDER_available(NULL, "ed301_eddsa_v2_tls") == 0
             && OSSL_PROVIDER_available(NULL, "x301") == 0
-            && OSSL_PROVIDER_available(NULL, "x301_v2_tls_test") == 0,
+            && OSSL_PROVIDER_available(NULL, "x301_v2_tls") == 0,
         "neither generation was loaded into the process default libctx");
     return ed301v2_summary("provider_version_isolation");
 }

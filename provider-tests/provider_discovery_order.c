@@ -30,7 +30,7 @@ int main(void)
     ED301V2_CHECK(SSL_CTX_set1_sigalgs_list(early, "Ed301-EdDSA") == 0,
         "missing Ed301 provider cannot configure FE85");
     ed = ed301v2_load_named(libctx, NULL, ED301V2_TLS_PROVIDER);
-    x = curve301_v2_load_checked(libctx, "x301_v2_tls_test");
+    x = curve301_v2_load_checked(libctx, "x301_v2_tls");
     ED301V2_CHECK(ed != NULL && x != NULL, "both v2 providers load into the same private context");
     if (ed == NULL || x == NULL)
         goto done;
@@ -53,7 +53,7 @@ done:
     OSSL_PROVIDER_unload(deflt);
     OSSL_LIB_CTX_free(libctx);
     ED301V2_CHECK(OSSL_PROVIDER_available(NULL, ED301V2_TLS_PROVIDER) == 0
-            && OSSL_PROVIDER_available(NULL, "x301_v2_tls_test") == 0,
+            && OSSL_PROVIDER_available(NULL, "x301_v2_tls") == 0,
         "custom provider discovery never changed the default libctx");
     return ed301v2_summary("provider_discovery_order");
 }

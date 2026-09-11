@@ -59,8 +59,8 @@ def cli(step, module, command, *options, expected=0):
 
 
 for name, algorithm, ordinary, pki, tls in (
-    ("ed301", "Ed301-EdDSA", "ed301_eddsa_v2", "ed301_eddsa_v2_pki_test", "ed301_eddsa_v2_tls_test"),
-    ("x301", "X301", "x301_v2", "x301_v2_pki_test", "x301_v2_tls_test"),
+    ("ed301", "Ed301-EdDSA", "ed301_eddsa_v2", "ed301_eddsa_v2_pki_test", "ed301_eddsa_v2_tls"),
+    ("x301", "X301", "x301_v2", "x301_v2_pki_test", "x301_v2_tls"),
 ):
     directory = out / name
     directory.mkdir(mode=0o700)
@@ -128,7 +128,7 @@ for name, algorithm, ordinary, pki, tls in (
             raise SystemExit("complete-file negative control had no rejection marker")
 
 ed = out / "ed301"
-tls = "ed301_eddsa_v2_tls_test"
+tls = "ed301_eddsa_v2_tls"
 ca = ed / "ca.crt"
 leaf = ed / "leaf.crt"
 leaf_key = ed / "leaf-key.pem"

@@ -215,7 +215,7 @@ static int raw_import_works(OSSL_LIB_CTX *libctx)
         0x20, 0x21, 0x22, 0x23, 0x24, 0x25
     };
     EVP_PKEY *key = EVP_PKEY_new_raw_private_key_ex(
-        libctx, X301_NAME, "provider=x301_v2_tls_test", secret, sizeof(secret));
+        libctx, X301_NAME, "provider=x301_v2_tls", secret, sizeof(secret));
     unsigned char public_key[X301_BYTES];
     size_t public_length = sizeof(public_key);
     int result = key != NULL
@@ -264,7 +264,7 @@ static int run_selection(const char *module_directory, PROBE_STATE *inner,
     if (deflt == NULL || a == NULL || b == NULL
             || EVP_set_default_properties(libctx, defaults) <= 0)
         goto done;
-    x301 = OSSL_PROVIDER_load(libctx, "x301_v2_tls_test");
+    x301 = OSSL_PROVIDER_load(libctx, "x301_v2_tls");
     if (x301 == NULL)
         goto done;
 
@@ -314,12 +314,12 @@ static int run_failure(const char *module_directory)
             || EVP_set_default_properties(
                 libctx, "?x301.probe=fail") <= 0)
         goto done;
-    x301 = OSSL_PROVIDER_load(libctx, "x301_v2_tls_test");
+    x301 = OSSL_PROVIDER_load(libctx, "x301_v2_tls");
     if (x301 == NULL)
         goto done;
 
     ERR_clear_error();
-    hybrid = generate(libctx, HYBRID_NAME, "provider=x301_v2_tls_test");
+    hybrid = generate(libctx, HYBRID_NAME, "provider=x301_v2_tls");
     result = hybrid == NULL && probe_fail.generation_calls == 1U
         && raw_import_works(libctx);
     ERR_clear_error();

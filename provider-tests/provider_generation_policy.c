@@ -23,6 +23,7 @@ int main(int argc, char **argv)
         "ed301_eddsa_v1_tls_test", "ed301_eddsa_v1_tls_collider",
         "ed301_eddsa_v1_failpoint", "ed301", "x301", "x301_failpoint",
         "x301_tls_test", "ed301_eddsa_v2.so", "x301_v2.so",
+        "ed301_eddsa_v2_tls_test", "x301_v2_tls_test",
         "./ed301_eddsa_v2", "/tmp/ed301_eddsa_v2", "unbound-provider"
     };
     OSSL_LIB_CTX *libctx;

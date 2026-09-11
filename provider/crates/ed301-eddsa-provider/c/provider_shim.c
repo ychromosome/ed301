@@ -128,7 +128,7 @@
 #ifdef ED301V2_TEST_FAILPOINT_ARTIFACT
 # define ED301V2_PROVIDER_BASENAME "ed301_eddsa_v2_failpoint"
 #elif defined(ED301V2_TLS_EXPERIMENT_ARTIFACT)
-# define ED301V2_PROVIDER_BASENAME "ed301_eddsa_v2_tls_test"
+# define ED301V2_PROVIDER_BASENAME "ed301_eddsa_v2_tls"
 #elif defined(ED301V2_TLS_COLLIDER_ARTIFACT)
 # define ED301V2_PROVIDER_BASENAME "ed301_eddsa_v2_tls_collider"
 #elif defined(ED301V2_PKI_EXPERIMENT_ARTIFACT)
@@ -237,7 +237,7 @@ static int ed301v2_process_identity_is_exact(void)
 static const char ED301V2_OID[] = ED301V2_OID_TEXT;
 static const char ED301V2_TLS_SIGALG_CAPABILITY[] = "TLS-SIGALG";
 static const char ED301V2_TLS_SIGALG_IANA_NAME[] =
-    "ed301_eddsa_v2_test";
+    "ed301_eddsa_v2";
 #endif
 
 _Static_assert(

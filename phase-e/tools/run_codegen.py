@@ -39,8 +39,8 @@ receipt.identity.update(openssl_version=identities[0]["openssl_version"],
 receipt.write_identity()
 checker = ROOT / "phase-e/tools/check_codegen.sh"
 for profile, variant, module in (
-    ("ed", "ed-normal", "ed301_eddsa_v2"), ("ed", "ed-tls", "ed301_eddsa_v2_tls_test"),
-    ("x", "x-normal", "x301_v2"), ("x", "x-tls", "x301_v2_tls_test"),
+    ("ed", "ed-normal", "ed301_eddsa_v2"), ("ed", "ed-tls", "ed301_eddsa_v2_tls"),
+    ("x", "x-normal", "x301_v2"), ("x", "x-tls", "x301_v2_tls"),
 ):
     receipt.run(module, ["/bin/sh", checker, profile + "-provider",
                          functional / "modules" / (module + ".so"),

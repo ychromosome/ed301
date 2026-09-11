@@ -27,8 +27,8 @@ receipt.identity.update(openssl_version=identity["openssl_version"],
                         scope="classified critical arithmetic and zeroization symbols in linked DSOs; not a universal CT proof")
 receipt.write_identity()
 for profile, variant, module in (
-    ("ed", "ed-normal", "ed301_eddsa_v2"), ("ed", "ed-tls", "ed301_eddsa_v2_tls_test"),
-    ("x", "x-normal", "x301_v2"), ("x", "x-tls", "x301_v2_tls_test"),
+    ("ed", "ed-normal", "ed301_eddsa_v2"), ("ed", "ed-tls", "ed301_eddsa_v2_tls"),
+    ("x", "x-normal", "x301_v2"), ("x", "x-tls", "x301_v2_tls"),
 ):
     receipt.run(module, ["/bin/sh", TOOLS / "check_provider_codegen.sh", profile,
                          functional / "modules" / (module + ".so"),

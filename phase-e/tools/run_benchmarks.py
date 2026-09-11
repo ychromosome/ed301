@@ -165,17 +165,17 @@ for operation in ("kem-keygen", "encaps", "decaps"):
     for label, algorithm, props, directory, provider in (
         ("ML-KEM-1024", "ML-KEM-1024", "provider=default", "-", "-"),
         ("Hybrid-v1", "X301MLKEM1024", "provider=x301", legacy / "modules/x-tls", "x301"),
-        ("Hybrid-v2", "X301MLKEM1024", "provider=x301_v2_tls_test", modules, "x301_v2_tls_test"),
+        ("Hybrid-v2", "X301MLKEM1024", "provider=x301_v2_tls", modules, "x301_v2_tls"),
     ):
         add("EVP-KEM", label, operation, [out / "bin/xdh", operation, algorithm, props, directory, provider, 0])
 codec_implementations = (
     ("Ed25519", "ED25519", "provider=default", modules, "-"),
     ("Ed448", "ED448", "provider=default", modules, "-"),
     ("Ed301-v1", "Ed301-EdDSA-v1", "provider=ed301_eddsa_v1_tls_test", legacy / "modules/ed-tls", "ed301_eddsa_v1_tls_test"),
-    ("Ed301-v2", "Ed301-EdDSA", "provider=ed301_eddsa_v2_tls_test", modules, "ed301_eddsa_v2_tls_test"),
+    ("Ed301-v2", "Ed301-EdDSA", "provider=ed301_eddsa_v2_tls", modules, "ed301_eddsa_v2_tls"),
     ("X25519", "X25519", "provider=default", modules, "-"),
     ("X448", "X448", "provider=default", modules, "-"),
-    ("X301-v2", "X301", "provider=x301_v2_tls_test", modules, "x301_v2_tls_test"),
+    ("X301-v2", "X301", "provider=x301_v2_tls", modules, "x301_v2_tls"),
 )
 for selection, form in (("private", "DER"), ("public", "DER"), ("private", "PEM"), ("encrypted", "PEM")):
     for operation in ("encode", "decode"):
@@ -186,14 +186,14 @@ for label, algorithm, props, ed_dir, ed_module, x_dir, x_module, group, wire in 
     ("Ed25519-X25519", "ED25519", "provider=default", "-", "-", "-", "-", "X25519", "0x001d"),
     ("Ed448-X25519", "ED448", "provider=default", "-", "-", "-", "-", "X25519", "0x001d"),
     ("Ed-v1-X25519", "Ed301-EdDSA-v1", "provider=ed301_eddsa_v1_tls_test", legacy / "modules/ed-tls", "ed301_eddsa_v1_tls_test", "-", "-", "X25519", "0x001d"),
-    ("Ed-v2-X25519", "Ed301-EdDSA", "provider=ed301_eddsa_v2_tls_test", modules, "ed301_eddsa_v2_tls_test", "-", "-", "X25519", "0x001d"),
+    ("Ed-v2-X25519", "Ed301-EdDSA", "provider=ed301_eddsa_v2_tls", modules, "ed301_eddsa_v2_tls", "-", "-", "X25519", "0x001d"),
     ("Ed-v1-Hybrid-v1", "Ed301-EdDSA-v1", "provider=ed301_eddsa_v1_tls_test", legacy / "modules/ed-tls", "ed301_eddsa_v1_tls_test", legacy / "modules/x-tls", "x301", "X301MLKEM1024", "0xfe2e"),
-    ("Ed-v2-Hybrid-v2", "Ed301-EdDSA", "provider=ed301_eddsa_v2_tls_test", modules, "ed301_eddsa_v2_tls_test", modules, "x301_v2_tls_test", "X301MLKEM1024", "0xfe2f"),
-    ("Ed-v2-Raw-v2", "Ed301-EdDSA", "provider=ed301_eddsa_v2_tls_test", modules, "ed301_eddsa_v2_tls_test", modules, "x301_v2_tls_test", "X301", "0xfe30"),
+    ("Ed-v2-Hybrid-v2", "Ed301-EdDSA", "provider=ed301_eddsa_v2_tls", modules, "ed301_eddsa_v2_tls", modules, "x301_v2_tls", "X301MLKEM1024", "0xfe2f"),
+    ("Ed-v2-Raw-v2", "Ed301-EdDSA", "provider=ed301_eddsa_v2_tls", modules, "ed301_eddsa_v2_tls", modules, "x301_v2_tls", "X301", "0xfe30"),
     ("ECDSA-X25519", "EC", "provider=default", "-", "-", "-", "-", "X25519", "0x001d"),
     ("ECDSA-Hybrid-v1", "EC", "provider=default", "-", "-", legacy / "modules/x-tls", "x301", "X301MLKEM1024", "0xfe2e"),
-    ("ECDSA-Hybrid-v2", "EC", "provider=default", "-", "-", modules, "x301_v2_tls_test", "X301MLKEM1024", "0xfe2f"),
-    ("ECDSA-Raw-v2", "EC", "provider=default", "-", "-", modules, "x301_v2_tls_test", "X301", "0xfe30"),
+    ("ECDSA-Hybrid-v2", "EC", "provider=default", "-", "-", modules, "x301_v2_tls", "X301MLKEM1024", "0xfe2f"),
+    ("ECDSA-Raw-v2", "EC", "provider=default", "-", "-", modules, "x301_v2_tls", "X301", "0xfe30"),
 ):
     add("TLS-engine", label, "full-handshake-warm-context",
         [out / "bin/tls", algorithm, props, ed_dir, ed_module, x_dir, x_module, group, wire])

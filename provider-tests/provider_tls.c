@@ -1133,7 +1133,7 @@ int main(void)
             ED301V2_CHECK(0, "unsupported explicit test group");
             goto cleanup;
         }
-        x_provider = curve301_v2_load_checked(tls_libctx, "x301_v2_tls_test");
+        x_provider = curve301_v2_load_checked(tls_libctx, "x301_v2_tls");
         ED301V2_CHECK(x_provider != NULL, "X301-v2 provider before SSL_CTX construction");
         if (x_provider == NULL)
             goto cleanup;

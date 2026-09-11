@@ -10,7 +10,7 @@
 #include "test_rand.h"
 
 #define HYBRID "X301MLKEM1024"
-#define HYBRID_PROP "provider=x301_v2_tls_test"
+#define HYBRID_PROP "provider=x301_v2_tls"
 
 static unsigned char ml_seed[64];
 static unsigned char ml_entropy[32];
@@ -211,7 +211,7 @@ int main(void)
         && (deflt = OSSL_PROVIDER_load(libctx, "default")) != NULL
         && OSSL_PROVIDER_add_builtin(libctx, TEST_RAND_PROVIDER, test_rand_provider_init) == 1
         && (rand_provider = OSSL_PROVIDER_load(libctx, TEST_RAND_PROVIDER)) != NULL
-        && (x = OSSL_PROVIDER_load(libctx, "x301_v2_tls_test")) != NULL
+        && (x = OSSL_PROVIDER_load(libctx, "x301_v2_tls")) != NULL
         && EVP_set_default_properties(libctx, "?" TEST_RAND_PROPERTY) == 1
         && RAND_set_DRBG_type(libctx, "CTR-DRBG", TEST_RAND_PROPERTY, NULL, NULL) == 1;
     ED301V2_CHECK(ready, "separate private contexts: hybrid test-RAND and default-only ML-KEM reference");
@@ -224,7 +224,7 @@ int main(void)
     OSSL_PROVIDER_unload(reference_default);
     OSSL_LIB_CTX_free(libctx);
     OSSL_LIB_CTX_free(reference);
-    ED301V2_CHECK(OSSL_PROVIDER_available(NULL, "x301_v2_tls_test") == 0
+    ED301V2_CHECK(OSSL_PROVIDER_available(NULL, "x301_v2_tls") == 0
             && OSSL_PROVIDER_available(NULL, TEST_RAND_PROVIDER) == 0,
         "test providers absent from the default libctx");
     return ed301v2_summary("provider_x301_hybrid_kat");

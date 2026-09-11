@@ -48,7 +48,7 @@
 
 #define X301_BYTES 38U
 #define X301_NAME "X301"
-#define X301_PROPERTIES "provider=x301_v2_tls_test"
+#define X301_PROPERTIES "provider=x301_v2_tls"
 #define HYBRID_NAME "X301MLKEM1024"
 #define HYBRID_CIPHERTEXT_BYTES (1568U + X301_BYTES)
 #define HYBRID_SECRET_BYTES 70U
@@ -356,7 +356,7 @@ int main(int argc, char **argv)
     if (libctx == NULL
             || OSSL_PROVIDER_set_default_search_path(libctx, argv[1]) <= 0
             || (default_provider = OSSL_PROVIDER_load(libctx, "default")) == NULL
-            || (x301_provider = OSSL_PROVIDER_load(libctx, "x301_v2_tls_test")) == NULL) {
+            || (x301_provider = OSSL_PROVIDER_load(libctx, "x301_v2_tls")) == NULL) {
         fprintf(stderr, "cannot load default and x301 providers\n");
         ERR_print_errors_fp(stderr);
         goto done;

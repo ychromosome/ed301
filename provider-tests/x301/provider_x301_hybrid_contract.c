@@ -26,8 +26,8 @@
 #include <openssl/params.h>
 #include <openssl/provider.h>
 
-#define X301_PROVIDER "x301_v2_tls_test"
-#define X301_PROPERTIES "provider=x301_v2_tls_test"
+#define X301_PROVIDER "x301_v2_tls"
+#define X301_PROPERTIES "provider=x301_v2_tls"
 #define DEFAULT_PROVIDER "default"
 #define DEFAULT_PROPERTIES "provider=default"
 #define X301_NAME "X301"

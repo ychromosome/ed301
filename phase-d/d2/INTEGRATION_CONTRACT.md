@@ -1,6 +1,9 @@
 # D2 integration contract
 
-This is the Stage-1 local test integration, not a release or Gate-D approval.
+This describes the local test integration, not system deployment or a release.
+The original Stage-1 checks use private library contexts. The separately
+authorized N2 checks below use process-default contexts only in isolated
+child test processes with run-local configuration.
 The authoritative decision is
 /home/martin/Dokumente/ED301/ed301/phase-d/d2/inputs/D1_BEWERTUNG_UND_D2_ENTSCHEIDUNGEN_2026-09-10.md.
 The source/build/test receipts and the final D2 report determine which paths
@@ -18,13 +21,20 @@ does not acquire the diagnostic surfaces of a test artifact.
 | --- | --- |
 | `ed301_eddsa_v2` | KEYMGMT and pure, whole-message SIGNATURE |
 | `ed301_eddsa_v2_pki_test` | Ed301 PKCS#8/SPKI encoders |
-| `ed301_eddsa_v2_tls_test` | Ed301 codecs, text output and TLS-SIGALG |
+| `ed301_eddsa_v2_tls` | Ed301 codecs, text output and TLS-SIGALG |
 | `ed301_eddsa_v2_tls_collider` | Separate same-generation collision fixture; no private decoder |
 | `ed301_eddsa_v2_failpoint` | Explicitly injected allocation/panic failures; no TLS |
 | `x301_v2` | KEYMGMT and KEYEXCH |
 | `x301_v2_pki_test` | X301 PKCS#8/SPKI encoders |
-| `x301_v2_tls_test` | X301 codecs/text plus hybrid KEYMGMT/KEM and two TLS groups |
+| `x301_v2_tls` | X301 codecs/text plus hybrid KEYMGMT/KEM and two TLS groups |
 | `x301_v2_failpoint` | Explicitly injected allocation/panic failures |
+
+The N4 naming follow-up removes the `_test` suffix only from the two TLS
+module names. Their former basenames are not compatibility aliases. The
+TLS-SIGALG selection/display name is now `ed301_eddsa_v2`; its numeric
+SignatureScheme remains `0xFE85`. OIDs, algorithm names and NamedGroups are
+unchanged. PKI experiment, collision and failpoint artifacts remain distinct;
+the new names do not by themselves authorize installing or activating them.
 
 Public algorithm names are `Ed301-EdDSA`, `X301` and `X301MLKEM1024`.
 The old alias `MLKEM1024X301` is not offered. The Ed301 generation path uses
@@ -32,7 +42,8 @@ The old alias `MLKEM1024X301` is not offered. The Ed301 generation path uses
 the inherited Ed301 adapter does not advertise generation parameters, so
 OpenSSL's `EVP_PKEY_Q_keygen` convenience path is not part of this profile.
 
-The arithmetic is the unchanged Gate-C Ed301 core and D1 X301 core.
+The arithmetic is the subsequently optimized and reviewed E8 implementation,
+with the original Ed301 and X301 encoding and protocol contracts retained.
 The v1 adapters provide the C dispatch/lifetime patterns, not v2 constants
 or expected cryptographic outputs. The shared allocation, random-generator
 and codec adapters are under /home/martin/Dokumente/ED301/ed301/provider/common.
@@ -138,7 +149,7 @@ keys/signatures and TLS codepoints provide the tested version boundaries.
 
 ## CLI isolation and permitted effects
 
-Every OpenSSL CLI invocation that loads v2 sets `OPENSSL_TEST_LIBCTX=1`.
+The historical Stage-1 CLI invocations that load v2 set `OPENSSL_TEST_LIBCTX=1`.
 The pinned 3.5.8/4.0.2 app sources create a private context and apply explicit
 `-provider` arguments to it. This is a test-only facility, not a promise about
 unverified future OpenSSL releases.
@@ -164,6 +175,18 @@ default-context `EVP_PKCS82PKEY`. The frontend
 instead initializes a context-bound `PKCS12` object and calls OpenSSL's own
 `PKCS12_parse`, including MAC verification, key/leaf matching and ordinary
 encoder output. It implements no bag parser or cryptographic primitive.
+
+The authorized N2 runner is
+/home/martin/Dokumente/ED301/ed301/phase-d/d2/tools/run_default_context_cli.py.
+It omits OPENSSL_TEST_LIBCTX and all explicit -provider options, and selects
+a newly generated OPENSSL_CONF solely in each child process. That private
+configuration activates default and the two bound TLS modules in that
+process's default library context. It never edits host configuration or
+installs modules. The stock req -verify, x509 -req, and Ed301/X301 PKCS12
+private-key extraction paths are checked directly, without the private
+frontends. A small observer verifies context/provider identity only; it does
+not parse or repair any key, request or container for the stock applications.
+The new receipt, not this description, establishes whether N2 passed.
 
 All sockets bind project-owned `127.0.0.1:0` listeners. Keys and certificates
 for connections/CLI runs are generated afresh and are not committed. No

@@ -20,7 +20,7 @@
 #define HYBRID_SECRET_BYTES 70U
 #define X301_NAME "X301"
 #define HYBRID_NAME "X301MLKEM1024"
-#define X301_PROPERTIES "provider=x301_v2_tls_test"
+#define X301_PROPERTIES "provider=x301_v2_tls"
 
 extern void ed301_vg_make_mem_undefined(void *address, size_t length);
 extern unsigned int ed301_vg_running_on_valgrind(void);
@@ -93,7 +93,7 @@ int main(int argc, char **argv)
     if (libctx == NULL
             || !OSSL_PROVIDER_set_default_search_path(libctx, argv[1])
             || (deflt = OSSL_PROVIDER_load(libctx, "default")) == NULL
-            || (x301 = OSSL_PROVIDER_load(libctx, "x301_v2_tls_test")) == NULL)
+            || (x301 = OSSL_PROVIDER_load(libctx, "x301_v2_tls")) == NULL)
         goto done;
 
     stage = "input taint activation";

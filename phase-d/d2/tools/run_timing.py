@@ -39,7 +39,7 @@ receipt.identity.update(openssl_version=version, functional_receipt_sha256=args.
                         threshold_abs_t=10, host_tuning=False,
                         load_before=Path("/proc/loadavg").read_text().strip(),
                         measured_modules={name: identity["module_sha256"][name]
-                                          for name in ("ed301_eddsa_v2", "x301_v2_tls_test")})
+                                          for name in ("ed301_eddsa_v2", "x301_v2_tls")})
 receipt.write_identity()
 runtime = dict(receipt.clean, OPENSSL_CONF="/dev/null", OPENSSL_MODULES=str(functional / "modules"),
                LD_LIBRARY_PATH=str(prefix / "lib"), ED301V2_EXPECT_OPENSSL_PREFIX=str(prefix))

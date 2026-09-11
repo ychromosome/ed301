@@ -79,7 +79,7 @@ cases = []
 all_metrics = []
 for generation, algorithm, directory, provider in (
     ("v1", "Ed301-EdDSA-v1", legacy / "modules/ed-tls", "ed301_eddsa_v1_tls_test"),
-    ("v2", "Ed301-EdDSA", functional / "modules", "ed301_eddsa_v2_tls_test"),
+    ("v2", "Ed301-EdDSA", functional / "modules", "ed301_eddsa_v2_tls"),
 ):
     bound.append(directory / (provider + ".so"))
     for count in (1, 10):

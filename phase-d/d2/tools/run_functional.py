@@ -103,12 +103,12 @@ for i, executable in enumerate(sorted(executables)):
 variants = [
     ("ed-normal", "ed301-eddsa-provider", "", "ed301_eddsa_v2", "ed301_eddsa_v2"),
     ("ed-pki", "ed301-eddsa-provider", "pki-experiment", "ed301_eddsa_v2", "ed301_eddsa_v2_pki_test"),
-    ("ed-tls", "ed301-eddsa-provider", "tls-experiment", "ed301_eddsa_v2", "ed301_eddsa_v2_tls_test"),
+    ("ed-tls", "ed301-eddsa-provider", "tls-experiment", "ed301_eddsa_v2", "ed301_eddsa_v2_tls"),
     ("ed-collider", "ed301-eddsa-provider", "tls-collider", "ed301_eddsa_v2", "ed301_eddsa_v2_tls_collider"),
     ("ed-failpoint", "ed301-eddsa-provider", "test-failpoint", "ed301_eddsa_v2", "ed301_eddsa_v2_failpoint"),
     ("x-normal", "x301-provider", "", "x301_v2", "x301_v2"),
     ("x-pki", "x301-provider", "pki-experiment", "x301_v2", "x301_v2_pki_test"),
-    ("x-tls", "x301-provider", "tls-x301-mlkem1024", "x301_v2", "x301_v2_tls_test"),
+    ("x-tls", "x301-provider", "tls-x301-mlkem1024", "x301_v2", "x301_v2_tls"),
     ("x-failpoint", "x301-provider", "test-failpoint", "x301_v2", "x301_v2_failpoint"),
 ]
 module_hashes = {}
@@ -177,7 +177,7 @@ for name in x_harnesses:
 for source, name in (("provider_serialization", "x301_serialization"), ("val01_decoder_bio", "x301_decoder")):
     compile_harness(name, ROOT / "provider-tests" / (source + ".c"), ["-DX301_CODEC_TEST"])
 compile_harness("x301_tls_contract", ROOT / "provider-tests/x301/provider_x301_contract.c",
-                ['-DX301_PROVIDER="x301_v2_tls_test"'])
+                ['-DX301_PROVIDER="x301_v2_tls"'])
 compile_harness("x301_failpoint_contract", ROOT / "provider-tests/x301/provider_x301_contract.c",
                 ['-DX301_PROVIDER="x301_v2_failpoint"'])
 compile_harness("provider_load_no_rpath", ROOT / "provider-tests/provider_load.c", rpath=False)

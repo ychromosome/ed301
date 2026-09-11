@@ -17,9 +17,9 @@ static inline int curve301_v2_module_allowed(const char *name)
     static const char *const allowed[] = {
         "default", "base", "null",
         "ed301_eddsa_v2", "ed301_eddsa_v2_pki_test",
-        "ed301_eddsa_v2_tls_test", "ed301_eddsa_v2_tls_collider",
+        "ed301_eddsa_v2_tls", "ed301_eddsa_v2_tls_collider",
         "ed301_eddsa_v2_failpoint",
-        "x301_v2", "x301_v2_pki_test", "x301_v2_tls_test",
+        "x301_v2", "x301_v2_pki_test", "x301_v2_tls",
         "x301_v2_failpoint",
         /* Builtin deterministic providers exist only in these testbinaries. */
         "ed301_test_rand", "x301_test_rand"

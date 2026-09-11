@@ -38,8 +38,8 @@
 # define ED301V2_FAILPOINT_PROP "provider=x301_v2_failpoint"
 # define ED301V2_PKI_PROVIDER "x301_v2_pki_test"
 # define ED301V2_PKI_PROP "provider=x301_v2_pki_test"
-# define ED301V2_TLS_PROVIDER "x301_v2_tls_test"
-# define ED301V2_TLS_PROP "provider=x301_v2_tls_test"
+# define ED301V2_TLS_PROVIDER "x301_v2_tls"
+# define ED301V2_TLS_PROP "provider=x301_v2_tls"
 #else
 #define ED301V2_ALG "Ed301-EdDSA"
 #define ED301V2_OID_TEXT "1.3.6.1.4.1.66282.301.5"
@@ -49,8 +49,8 @@
 #define ED301V2_FAILPOINT_PROP "provider=ed301_eddsa_v2_failpoint"
 #define ED301V2_PKI_PROVIDER "ed301_eddsa_v2_pki_test"
 #define ED301V2_PKI_PROP "provider=ed301_eddsa_v2_pki_test"
-#define ED301V2_TLS_PROVIDER "ed301_eddsa_v2_tls_test"
-#define ED301V2_TLS_PROP "provider=ed301_eddsa_v2_tls_test"
+#define ED301V2_TLS_PROVIDER "ed301_eddsa_v2_tls"
+#define ED301V2_TLS_PROP "provider=ed301_eddsa_v2_tls"
 #define ED301V2_TLS_COLLIDER_PROVIDER "ed301_eddsa_v2_tls_collider"
 #define ED301V2_TLS_COLLIDER_PROP "provider=ed301_eddsa_v2_tls_collider"
 #endif
