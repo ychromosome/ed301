@@ -1,5 +1,16 @@
 # Phase E: optimization under a fresh Gate E
 
+## Completed scoped security review
+
+The four-pass offline Deep Scan of the two Rust cores and both providers at
+commit ddc6e5d is complete, with zero reportable findings. Its retained
+cleanup questions, static-only limitations, original artifacts and the
+comparison with existing codegen/taint evidence are recorded in
+[/home/martin/Dokumente/ED301/ed301/phase-e/SECURITY_DEEP_REVIEW_CLOSURE.md](SECURITY_DEEP_REVIEW_CLOSURE.md).
+This documentation closeout is not a new Gate E or Stage-2/release approval.
+Historical reports and source manifests remain bound to their original
+commits; no past coverage or PASS result is retroactively widened.
+
 ## Current correctness entry point and historical receipts
 
 Use the Phase-E runner for the optimized Ed301 and X301 sources:

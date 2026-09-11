@@ -1,0 +1,15 @@
+{
+  "completeness": "complete",
+  "deferred": [],
+  "documentType": "codex-security.coverage",
+  "excludePaths": [],
+  "explicitExclusions": [],
+  "includePaths": [
+    "."
+  ],
+  "inventoryStrategy": "repository",
+  "mode": "deep_repository",
+  "scanId": "119d3788-07ba-4553-a232-fd785bb38dd5",
+  "schemaVersion": "1.0",
+  "surfaces": []
+}
