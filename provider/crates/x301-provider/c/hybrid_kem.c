@@ -3,8 +3,8 @@
  *
  * Sources: OpenSSL provider-base(7) "TLS-GROUP", provider-keymgmt(7), and
  * provider-kem(7); FIPS 203 through OpenSSL's EVP ML-KEM-1024
- * implementation selected by the child library context; RFC 10024's
- * ML-KEM-first concatenation, RFC 9954's general
+ * implementation selected by the child library context; the ML-KEM-first
+ * ordering of RFC 10024's X25519MLKEM768 instance, RFC 9954's general
  * hybrid design, and the RFC 9846 TLS 1.3 key schedule.
  * This file implements only the KEYMGMT/KEM operations libssl needs. It
  * defines no standalone key format, KDF, or general hybrid-KEM profile.
