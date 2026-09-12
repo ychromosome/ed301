@@ -71,7 +71,7 @@ manifest = sources()
 (work / "SOURCE_SHA256SUMS").write_text(manifest)
 toolchain = run(["rustc", "--version", "--verbose"], "toolchain")
 identity = {"v1_commit": v1_commit, "v1_scope": "historical integration core, normalization and fixed-bit optimizations retained",
-            "v2_scope": "D1 strict contract, complete 301-round canonical-field ladder, owned keys/outputs",
+            "v2_scope": "strict X301-v2; arithmetic identified by the recorded source and binary hashes",
             "profile": "O3 ThinLTO CGU1 panic=unwind; overflow on except historical v1 crypto-bigint off",
             "cpu": run(["lscpu"], "cpu"), "affinity": args.cpu, "rustc": toolchain,
             "platform": run(["uname", "-a"], "platform"), "repetitions": args.repetitions,

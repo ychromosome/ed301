@@ -86,6 +86,13 @@ configurable password-cost policy remains a separate task before relying on
 human-password protection for persistent keys; this contract does not change
 the KDF or its parameters.
 
+The agreed container-interoperability target is OpenSSL 3.5.8 and 4.0.2.
+The [cross-version assessment](ASSESSMENT_20260912.md#2-verbindlicher-containerumfang)
+checks canonical DER/PEM, encrypted PKCS#8 and PKCS#12 in both directions.
+Stock CLI keydumps may include surrounding metadata; normalize them with
+`openssl pkey` before applying the strict single-object PEM file boundary.
+Other implementations require explicit algorithm support and separate tests.
+
 ## Versions and deployment
 
 Supported combined-stack minimums are OpenSSL 3.5.7 and 4.0.1, with a separate
