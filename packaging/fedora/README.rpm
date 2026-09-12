@@ -1,0 +1,47 @@
+Ed301-EdDSA and X301 for Fedora 45
+================================
+
+EXPERIMENTAL BUILD CANDIDATE. Not standardized, not FIPS validated.
+RPM build success is not code-generation acceptance or production approval.
+
+openssl-provider-ed301 contains four modules:
+  ed301_eddsa_v2.so, ed301_eddsa_v2_tls.so,
+  x301_v2.so, x301_v2_tls.so.
+It does not activate any module automatically.
+
+openssl-provider-ed301-policy requires the exact matching software package
+and installs the shared OpenSSL provider configuration. Installing it makes
+the two TLS-capable modules available to newly initialized, configuration-
+loading OpenSSL contexts. The ordinary modules remain explicit-load-only.
+The ed301 meta-package requires both matching packages.
+
+Removing the policy package removes its owned activation file; already
+running processes are not reconfigured or restarted by RPM scriptlets.
+Removing the meta-package alone is not a promise that dependencies are
+removed. Administrators who want to disable activation must remove the
+policy package and account for existing processes and local configuration.
+
+Fedora's selected crypto-policy and its generated backend are not replaced
+or relaxed. OpenSSL's DEFAULT TLS group list remains unchanged. Applications
+select the project group X301MLKEM1024 explicitly when they require it.
+Hybrid-only operation must omit raw X301 from the enabled group list.
+
+Do not load historical v1 and current v2 generations into one library
+context. Old names, OIDs, raw seeds and trust assets do not constitute a
+compatible v2 profile. The old four-component review meta-package is not
+silently replaced: its exact OpenSSL/G301/v1 dependency set is a different
+integration. Migration and rollback must be separately tested before any
+workstation transition.
+
+The Fedora build uses the repository's O3/ThinLTO/CGU1/unwind/overflow-on
+profile plus the recorded distribution hardening flags. Native C flags are
+accepted only by the explicit package-build opt-in patch. The ordinary
+source retains its strict rejection of unapproved environment overrides.
+Source, dependency lockfiles and vendor contents remain bound to the source
+snapshot. No source download is performed by Cargo during the RPM build.
+
+The build tests cover core vectors and selected existing provider/TLS/CLI
+contracts. They do not replace a fresh code-generation/side-channel review
+of the actual Fedora compiler outputs. LLVM-21 approval and the external
+reviewer's artifact-specific LLVM-22 exception cannot be transferred to
+these RPMs without their own acceptance evidence.

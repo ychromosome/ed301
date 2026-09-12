@@ -1,0 +1,27 @@
+{
+  "format": "ed301-security-completion-excerpt-v1",
+  "source": "successful complete_codex_security_scan response, not a replacement canonical scan artifact",
+  "scan_id": "119d3788-07ba-4553-a232-fd785bb38dd5",
+  "status": "complete",
+  "mode": "deep",
+  "target_path": "/home/martin/Dokumente/ED301/ED301_SECURITY_DEEP_ddc6e5d_2026-09-11/target",
+  "target_revision": "bedcd26eaec73883c8b2d17a67bdb7288dccbdc9",
+  "model": "gpt-6-astra",
+  "reasoning_effort": "xhigh",
+  "worker_models_proven": false,
+  "independent_standard_reviews": 4,
+  "reportable_findings": 0,
+  "usage": {
+    "cacheWriteInputTokens": 0,
+    "cachedInputTokens": 128381568,
+    "coverage": "complete",
+    "inputTokens": 134119883,
+    "outputTokens": 454925,
+    "reasoningOutputTokens": 105276,
+    "source": "codex_rollout",
+    "threadCount": 33,
+    "totalTokens": 134574808
+  },
+  "usage_note": "Cached input is a subset of input; reasoning output is a subset of output. These are plugin-measured token counts, not billing amounts. Usage coverage is not audit coverage.",
+  "updated_at": "2026-09-11T10:32:39.593356Z"
+}

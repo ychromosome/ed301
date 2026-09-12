@@ -1,0 +1,86 @@
+//! Test-only C ABI for dudect. No provider identity or product API is defined.
+//! C owns each opaque allocation until `ed301_timing_free`; it passes exactly
+//! 38 readable seed bytes and calls each slot only from its single test thread.
+
+use ed301_eddsa::{ExpandedSigningKey, SigningKey};
+use std::hint::black_box;
+use zeroize::Zeroizing;
+
+const MESSAGE: [u8; 64] = [0x5a; 64];
+
+pub struct TimingSlot {
+    seed: Zeroizing<[u8; 38]>,
+    expanded: Option<ExpandedSigningKey>,
+}
+
+/// # Safety
+/// `seed` must point to 38 initialized, readable bytes for this call.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn ed301_timing_new(seed: *const u8, prepared: u8) -> *mut TimingSlot {
+    if seed.is_null() || prepared > 1 {
+        return std::ptr::null_mut();
+    }
+    let mut owned = Zeroizing::new([0_u8; 38]);
+    // The only input-pointer conversion is confined to this test adapter.
+    owned.copy_from_slice(unsafe { std::slice::from_raw_parts(seed, 38) });
+    let expanded = if prepared != 0 {
+        let Ok(key) = SigningKey::from_seed(&*owned) else {
+            return std::ptr::null_mut();
+        };
+        let Ok(expanded) = key.expand() else {
+            return std::ptr::null_mut();
+        };
+        Some(expanded)
+    } else {
+        None
+    };
+    Box::into_raw(Box::new(TimingSlot { seed: owned, expanded }))
+}
+
+/// # Safety
+/// `slot` is null or an exclusively owned live pointer returned by this adapter.
+/// It must never be used again after this call.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn ed301_timing_free(slot: *mut TimingSlot) {
+    if !slot.is_null() {
+        drop(unsafe { Box::from_raw(slot) });
+    }
+}
+
+/// # Safety
+/// `slot` must remain a live, immutable pointer returned by this adapter.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn ed301_timing_sign(slot: *const TimingSlot) -> u8 {
+    let Some(slot) = (unsafe { slot.as_ref() }) else {
+        return 0;
+    };
+    let Some(expanded) = slot.expanded.as_ref() else {
+        return 0;
+    };
+    match expanded.sign(black_box(&MESSAGE)) {
+        Ok(signature) => {
+            black_box(signature);
+            1
+        }
+        Err(_) => 0,
+    }
+}
+
+/// # Safety
+/// `slot` must remain a live, immutable pointer returned by this adapter.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn ed301_timing_expand(slot: *const TimingSlot) -> u8 {
+    let Some(slot) = (unsafe { slot.as_ref() }) else {
+        return 0;
+    };
+    let Ok(key) = SigningKey::from_seed(black_box(&*slot.seed)) else {
+        return 0;
+    };
+    match key.expand() {
+        Ok(expanded) => {
+            black_box(expanded);
+            1
+        }
+        Err(_) => 0,
+    }
+}

@@ -1,0 +1,285 @@
+{
+  "format": "ed301-n2-n4-preparation-v1",
+  "base_commit": "494a28cc1baaaff258d5467d11749f8b1acc7314",
+  "source_root": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/source",
+  "source_manifest_sha256": "6bdb28e4db8703bcc86c6202ab5b4c5fe04032473b486109619ea25375d71a09",
+  "source_files": 1956,
+  "runtime_change": "three literal name substitutions in two provider C shims only",
+  "crypto_core_and_vectors_unchanged": true,
+  "stages": {
+    "functional-3.5.8": {
+      "path": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/functional-3.5.8",
+      "manifest_sha256": "96e29298f88f60769df501d6197e6c95022f9793d630e3b2c78e7ed2d42f82d1",
+      "commands": 137,
+      "identity": {
+        "format": "ed301-v2-d2-receipt-v1",
+        "stage": "non-network-functional",
+        "source_manifest_sha256": "6bdb28e4db8703bcc86c6202ab5b4c5fe04032473b486109619ea25375d71a09",
+        "source_file_count": 1956,
+        "source_root": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/source",
+        "result_root": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/functional-3.5.8",
+        "status": "PASS",
+        "system_installation": false,
+        "build_source_sha256": "5eaa54794c23c0e35af8b04803f048b7fadfec32460e61f9c9291c1096c8e1aa",
+        "canonical_build_source": "/tmp/ed301-v2-d2-build-5eaa54794c23c0e35af8b04803f048b7fadfec32460e61f9c9291c1096c8e1aa",
+        "openssl_version": "3.5.8",
+        "openssl_evidence_sha256": "5ea7be983ee95241b893375de349ba4dc519509b79d623c5a7f74ae1641062bd",
+        "tcp": "separate required stage",
+        "native_c_optimization": "release OPT_LEVEL=3",
+        "rust_profile": "O3/ThinLTO/CGU1/overflow-on/panic-unwind",
+        "reproducible_dsos": [
+          "ed301_eddsa_v2",
+          "ed301_eddsa_v2_tls",
+          "x301_v2",
+          "x301_v2_tls"
+        ],
+        "module_sha256": {
+          "ed301_eddsa_v2": "0bd32cc6a352c9596ec6962068dafc7fe5f282ecda5e4078eca409142b4ef57e",
+          "ed301_eddsa_v2_pki_test": "fef06173a40029369b62cfe6636a8d64cb41c17f0425f67c38768720aaa87156",
+          "ed301_eddsa_v2_tls": "ff5ccab45cbb03f9108411e8fe8ff904ce96c8ad813568aec7cb8cfc3372e2bc",
+          "ed301_eddsa_v2_tls_collider": "d16dc681a4e426b5bc50afebab54b0aa7864ed61e8381bba8a0ad556332c856d",
+          "ed301_eddsa_v2_failpoint": "515844ed6d3e12c1585036bfd65cb545dd284c42eb97860477ab851dbee88e9e",
+          "x301_v2": "b681417fa384698c07103c241cd2763110ae63e0315f8d4876d368e3192bc65a",
+          "x301_v2_pki_test": "3323c083e6c39e3fd101ee673eb0d5959c374097bfe949c6ad6125c5a0a7d180",
+          "x301_v2_tls": "caa3e4ad1cc249a9946f5e4f2aec8fab33dbaa6f76af0e5cc1f6b82eb84f5d4f",
+          "x301_v2_failpoint": "1784034a415de71b902b1b934ee7c3519e61e908d11c645610bc9d9e7661516b"
+        },
+        "actual_v1_first": "separate required stage with bound legacy modules",
+        "cli": "separate required stage",
+        "memory": "separate required stage",
+        "codegen": "separate required stage",
+        "timing": "separate required stage"
+      }
+    },
+    "default-cli-3.5.8": {
+      "path": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/default-cli-3.5.8",
+      "manifest_sha256": "6e79168f610a8203b45b86c0ad8e4869eb38dd04a895136d9596aaa53bac0831",
+      "commands": 48,
+      "identity": {
+        "format": "ed301-v2-d2-receipt-v1",
+        "stage": "stock-default-context-cli",
+        "source_manifest_sha256": "6bdb28e4db8703bcc86c6202ab5b4c5fe04032473b486109619ea25375d71a09",
+        "source_file_count": 1956,
+        "source_root": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/source",
+        "result_root": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/default-cli-3.5.8",
+        "status": "PASS",
+        "system_installation": false,
+        "openssl_version": "3.5.8",
+        "functional_receipt_sha256": "96e29298f88f60769df501d6197e6c95022f9793d630e3b2c78e7ed2d42f82d1",
+        "process_default_libctx": "default plus two renamed v2 TLS providers, only inside child test processes",
+        "host_configuration_changed": false,
+        "explicit_provider_cli_options": false,
+        "private_frontends_used": false,
+        "network_used": false,
+        "rpm_or_installation": false,
+        "test_keys": "fresh local fixtures, never committed or used in production",
+        "stock_req_verify": "PASS",
+        "stock_x509_req": "PASS",
+        "stock_pkcs12_keydump": {
+          "Ed301-EdDSA": "PASS",
+          "X301": "PASS"
+        },
+        "x301_bidirectional_derive": "PASS",
+        "wrong_password_and_invalid_csr_controls": "PASS"
+      }
+    },
+    "private-cli-3.5.8": {
+      "path": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/private-cli-3.5.8",
+      "manifest_sha256": "dd3cc998386fb548c8b81fc59a395e3e6054997cd53bd40d8fc5dbe0a6dc4b4b",
+      "commands": 93,
+      "identity": {
+        "format": "ed301-v2-d2-receipt-v1",
+        "stage": "private-libctx-cli",
+        "source_manifest_sha256": "6bdb28e4db8703bcc86c6202ab5b4c5fe04032473b486109619ea25375d71a09",
+        "source_file_count": 1956,
+        "source_root": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/source",
+        "result_root": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/private-cli-3.5.8",
+        "status": "PASS",
+        "system_installation": false,
+        "openssl_version": "3.5.8",
+        "functional_receipt_sha256": "96e29298f88f60769df501d6197e6c95022f9793d630e3b2c78e7ed2d42f82d1",
+        "process_default_libctx": "built-in default only; no v2 module",
+        "test_keys": "fresh per run, retained only in uncommitted local test evidence",
+        "cli_pki_verify": "OpenSSL interoperability; strict X509 object precheck is a separate application contract",
+        "stock_csr_verification": "unsupported with private app libctx; public-API frontend used, no global v2 fallback",
+        "stock_pkcs12_key_extraction": "uses legacy default-context EVP_PKCS82PKEY; context-bound PKCS12_parse frontend used"
+      }
+    },
+    "codegen-3.5.8": {
+      "path": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/codegen-3.5.8",
+      "manifest_sha256": "304a510f3c95ca10e9715a1d6e7f5fff68990a52a54894526a14074a7ac81449",
+      "commands": 4,
+      "identity": {
+        "format": "ed301-v2-d2-receipt-v1",
+        "stage": "named-provider-codegen",
+        "source_manifest_sha256": "6bdb28e4db8703bcc86c6202ab5b4c5fe04032473b486109619ea25375d71a09",
+        "source_file_count": 1956,
+        "source_root": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/source",
+        "result_root": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/codegen-3.5.8",
+        "status": "PASS",
+        "system_installation": false,
+        "openssl_version": "3.5.8",
+        "functional_receipt_sha256": "96e29298f88f60769df501d6197e6c95022f9793d630e3b2c78e7ed2d42f82d1",
+        "scope": "fresh ordinary/TLS DSOs under the unchanged LLVM-21 arithmetic policies; no new core benchmark"
+      }
+    },
+    "tcp-3.5.8": {
+      "path": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/tcp-3.5.8",
+      "manifest_sha256": "044183e8977ab5c0844251d0e79929bbf9b9e232f477cb33e2f2a6377898afd4",
+      "commands": 1,
+      "identity": {
+        "format": "ed301-v2-d2-receipt-v1",
+        "stage": "owned-loopback-tcp",
+        "source_manifest_sha256": "6bdb28e4db8703bcc86c6202ab5b4c5fe04032473b486109619ea25375d71a09",
+        "source_file_count": 1956,
+        "source_root": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/source",
+        "result_root": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/tcp-3.5.8",
+        "status": "PASS",
+        "system_installation": false,
+        "openssl_version": "3.5.8",
+        "functional_receipt_sha256": "96e29298f88f60769df501d6197e6c95022f9793d630e3b2c78e7ed2d42f82d1",
+        "endpoints": "127.0.0.1:0 listeners owned by this test process",
+        "foreign_connections": false
+      }
+    },
+    "functional-4.0.2": {
+      "path": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/functional-4.0.2",
+      "manifest_sha256": "a220f233608f2c8afaad60a497331ca5851b21d38a72d2d5635718988b87c93d",
+      "commands": 137,
+      "identity": {
+        "format": "ed301-v2-d2-receipt-v1",
+        "stage": "non-network-functional",
+        "source_manifest_sha256": "6bdb28e4db8703bcc86c6202ab5b4c5fe04032473b486109619ea25375d71a09",
+        "source_file_count": 1956,
+        "source_root": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/source",
+        "result_root": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/functional-4.0.2",
+        "status": "PASS",
+        "system_installation": false,
+        "build_source_sha256": "5eaa54794c23c0e35af8b04803f048b7fadfec32460e61f9c9291c1096c8e1aa",
+        "canonical_build_source": "/tmp/ed301-v2-d2-build-5eaa54794c23c0e35af8b04803f048b7fadfec32460e61f9c9291c1096c8e1aa",
+        "openssl_version": "4.0.2",
+        "openssl_evidence_sha256": "942095f98a6ec8ea5fdccfb7b74f845dc07b10c212791c2ea588c1fccbebfa9f",
+        "tcp": "separate required stage",
+        "native_c_optimization": "release OPT_LEVEL=3",
+        "rust_profile": "O3/ThinLTO/CGU1/overflow-on/panic-unwind",
+        "reproducible_dsos": [
+          "ed301_eddsa_v2",
+          "ed301_eddsa_v2_tls",
+          "x301_v2",
+          "x301_v2_tls"
+        ],
+        "module_sha256": {
+          "ed301_eddsa_v2": "37fad1ce23b6e9894477af888f11ed1a1ad206ff74a8c04b907160eaee8d9a9b",
+          "ed301_eddsa_v2_pki_test": "04c0f1ea188157066d8ecd69886c33d4ba54e72b5749857331ef7c161c9b03fc",
+          "ed301_eddsa_v2_tls": "141d70eb6fb5f813b954c20c9755dbe9aa650e43ab0a84d4534574bc2362f96f",
+          "ed301_eddsa_v2_tls_collider": "d03b30f8be6591d2ad3fcd8f868d41e3de43cb0711bb6838be4297bc745c0f2a",
+          "ed301_eddsa_v2_failpoint": "bd193a1a30d5a4b41ea5868847dbf5a176482c8649ccb720adf1b11d135e6974",
+          "x301_v2": "922fd2cf01240b609f919b7a4d580322518ec4a8bd2d575313172e853b78eba2",
+          "x301_v2_pki_test": "d9f38259fc14d0debec5149391be56ccc19634ee1bfd3156271ce74010e1d563",
+          "x301_v2_tls": "71a2d7bc98f04964294a5f35c1de6edc1fae5cf96f0c2d75277465106aefcfd5",
+          "x301_v2_failpoint": "c58c3b5585be04d6547ab3c3157dc81d3dc09a2d76b8c8c8170c568a88d9d122"
+        },
+        "actual_v1_first": "separate required stage with bound legacy modules",
+        "cli": "separate required stage",
+        "memory": "separate required stage",
+        "codegen": "separate required stage",
+        "timing": "separate required stage"
+      }
+    },
+    "default-cli-4.0.2": {
+      "path": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/default-cli-4.0.2",
+      "manifest_sha256": "b83a518ea02b7fd2ba16efa3451a0cdfb96dc27dcb0516776e64e5dec1056aba",
+      "commands": 48,
+      "identity": {
+        "format": "ed301-v2-d2-receipt-v1",
+        "stage": "stock-default-context-cli",
+        "source_manifest_sha256": "6bdb28e4db8703bcc86c6202ab5b4c5fe04032473b486109619ea25375d71a09",
+        "source_file_count": 1956,
+        "source_root": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/source",
+        "result_root": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/default-cli-4.0.2",
+        "status": "PASS",
+        "system_installation": false,
+        "openssl_version": "4.0.2",
+        "functional_receipt_sha256": "a220f233608f2c8afaad60a497331ca5851b21d38a72d2d5635718988b87c93d",
+        "process_default_libctx": "default plus two renamed v2 TLS providers, only inside child test processes",
+        "host_configuration_changed": false,
+        "explicit_provider_cli_options": false,
+        "private_frontends_used": false,
+        "network_used": false,
+        "rpm_or_installation": false,
+        "test_keys": "fresh local fixtures, never committed or used in production",
+        "stock_req_verify": "PASS",
+        "stock_x509_req": "PASS",
+        "stock_pkcs12_keydump": {
+          "Ed301-EdDSA": "PASS",
+          "X301": "PASS"
+        },
+        "x301_bidirectional_derive": "PASS",
+        "wrong_password_and_invalid_csr_controls": "PASS"
+      }
+    },
+    "private-cli-4.0.2": {
+      "path": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/private-cli-4.0.2",
+      "manifest_sha256": "18a6d67df1ed1198eded7ed6c72aeba1ef02e15453417e0d0329752855e39e58",
+      "commands": 93,
+      "identity": {
+        "format": "ed301-v2-d2-receipt-v1",
+        "stage": "private-libctx-cli",
+        "source_manifest_sha256": "6bdb28e4db8703bcc86c6202ab5b4c5fe04032473b486109619ea25375d71a09",
+        "source_file_count": 1956,
+        "source_root": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/source",
+        "result_root": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/private-cli-4.0.2",
+        "status": "PASS",
+        "system_installation": false,
+        "openssl_version": "4.0.2",
+        "functional_receipt_sha256": "a220f233608f2c8afaad60a497331ca5851b21d38a72d2d5635718988b87c93d",
+        "process_default_libctx": "built-in default only; no v2 module",
+        "test_keys": "fresh per run, retained only in uncommitted local test evidence",
+        "cli_pki_verify": "OpenSSL interoperability; strict X509 object precheck is a separate application contract",
+        "stock_csr_verification": "unsupported with private app libctx; public-API frontend used, no global v2 fallback",
+        "stock_pkcs12_key_extraction": "uses legacy default-context EVP_PKCS82PKEY; context-bound PKCS12_parse frontend used"
+      }
+    },
+    "codegen-4.0.2": {
+      "path": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/codegen-4.0.2",
+      "manifest_sha256": "28a436eb9f13e735d9cfa400c471e2fa91196cb6c65b0b135142e039b7c1266c",
+      "commands": 4,
+      "identity": {
+        "format": "ed301-v2-d2-receipt-v1",
+        "stage": "named-provider-codegen",
+        "source_manifest_sha256": "6bdb28e4db8703bcc86c6202ab5b4c5fe04032473b486109619ea25375d71a09",
+        "source_file_count": 1956,
+        "source_root": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/source",
+        "result_root": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/codegen-4.0.2",
+        "status": "PASS",
+        "system_installation": false,
+        "openssl_version": "4.0.2",
+        "functional_receipt_sha256": "a220f233608f2c8afaad60a497331ca5851b21d38a72d2d5635718988b87c93d",
+        "scope": "fresh ordinary/TLS DSOs under the unchanged LLVM-21 arithmetic policies; no new core benchmark"
+      }
+    },
+    "tcp-4.0.2": {
+      "path": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/tcp-4.0.2",
+      "manifest_sha256": "ab6bad41c66c917dbba51db3882d393b6a2c2edddf2459bb67bebdb2f8fd719f",
+      "commands": 1,
+      "identity": {
+        "format": "ed301-v2-d2-receipt-v1",
+        "stage": "owned-loopback-tcp",
+        "source_manifest_sha256": "6bdb28e4db8703bcc86c6202ab5b4c5fe04032473b486109619ea25375d71a09",
+        "source_file_count": 1956,
+        "source_root": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/source",
+        "result_root": "/home/martin/Dokumente/ED301/ED301-v2_N2_N4_02_2026-09-11/tcp-4.0.2",
+        "status": "PASS",
+        "system_installation": false,
+        "openssl_version": "4.0.2",
+        "functional_receipt_sha256": "a220f233608f2c8afaad60a497331ca5851b21d38a72d2d5635718988b87c93d",
+        "endpoints": "127.0.0.1:0 listeners owned by this test process",
+        "foreign_connections": false
+      }
+    }
+  },
+  "host_configuration_changed": false,
+  "rpm_or_installation": false,
+  "deep_scan_started": false,
+  "proposed_deep_scan_target": "/home/martin/Dokumente/ED301/ed301/provider"
+}

@@ -1,0 +1,92 @@
+{
+  "format": "ed301-e8-review-followup-v1",
+  "base_commit": "a81eeb526579c6e8066183919a7e488bb56eeba7",
+  "source_root": "/home/martin/Dokumente/ED301/ED301-v2_E8_followup_01_2026-09-11/source",
+  "source_manifest_sha256": "ccfda9c000dc0ec32b0b62ec54faac893fd08169fa8a7e1c96b242dd26c2b369",
+  "source_files": 1950,
+  "compiled_inputs_unchanged_sha256": "1a2e43552e6aa794c97f2c82ebfa1e70ca6be1e2a31bc8ed7d69c68e12b0f1e2",
+  "changed_paths": [
+    "phase-c/README.md",
+    "phase-d/README.md",
+    "phase-d/d2/README.md",
+    "phase-d/d2/tools/run_memory.py",
+    "phase-e/CODEGEN_POLICY.md",
+    "phase-e/README.md",
+    "phase-e/reference/e8_followup/CLAUDE_GATE_E8.md",
+    "phase-e/reference/e8_followup/CLAUDE_REVIEW_ACTIONS.md",
+    "phase-e/tools/check_codegen.sh",
+    "phase-e/tools/run_review_followup.py",
+    "phase-e/tools/test_codegen_prerequisites.py",
+    "provider-tests/provider_secret_taint.c"
+  ],
+  "stages": {
+    "3.5.8": {
+      "path": "/home/martin/Dokumente/ED301/ED301-v2_E8_followup_01_2026-09-11/followup-3.5.8",
+      "manifest_sha256": "1872b154b4643bf258e9d2effd958ea0a7e423b6862d84296e5a103575a266ce",
+      "commands": 27,
+      "identity": {
+        "format": "ed301-v2-d2-receipt-v1",
+        "stage": "e8-review-followup",
+        "source_manifest_sha256": "ccfda9c000dc0ec32b0b62ec54faac893fd08169fa8a7e1c96b242dd26c2b369",
+        "source_file_count": 1950,
+        "source_root": "/home/martin/Dokumente/ED301/ED301-v2_E8_followup_01_2026-09-11/source",
+        "result_root": "/home/martin/Dokumente/ED301/ED301-v2_E8_followup_01_2026-09-11/followup-3.5.8",
+        "status": "PASS",
+        "system_installation": false,
+        "build_source_sha256": "1a2e43552e6aa794c97f2c82ebfa1e70ca6be1e2a31bc8ed7d69c68e12b0f1e2",
+        "canonical_build_source": "/tmp/ed301-v2-d2-build-1a2e43552e6aa794c97f2c82ebfa1e70ca6be1e2a31bc8ed7d69c68e12b0f1e2",
+        "openssl_version": "3.5.8",
+        "base_source_manifest_sha256": "1b9e7aecf9d69b1a5b38cf5b81f12b399b951770d99b03ac2fe77d0c1f8fde35",
+        "functional_receipt_sha256": "8461777ef6484f1f999b6e0acd4b192f8dbc04c72883f86dbac78dc46bdf5bf3",
+        "benchmark_receipt_sha256": "721c2c5a5bf87ad4aa4e7764ee0fa3dabc8643cc7c03efda371604359d5919c2",
+        "runtime_files_compared": 1656,
+        "runtime_changes": false,
+        "scope": "new defined/tainted raw/parameter export and PKCS8 DER direct/bridge tests; existing E8 codegen replay; not a full new Gate E",
+        "excluded": "PEM/base64, password encryption, all allocator failures and universal CT proof",
+        "module_sha256": {
+          "modules-taint/ed301_eddsa_v2.so": "5ac641af24918fb566c0019043628278283c9c42e0b1bce621b33a197e1845fa",
+          "modules-taint/ed301_eddsa_v2_pki_test.so": "9ac92892f589c6fc7537f877993880c665697d82bd4911faccd33323c25cc4cd"
+        },
+        "regular_taint_runs": 6,
+        "positive_control_runs": 3,
+        "existing_elf_codegen_replays": 6
+      }
+    },
+    "4.0.2": {
+      "path": "/home/martin/Dokumente/ED301/ED301-v2_E8_followup_01_2026-09-11/followup-4.0.2",
+      "manifest_sha256": "fdf6c8d3e95d1efac3ef643ac444055c6269432e19dde9209953ccafcd79874a",
+      "commands": 27,
+      "identity": {
+        "format": "ed301-v2-d2-receipt-v1",
+        "stage": "e8-review-followup",
+        "source_manifest_sha256": "ccfda9c000dc0ec32b0b62ec54faac893fd08169fa8a7e1c96b242dd26c2b369",
+        "source_file_count": 1950,
+        "source_root": "/home/martin/Dokumente/ED301/ED301-v2_E8_followup_01_2026-09-11/source",
+        "result_root": "/home/martin/Dokumente/ED301/ED301-v2_E8_followup_01_2026-09-11/followup-4.0.2",
+        "status": "PASS",
+        "system_installation": false,
+        "build_source_sha256": "1a2e43552e6aa794c97f2c82ebfa1e70ca6be1e2a31bc8ed7d69c68e12b0f1e2",
+        "canonical_build_source": "/tmp/ed301-v2-d2-build-1a2e43552e6aa794c97f2c82ebfa1e70ca6be1e2a31bc8ed7d69c68e12b0f1e2",
+        "openssl_version": "4.0.2",
+        "base_source_manifest_sha256": "1b9e7aecf9d69b1a5b38cf5b81f12b399b951770d99b03ac2fe77d0c1f8fde35",
+        "functional_receipt_sha256": "82cc4376e0f55cfefcec15ef704ca677cf41ad9bbf1bc6ee7f361325814a99ed",
+        "benchmark_receipt_sha256": "f2d9c3598a18a5fa186340c737e03a16d351100818e769b68db4f87002c1d1ce",
+        "runtime_files_compared": 1656,
+        "runtime_changes": false,
+        "scope": "new defined/tainted raw/parameter export and PKCS8 DER direct/bridge tests; existing E8 codegen replay; not a full new Gate E",
+        "excluded": "PEM/base64, password encryption, all allocator failures and universal CT proof",
+        "module_sha256": {
+          "modules-taint/ed301_eddsa_v2.so": "65b047f7548f0d93783897df8513ca4143ca812c8b8d8f05549767fee92fa6e0",
+          "modules-taint/ed301_eddsa_v2_pki_test.so": "2f4bbfb0ad660283c3a3181fc3577a4477e26e3bcf69a2b7087addf5c3716f9e"
+        },
+        "regular_taint_runs": 6,
+        "positive_control_runs": 3,
+        "existing_elf_codegen_replays": 6
+      }
+    }
+  },
+  "full_gate_rerun": false,
+  "stage_2_started": false,
+  "system_installation": false,
+  "llvm_22_approved": false
+}

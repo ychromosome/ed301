@@ -1,0 +1,18 @@
+[workspace]
+
+[package]
+name = "x301-core-taint"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+x301-core = { path = "../crates/x301", features = ["secret-taint-instrumentation"] }
+ed301-valgrind-client = { path = "../secret-taint/valgrind-client" }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+panic = "unwind"
+overflow-checks = true

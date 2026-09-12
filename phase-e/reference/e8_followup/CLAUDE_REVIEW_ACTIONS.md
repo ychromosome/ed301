@@ -1,0 +1,17 @@
+# Bewertung des zweiten externen Reviews (`ed301-a81eeb5-review.md`) durch Claude
+
+Datum: 11. September 2026. Alle drei Werkzeugbeobachtungen im Quelltext bestätigt.
+
+Gesamturteil: Das Review hat diesmal nativ gebaut und geprüft: Rust 1.98 mit LLVM 22, eigene OpenSSL-Lanes 3.5.8 und 4.0.2, Taint 36 + 526, Import-Grenzkontrolle, Provider-Taint, beide dudect-Runner, ECPP-Zertifikate und Halbierungsbeweis nachgerechnet, Benchmarks auf eigener Hardware. Ergebnis: **kein hoher oder mittlerer Befund**, ein niedriger, und das ausdrücklich verlangte negative Ergebnis zu Punkt 4 mit Aufrufgraph, Argumentherkunft, Taint-Läufen und Codegen-Teilprüfung. Das ist die Bestätigung, die wir wollten: der öffentliche Importpfad erhält auf keinem geprüften Weg geheimes Material.
+
+| Nr. | Beobachtung | Bewertung | Aktion |
+|---|---|---|---|
+| 1 | X-Codegen-Prüfer prüft `/usr/bin/awk` vor, nutzt später `/usr/bin/gawk` mit `strtonum` | **zutreffend (niedrig).** Bricht auf Systemen ohne GNU awk erst mitten im Lauf ab. | Emmy: `gawk` in die Werkzeugvorprüfung und die Abhängigkeitsliste aufnehmen. |
+| 2 | `phase-c/tools/check_core_correctness.py` verlangt 54 Tests und scheitert auf E8; `phase-e/tools/check_core_correctness.py` besteht mit 65/57 | **zutreffend, Dokumentation.** Der Phase-C-Runner ist an den Phase-C-Commit gebunden; die READMEs verweisen aber noch auf ihn. | Emmy: README je Phase mit "historisch, gebunden an Commit X; aktueller Runner: phase-e/…" versehen; dasselbe für `check_x301_correctness.py` (D1) und die D2-Lane-Verkettung, die historische Receipts voraussetzt. |
+| 3 | Ed-Codegen-Allowlist erwartet acht `memcpy` und `_Unwind_Resume`; LLVM 22 erzeugt vier `memcpy` ohne `_Unwind_Resume` | **zutreffend, erwartbar.** Der Codegen-Prüfer ist bewusst an Toolchain und Binary gebunden; ein anderer Compiler fällt durch. Kein Sicherheitsbefund; die arithmetischen Aufrufe blieben identisch. | Emmy: in `CODEGEN_POLICY.md` ausdrücklich festhalten, dass die Allowlisten für Rust 1.98/LLVM 21.1.8 gelten und ein anderer Compiler eine neue Abnahme mit neuer Allowlist braucht, nicht ein Lockern der Regeln. |
+| 4 | Negatives Ergebnis zu Punkt 4 | **bestätigt unsere Klassifizierung.** Aufrufgraph deckt sich mit meiner Prüfung; zusätzlich dynamische Grenzkontrolle und Codegen-Teilprüfung. Offen gelassen: dynamischer Seed-Taint über alle privaten Export-/Encoder-Varianten. | Emmy: den Provider-Taint-Harness um den privaten Export (PKCS#8-Encoder-Pfad) erweitern, damit auch dieser Weg dynamisch belegt ist. Klein. |
+| 5 | Performance auf Xeon mit `no-asm`-OpenSSL: Ed301-v2 sign 42 gegen Ed25519 33 µs, verify 113 gegen 107, X301 DH 72 gegen X25519 35; Import und verify schneller als v1, Rest im Rauschen | **plausibel, keine Aktion.** Auf einer anderen CPU und ohne Assembler in OpenSSL verschieben sich die Verhältnisse; unser Ziel "nicht langsamer als v1" wird auch dort bestätigt. | keine |
+
+Was das Review zusätzlich leistet und was wir übernehmen: die eigenen dudect-Werte (alle regulären Klassen ≤ 3,6, Positivkontrollen erkannt), die nachgerechneten ECPP- und N−1-Zertifikate mit Torsionszeugen für Kurve und Twist, die bytegleichen 25 Halbierungsvektoren. Das sind unabhängige Wiederholungen unserer Gates auf fremder Hardware und fremdem Compiler.
+
+Konsequenz: Kein Grund, Gate E zurückzunehmen. Die vier Aktionen sind Dokumentation und Werkzeughygiene ohne Kryptoänderung; sie kommen als Vorarbeit in Stufe 2 (zusammen mit N2, N4, N5 aus Gate D) und brauchen kein neues Gate, nur den üblichen Manifest- und Testlauf.

@@ -34,6 +34,12 @@ little-endian bytes, including the canonical value zero.
 A public key must decode canonically, differ from the identity, and satisfy
 `[q]A = O`. R must decode canonically, but need not have prime order.
 
+Public-key import processes only public data; its running time may depend on
+the supplied public key. Callers must not pass confidential data to this path.
+Secret-key derivation and signing do not use the public-key import checks.
+This API does not promise to conceal a public key that an application has
+chosen to keep confidential.
+
 ## Transcript
 
 For an opaque binary context C of length 0..255:

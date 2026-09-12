@@ -1,0 +1,39 @@
+[workspace]
+resolver = "3"
+
+[package]
+name = "x301-core"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.91"
+license = "Apache-2.0"
+publish = false
+description = "Phase-D candidate for the strictly encoded X301-v2 raw XDH profile"
+autobins = false
+autoexamples = false
+autobenches = false
+autotests = false
+build = false
+
+[features]
+secret-taint-instrumentation = ["dep:ed301-valgrind-client"]
+
+[dependencies]
+crypto-bigint = { path = "../../vendor/crypto-bigint", default-features = false, features = ["zeroize"] }
+zeroize = { version = "=1.9.0", default-features = false }
+ed301-valgrind-client = { path = "../../secret-taint/valgrind-client", optional = true }
+
+[dev-dependencies]
+serde_json = "=1.0.150"
+
+# The shared, hash-bound field constants contain one EdDSA-only cfg. This
+# declares that cfg value for linting; it does not expose or enable a feature.
+[lints.rust]
+unexpected_cfgs = { level = "deny", check-cfg = ['cfg(feature, values("sign-self-verify"))'] }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+panic = "unwind"
+overflow-checks = true

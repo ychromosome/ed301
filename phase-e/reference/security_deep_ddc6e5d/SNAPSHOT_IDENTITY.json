@@ -1,0 +1,20 @@
+{
+  "origin_repository": "/home/martin/Dokumente/ED301/ed301",
+  "origin_commit": "ddc6e5d33e6b4b4e3fe7665355eab1ce2145e70b",
+  "origin_tree": "fe2b976a2472fd3298356a19ba5f941b3e391339",
+  "target": "/home/martin/Dokumente/ED301/ED301_SECURITY_DEEP_ddc6e5d_2026-09-11/target",
+  "context": "/home/martin/Dokumente/ED301/ED301_SECURITY_DEEP_ddc6e5d_2026-09-11/context",
+  "snapshot_commit": "bedcd26eaec73883c8b2d17a67bdb7288dccbdc9",
+  "scope_roots": [
+    "provider/",
+    "rust/crates/ed301-eddsa/",
+    "rust/crates/x301/"
+  ],
+  "target_files": 45,
+  "context_files": 1660,
+  "target_manifest_sha256": "22399e7a8937838893a7bec655c9196bd49c0ec9bac8e1e27fa0b9de0cc382a3",
+  "context_manifest_sha256": "7bbcf0b69bb7ba9599f9349b03535731a26485b5e21af3a357284e1b818edf2e",
+  "original_worktree_modified": false,
+  "source_files_readonly": true,
+  "context_is_not_a_separate_scan_target": true
+}
