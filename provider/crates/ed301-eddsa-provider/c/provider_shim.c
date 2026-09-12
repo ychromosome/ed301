@@ -1,19 +1,7 @@
 /*
- * Experimental signature-only OpenSSL provider for Ed301-EdDSA-v2.
- *
- * Adapted from the historical ed301-openssl-provider shim (dispatch shapes,
- * selection logic, buffer contracts and serialization structure).  See the
- * result provenance map.  The historical
- * Ed301-Sig-v1 identity, context support, transcript, OID
- * 1.3.6.1.4.1.66282.301.1 and TLS codepoint 0xFE2D are intentionally not
- * reused.
- *
- * Identifier boundary: 1.3.6.1.4.1.66282.301.5 is assigned by the project
- * owner beneath the Adiumentum GmbH private-enterprise arc to this exact
- * Ed301-EdDSA profile.  That private assignment is not an IANA TLS
- * SignatureScheme registration or a standards, production, constant-time or
- * release claim.  Every TLS identifier below marked TEST-ONLY remains an
- * explicitly private-use, NONREGISTRABLE working identifier.
+ * Ed301-EdDSA-v2 OpenSSL provider. Raw signatures and key management are
+ * always present; separately built variants add codecs and private-use TLS.
+ * The generated profile header defines the v2 identity.
  */
 
 #include <stdarg.h>
@@ -45,7 +33,7 @@
 #if OPENSSL_VERSION_MAJOR == 3
 # if OPENSSL_VERSION_MINOR < 5 \
      || (OPENSSL_VERSION_MINOR == 5 && OPENSSL_VERSION_PATCH < 7)
-#  error "This experiment requires OpenSSL 3.5.7 or later headers"
+#  error "The Ed301 provider requires OpenSSL 3.5.7 or later headers"
 # else
 #  define ED301_SUPPORTED_HEADERS 1
 #  define ED301V2_SUPPORTED_CORE_MAJOR 3U
@@ -54,7 +42,7 @@
 # endif
 #elif OPENSSL_VERSION_MAJOR == 4
 # if OPENSSL_VERSION_MINOR == 0 && OPENSSL_VERSION_PATCH < 1
-#  error "This experiment requires OpenSSL 4.0.1 or later headers"
+#  error "The Ed301 provider requires OpenSSL 4.0.1 or later headers"
 # else
 #  define ED301_SUPPORTED_HEADERS 1
 #  define ED301V2_SUPPORTED_CORE_MAJOR 4U
@@ -62,7 +50,7 @@
 #  define ED301V2_MINIMUM_CORE_PATCH 1U
 # endif
 #else
-#error "This experiment requires OpenSSL ABI major 3 or 4 headers"
+#error "The Ed301 provider requires OpenSSL ABI major 3 or 4 headers"
 #endif
 
 #ifdef ED301_SUPPORTED_HEADERS
@@ -80,11 +68,8 @@
 #define ED301V2_TLS_VERSION_1_3 0x0304
 
 /*
- * Project-assigned OID for this exact profile.  The TLS integration artifact
- * verifies the process OID and SIGID after registration.  The TLS
- * SignatureScheme codepoint is a separate TEST-ONLY value from the
- * private-use range and deliberately differs from the historical 0xFE2D; it
- * exists only in separately named TLS test artifacts.
+ * The TLS variant verifies the process OID/SIGID after registration.
+ * Its private-use SignatureScheme is distinct from historical generations.
  */
 #include "../../../common/generated_ed301_profile.h"
 
@@ -161,11 +146,10 @@
 #endif
 
 static const char ED301V2_PROVIDER_NAME[] =
-    "Ed301-EdDSA Experimental Provider (v2; test-only)";
-static const char ED301V2_PROVIDER_VERSION[] = "0.2.0-d2";
+    "Ed301-EdDSA v2 Provider";
+static const char ED301V2_PROVIDER_VERSION[] = "0.2.0";
 static const char ED301V2_PROVIDER_BUILDINFO[] =
-    "ed301_eddsa_v2 phase-d2 (project-assigned OID; "
-    "private-use TLS test identifier); headers: " OPENSSL_VERSION_TEXT;
+    ED301V2_PROVIDER_BASENAME "; headers: " OPENSSL_VERSION_TEXT;
 static const char ED301V2_ALGORITHM_NAME[] = "Ed301-EdDSA";
 static const char ED301V2_ALGORITHM_NAMES[] = "Ed301-EdDSA:Ed301-EdDSA-v2";
 #define ED301V2_DECODER_ALGORITHM_NAMES \
@@ -1567,7 +1551,7 @@ static const OSSL_ALGORITHM ED301V2_KEYMGMT_ALGORITHMS[] = {
         ED301V2_OPERATION_ALGORITHM_NAMES,
         ED301V2_PROPERTY,
         ED301V2_KEYMGMT_DISPATCH,
-        "Experimental Ed301-EdDSA-v2 raw key management (test-only)"
+        "Ed301-EdDSA-v2 raw key management"
     },
     { NULL, NULL, NULL, NULL }
 };
@@ -1577,7 +1561,7 @@ static const OSSL_ALGORITHM ED301V2_SIGNATURE_ALGORITHMS[] = {
         ED301V2_OPERATION_ALGORITHM_NAMES,
         ED301V2_PROPERTY,
         ED301V2_SIGNATURE_DISPATCH,
-        "Experimental pure Ed301-EdDSA-v2 signatures (test-only)"
+        "Ed301-EdDSA-v2 one-shot signatures"
     },
     { NULL, NULL, NULL, NULL }
 };

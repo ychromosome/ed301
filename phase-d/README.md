@@ -11,7 +11,7 @@ It will reject optimized E8 sources; use the
 Historical manifests remain tied to the snapshots they identify.
 
 [D2](d2/README.md) added providers, persistent formats and TLS integration.
-The [integration contract](d2/INTEGRATION_CONTRACT.md) defines the interfaces;
+The [current integration contract](../docs/INTEGRATION.md) defines the interfaces;
 [Gate-D approval](d2/GATE_D_APPROVAL.md) records the review decision.
 The initial [feature inventory](FEATURE_INVENTORY.md) and
 [implementation plan](IMPLEMENTATION_PLAN.md) are historical planning records.

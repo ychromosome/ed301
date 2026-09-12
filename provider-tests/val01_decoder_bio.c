@@ -515,6 +515,10 @@ static int hard_failure_is_consumed_and_reported(
     int result;
     long remaining;
     unsigned long error;
+    const char *error_data;
+    int error_flags;
+    int algorithm_reported = 0;
+    int wrong_algorithm = 0;
 
     if (decoder == NULL || input == NULL) {
         OSSL_DECODER_CTX_free(decoder);
@@ -526,12 +530,21 @@ static int hard_failure_is_consumed_and_reported(
     result = OSSL_DECODER_from_bio(decoder, input);
     remaining = BIO_ctrl_pending(input);
     error = ERR_peek_error();
+    while (ERR_get_error_all(NULL, NULL, NULL, &error_data, &error_flags) != 0) {
+        if ((error_flags & ERR_TXT_STRING) != 0 && error_data != NULL) {
+            algorithm_reported |= strstr(error_data, ED301V2_ALG) != NULL;
+#ifdef X301_CODEC_TEST
+            wrong_algorithm |= strstr(error_data, "Ed301-EdDSA") != NULL;
+#endif
+        }
+    }
     OSSL_DECODER_CTX_free(decoder);
     OSSL_DECODER_free(implementation);
     BIO_free(input);
     ERR_clear_error();
     return result != 1 && !constructed
-        && remaining == (long)expected_remaining && error != 0;
+        && remaining == (long)expected_remaining && error != 0
+        && algorithm_reported && !wrong_algorithm;
 }
 
 static int callback_rejection_consumes_reference(
@@ -1060,6 +1073,12 @@ int main(void)
         ED301V2_CHECK(hard_failure_is_consumed_and_reported(
                 libctx, foreign, spki_length, 1, 0),
             "malformed confirmed-OID SPKI is a consuming hard failure");
+
+        memcpy(foreign, spki, spki_length);
+        foreign[0] = 0x31;
+        ED301V2_CHECK(hard_failure_is_consumed_and_reported(
+                libctx, foreign, spki_length, 1, 0),
+            "wrong outer tag reports the selected algorithm");
 
         memcpy(foreign, spki, spki_length);
         memcpy(foreign + sizeof(ED301V2_SPKI_PREFIX),

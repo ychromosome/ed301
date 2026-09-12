@@ -1,0 +1,73 @@
+{
+  "schema": "x301-error-precedence-v1",
+  "rule": "secret validation before peer validation; no ladder on input error",
+  "secrets": [
+    {
+      "id": "empty",
+      "hex": "",
+      "error": "InvalidSecretLength"
+    },
+    {
+      "id": "short",
+      "hex": "00000000000000000000000000000000000000000000000000000000000000000000000000",
+      "error": "InvalidSecretLength"
+    },
+    {
+      "id": "long",
+      "hex": "000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "error": "InvalidSecretLength"
+    },
+    {
+      "id": "weak",
+      "hex": "84ca911e62530d13b204a5718d1a9ada9621c5ffffffffffffffffffffffffffffffffffff1f",
+      "error": "WeakSecret"
+    },
+    {
+      "id": "valid",
+      "hex": "0000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "error": null
+    }
+  ],
+  "peers": [
+    {
+      "id": "empty",
+      "hex": "",
+      "error": "InvalidPublicLength"
+    },
+    {
+      "id": "short",
+      "hex": "00000000000000000000000000000000000000000000000000000000000000000000000000",
+      "error": "InvalidPublicLength"
+    },
+    {
+      "id": "long",
+      "hex": "000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "error": "InvalidPublicLength"
+    },
+    {
+      "id": "modulus",
+      "hex": "8b03000000000000000000feffffffffffffffffffffffffffffffffffffffffffffffffff1f",
+      "error": "NonCanonicalPublic"
+    },
+    {
+      "id": "bit301",
+      "hex": "0000000000000000000000000000000000000000000000000000000000000000000000000020",
+      "error": "NonCanonicalPublic"
+    },
+    {
+      "id": "bit302",
+      "hex": "0000000000000000000000000000000000000000000000000000000000000000000000000040",
+      "error": "NonCanonicalPublic"
+    },
+    {
+      "id": "bit303",
+      "hex": "0000000000000000000000000000000000000000000000000000000000000000000000000080",
+      "error": "NonCanonicalPublic"
+    },
+    {
+      "id": "canonical-zero",
+      "hex": "0000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "error": null
+    }
+  ]
+}

@@ -845,7 +845,7 @@ static int curve301_codec_decode(
         if (owns_input) {
             curve301_raise(codec->provider,
                 CURVE301_R_SERIALIZATION_FAILURE,
-                "non-canonical Ed301-EdDSA-v2 key encoding");
+                "non-canonical " CURVE301_DISPLAY_NAME " key encoding");
             result = 0;
         }
         goto cleanup;
@@ -855,7 +855,7 @@ static int curve301_codec_decode(
 
     if (memcmp(encoded, prefix, prefix_length) != 0) {
         curve301_raise(codec->provider, CURVE301_R_SERIALIZATION_FAILURE,
-            "non-canonical Ed301-EdDSA-v2 key encoding");
+            "non-canonical " CURVE301_DISPLAY_NAME " key encoding");
         result = 0;
         goto cleanup;
     }
@@ -1025,44 +1025,44 @@ static const OSSL_ALGORITHM CURVE301_ENCODER_ALGORITHMS[] = {
         CURVE301_OPERATION_ALGORITHM_NAMES,
         "provider=" CURVE301_PROVIDER_BASENAME ",output=text",
         CURVE301_TEXT_ENCODER_DISPATCH,
-        CURVE301_DISPLAY_NAME " key text encoder (TLS test-only)"
+        CURVE301_DISPLAY_NAME " key text encoder"
     },
 #endif
     {
         CURVE301_ALGORITHM_NAMES,
         "provider=" CURVE301_PROVIDER_BASENAME ",output=der,structure=EncryptedPrivateKeyInfo",
         CURVE301_ENCRYPTED_PKCS8_DER_ENCODER_DISPATCH,
-        CURVE301_DISPLAY_NAME " encrypted PKCS#8 DER encoder (test-only)"
+        CURVE301_DISPLAY_NAME " encrypted PKCS#8 DER encoder"
     },
     {
         CURVE301_ALGORITHM_NAMES,
         "provider=" CURVE301_PROVIDER_BASENAME ",output=pem,structure=EncryptedPrivateKeyInfo",
         CURVE301_ENCRYPTED_PKCS8_PEM_ENCODER_DISPATCH,
-        CURVE301_DISPLAY_NAME " encrypted PKCS#8 PEM encoder (test-only)"
+        CURVE301_DISPLAY_NAME " encrypted PKCS#8 PEM encoder"
     },
     {
         CURVE301_ALGORITHM_NAMES,
         "provider=" CURVE301_PROVIDER_BASENAME ",output=der,structure=PrivateKeyInfo",
         CURVE301_PKCS8_DER_ENCODER_DISPATCH,
-        CURVE301_DISPLAY_NAME " PKCS#8 DER encoder (test-only)"
+        CURVE301_DISPLAY_NAME " PKCS#8 DER encoder"
     },
     {
         CURVE301_ALGORITHM_NAMES,
         "provider=" CURVE301_PROVIDER_BASENAME ",output=pem,structure=PrivateKeyInfo",
         CURVE301_PKCS8_PEM_ENCODER_DISPATCH,
-        CURVE301_DISPLAY_NAME " PKCS#8 PEM encoder (test-only)"
+        CURVE301_DISPLAY_NAME " PKCS#8 PEM encoder"
     },
     {
         CURVE301_ALGORITHM_NAMES,
         "provider=" CURVE301_PROVIDER_BASENAME ",output=der,structure=SubjectPublicKeyInfo",
         CURVE301_SPKI_DER_ENCODER_DISPATCH,
-        CURVE301_DISPLAY_NAME " SPKI DER encoder (test-only)"
+        CURVE301_DISPLAY_NAME " SPKI DER encoder"
     },
     {
         CURVE301_ALGORITHM_NAMES,
         "provider=" CURVE301_PROVIDER_BASENAME ",output=pem,structure=SubjectPublicKeyInfo",
         CURVE301_SPKI_PEM_ENCODER_DISPATCH,
-        CURVE301_DISPLAY_NAME " SPKI PEM encoder (test-only)"
+        CURVE301_DISPLAY_NAME " SPKI PEM encoder"
     },
     { NULL, NULL, NULL, NULL }
 };
@@ -1074,14 +1074,14 @@ static const OSSL_ALGORITHM CURVE301_DECODER_ALGORITHMS[] = {
         CURVE301_DECODER_ALGORITHM_NAMES,
         "provider=" CURVE301_PROVIDER_BASENAME ",input=der,structure=PrivateKeyInfo",
         CURVE301_PKCS8_DER_DECODER_DISPATCH,
-        CURVE301_DISPLAY_NAME " transactional PKCS#8 DER decoder (TLS test-only)"
+        CURVE301_DISPLAY_NAME " transactional PKCS#8 DER decoder"
     },
 # endif
     {
         CURVE301_DECODER_ALGORITHM_NAMES,
         "provider=" CURVE301_PROVIDER_BASENAME ",input=der,structure=SubjectPublicKeyInfo",
         CURVE301_SPKI_DER_DECODER_DISPATCH,
-        CURVE301_DISPLAY_NAME " transactional SPKI DER decoder (TLS test-only)"
+        CURVE301_DISPLAY_NAME " transactional SPKI DER decoder"
     },
     { NULL, NULL, NULL, NULL }
 };

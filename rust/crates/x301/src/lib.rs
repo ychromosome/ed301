@@ -1,7 +1,7 @@
-//! Experimental strictly encoded X301-v2 raw Diffie-Hellman core.
+//! Strictly encoded X301-v2 raw Diffie-Hellman core.
 //!
 //! The output is secret raw key material, not a KDF, authentication protocol
-//! or production-approved channel. Phase-D validation is required.
+//! or authenticated channel.
 
 #![no_std]
 #![forbid(unsafe_code)]

@@ -2,7 +2,7 @@
  * Raw X301 OpenSSL provider adapter and optional TLS-GROUP registration.
  * Sources: OpenSSL provider(7), provider-keymgmt(7), provider-keyexch(7),
  * provider-base(7) "TLS-GROUP", EVP_RAND(3), RFC 7748's raw-DH
- * provider shape, and the approved v2 TLS contract. The TLS test artifact
+ * provider shape, and the v2 TLS contract. The TLS module
  * advertises a hybrid and a separate explicitly selected raw test group.
  */
 
@@ -85,11 +85,11 @@
 #endif
 
 #if defined(X301_TEST_FAILPOINT_ARTIFACT)
-static const char X301_PROVIDER_NAME[] = "X301 Experimental Provider (failpoint)";
+static const char X301_PROVIDER_NAME[] = "X301 v2 Provider (failpoint)";
 #else
-static const char X301_PROVIDER_NAME[] = "X301 Experimental Provider";
+static const char X301_PROVIDER_NAME[] = "X301 v2 Provider";
 #endif
-static const char X301_PROVIDER_VERSION[] = "0.2.0-d2";
+static const char X301_PROVIDER_VERSION[] = "0.2.0";
 #if defined(X301_ENABLE_HYBRID_MLKEM1024)
 static const char X301_PROVIDER_BUILDINFO[] =
     "raw X301-v2 plus X301MLKEM1024 KEYMGMT/KEM/TLS-GROUP";
@@ -1048,7 +1048,7 @@ static const OSSL_ALGORITHM X301_KEYMGMT_ALGORITHMS[] = {
         X301_OPERATION_ALGORITHM_NAMES,
         X301_PROPERTIES,
         X301_KEYMGMT_DISPATCH,
-        "Experimental raw X301-v2 key management"
+        "X301-v2 raw key management"
     },
 #if defined(X301_ENABLE_HYBRID_MLKEM1024)
     {
@@ -1066,7 +1066,7 @@ static const OSSL_ALGORITHM X301_KEYEXCH_ALGORITHMS[] = {
         X301_OPERATION_ALGORITHM_NAMES,
         X301_PROPERTIES,
         X301_KEYEXCH_DISPATCH,
-        "Experimental raw X301-v2 key exchange"
+        "X301-v2 raw key exchange"
     },
     { NULL, NULL, NULL, NULL }
 };
