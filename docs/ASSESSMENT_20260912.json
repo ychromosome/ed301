@@ -1,0 +1,96 @@
+{
+  "schema": "ed301-engineering-assessment-v1",
+  "base_commit": "af9613bdda7afdb05175ea93e8bc0101bded303c",
+  "artifact_root_label": "Drei_Pruefpunkte_2026-09-12",
+  "runtime_source_changed": false,
+  "source_snapshots": {
+    "baseline": "5368e644c6241d76580f1d3e0aba4dddbd5496e3cc5ab754b54d93854926a2ef",
+    "x_baseline": "04f5ac3f113b214a1c7f17e33f38318f7a0a2134695a3f3b58d8007fa6fa96e0",
+    "note": "X snapshot differs only in the benchmark runner's stale scope description"
+  },
+  "artifacts": [
+    {
+      "path": "baseline/ED301-v2_core-matrix_7ymk8p9t/SHA256SUMS",
+      "sha256": "1bb8cae479748ee2a26ee674366e5e0d8c10c93448ff99e8310d5712e2583c94",
+      "cases": 98
+    },
+    {
+      "path": "baseline/ED301-v2_microbench_r1obsits/SHA256SUMS",
+      "sha256": "e7705900d407549517c1b7a6301093903991c4fec680a6d113dc1e92b48dc434",
+      "cases": 38
+    },
+    {
+      "path": "x-baseline/X301-v2_D1-benchmark_0044oaik/SHA256SUMS",
+      "sha256": "e5b78acfefb02cf109b095ef53aa4d8b3fe5d2d879579d0c145708a2b1c65b8d",
+      "cases": 12
+    },
+    {
+      "path": "interop-03/RESULT.json",
+      "sha256": "7eb638237715f952ac44ea5cf6d7f0036cd0e51432bb6834858d7391d8fe6b93",
+      "observations": 128,
+      "commands": 446
+    },
+    {
+      "path": "interop-03/commands.json",
+      "sha256": "20bf606b0eadce8d7d3bab2b2e0708d28cbd07e81fe1bf669de0c265f55b4d53"
+    },
+    {
+      "path": "shared-02/RESULT.json",
+      "sha256": "cb2325a9c66516892c54daceb439195d9925989d3c159c23e3b4383f80559b73",
+      "miri_schedules": 32,
+      "tests_per_schedule": 11
+    },
+    {
+      "path": "shared-02/commands.json",
+      "sha256": "fa067f07239855984a86a9a3b2ae8c5f63e1c57116c5c1ee8021ea2de46a54e8"
+    },
+    {
+      "path": "logs/shared-native-memcheck-02.log",
+      "sha256": "51edef4c8a9d88a1006254cda1f6ad6de00f62e5c1f61d56033e5169fbed5523"
+    },
+    {
+      "path": "logs/allocation-failure-memcheck-02.log",
+      "sha256": "e0dd0ccbcf0fd4ee937452bc6648e2ca1c79a61c0d2263814eb663201a88af8e"
+    },
+    {
+      "path": "logs/empty-native-memcheck.log",
+      "sha256": "aadb86956ca56cf1e996ddc46742c037950aac59124b52964a1d8a29e24eccdd"
+    },
+    {
+      "path": "control_empty.rs",
+      "sha256": "87ca80f04cf50c0aa499bd6562bf6bf75dc41454c838d8f5af73657390361d56"
+    },
+    {
+      "path": "control_empty",
+      "sha256": "d8c35ddfe8f6dc9ffbdc96849a7a96f48d03a511f61c9e86531c720bf46748b6"
+    },
+    {
+      "path": "shared-02/native-target/release/deps/ed301_shared_assessment-fe30a2075728e953",
+      "sha256": "9a6ff828d03c593b6938ecfafdb6ee5f3e6a3f84272f515b185144391d7e1fd9"
+    },
+    {
+      "path": "shared-02/native-target/release/allocation-failure",
+      "sha256": "7f8e5aabb3b59ff924b35bb02ff503cc0da8ef80d651297cf228159cf142d2d0"
+    },
+    {
+      "path": "toolchain/downloads/channel-rust-nightly-2026-09-11.toml",
+      "sha256": "422a46b6a9fbd727f2415db344ba05558c796a4c67355a2d367ef2650879f84e"
+    },
+    {
+      "path": "toolchain/downloads/rustup-init",
+      "sha256": "dda7234360b7f578ca8b0ddcb80145646fa61a67c1720a5abc7051b35c9fcb71"
+    }
+  ],
+  "ownership_source_sha256": "1dbf6e48d67950302672f9702608a094a0838957d0c667e34b27cbaa29408e7d",
+  "platforms": {
+    "native": "Rust 1.98.0 / LLVM 21.1.8, x86-64",
+    "miri": "nightly-2026-09-11, Rust 1.100.0-nightly, Miri 0.1.0 (67eda617e6)",
+    "memcheck": "Valgrind 3.27.1"
+  },
+  "limits": [
+    "OpenSSL container scope only; no Java/Go/native algorithm integration",
+    "Miri explores bounded schedules, not all possible safe callers/interleavings",
+    "No new shipping-binary constant-time or erasure approval",
+    "No curve, protocol, KDF or decoder-rule changes"
+  ]
+}

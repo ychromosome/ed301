@@ -1,0 +1,78 @@
+{
+  "schema": "ed301-tooling-followup-v1",
+  "base_commit": "27ee0e96da32c991851fa657818ade037610feb8",
+  "artifact_root_label": "Followup_Nacharbeiten_2026-09-12",
+  "production_cryptography_changed": false,
+  "instrumented_x301_import_changed": true,
+  "source_snapshots": {
+    "fresh_builds": "09322059cd3edf3d3fbc4de1b0fa3bcd1ef467abb8e87455b27d5d9374429dfd",
+    "final_tools": "b9aecb64372a0ab1733f8bc9dff1d98f306a6b5e71285b116941320b4796c4cb",
+    "compiled_inputs": "cf01924a8e39a7f30c9fc4c67d1e42c3f2e5fbe0fe3ede3b1190531f9bb81cb9",
+    "unchanged_build_harness_controller_files": 1727
+  },
+  "external_review": {
+    "commit": "5f446b495ca09d11694479b30ce6fe0a5c6dade7",
+    "report_sha256": "2d86b34acc5879931b7008f12403d7ed26ec605ff4594f1298c52fb3b7201a3a",
+    "original_archive_sha256": "1c6b64438d29946bccc6dd3b1bf5e4e0a69b85a693bb1277994e83f2e39ce848",
+    "source_manifest_sha256": "c8e22f994c36a49d7bfa0933fa7bd38ced03f2c8095048549ff8ea42bf13061e",
+    "completed_source_files": 1992
+  },
+  "patch_review": {
+    "candidate_diff_sha256": "9ca76a3edafc81698ee9198bb47b1c6bd6308b9e6bcd5fad991454c2b66a455e",
+    "recommendation": "revise",
+    "corrections": ["direct-control-flow pointer provenance", "full-width pointer origins only"],
+    "final_verification": "local; no second independent review"
+  },
+  "artifacts": [
+    {
+      "path": "ED301_FOLLOWUP_EVIDENCE_20260912_complete.tar.gz",
+      "sha256": "ea51573e00161b9f1f08035b655e288fe4a0fb059c7b669ba6b089075de9b54c"
+    },
+    {
+      "path": "ARCHIVE_COMPLETION_20260912.json",
+      "sha256": "4174052f0bfcf90d31d8bd60bb8311b1b2ce10546dad11168d83fa5e99281256"
+    },
+    {
+      "path": "run-01/functional-3.5.8/SHA256SUMS",
+      "sha256": "d685923b5aca0d47a4212ffcefaf552dbf922de90295df30f62fbe2a38ececca",
+      "commands": 139
+    },
+    {
+      "path": "run-01/functional-4.0.2/SHA256SUMS",
+      "sha256": "b85295342100a05913e297e68ee21c81c66dd2c680b9b5e209ed9b030558161c",
+      "commands": 139
+    },
+    {
+      "path": "run-01/memory-3.5.8/SHA256SUMS",
+      "sha256": "d1a9c32932a8205f81548e64be40d8c291485fa3007e1c0841f456f6377376e5",
+      "commands": 107
+    },
+    {
+      "path": "run-01/memory-4.0.2/SHA256SUMS",
+      "sha256": "de228181c40d59645f66cf99ff2f080230851b778405e1461a1eb6f2d87a6d47",
+      "commands": 107
+    },
+    {
+      "path": "run-02/final-validation/SHA256SUMS",
+      "sha256": "3256070f2eec14c41c6bce5785668afae14751582e2725b74de59ac7c9716cd1",
+      "commands": 28,
+      "fresh_provider_codegen": 8,
+      "retained_review_codegen": 10,
+      "x301_shadow_state_runs": 4,
+      "instrumentation_controls": 2
+    },
+    {
+      "path": "run-02/driver-failure/SHA256SUMS",
+      "sha256": "5e7498686589f3ea8d5967b5c63d725707c4dc97f9bd72c6179b5156b3d54c10"
+    },
+    {
+      "path": "final_validation.py",
+      "sha256": "fc32c4c02a83a71bea03f6fc843a9b5d718373db79dbe89c2047bc708cfbb944"
+    }
+  ],
+  "limits": [
+    "No new timing measurements or Fedora LLVM-22 RPM acceptance",
+    "Named wipe bodies and X301 owner paths, not whole-process remanence",
+    "Build markers require receipt binding; marker text alone is not compiler provenance"
+  ]
+}

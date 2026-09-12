@@ -569,7 +569,8 @@ unsafe fn read_optional_secret(input: *const u8, input_len: usize) -> Option<Opt
     // SAFETY: C guarantees exactly SECRET_BYTES readable bytes. The first
     // owned copy is zeroizing, including error and unwind paths.
     unsafe { core::ptr::copy_nonoverlapping(input, output.as_mut_ptr(), SECRET_BYTES) };
-    taint_secret(output.as_mut());
+    // Imported bytes retain their incoming shadow state. Only fresh RNG output
+    // needs explicit marking in instrumented builds.
     SecretKey::from_bytes(output.as_ref()).ok().map(Some)
 }
 

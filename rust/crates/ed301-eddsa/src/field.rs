@@ -1,8 +1,7 @@
 //! Constant-time baseline arithmetic for the ED301 prime field.
 //!
-//! This module deliberately uses a generic Montgomery backend. A future
-//! backend may exploit the sparse shape of the modulus, but it must remain
-//! differentially equivalent to this implementation.
+//! The generic Montgomery backend supplies inversion and serves as the
+//! differential reference for the specialized sparse-modulus backend.
 
 #![allow(
     dead_code,

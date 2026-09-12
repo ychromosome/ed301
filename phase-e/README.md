@@ -46,3 +46,16 @@ The [codegen policy](CODEGEN_POLICY.md) binds the inspected compiler/profile;
 X301 checks require GNU awk. A new compiler requires separate binary
 acceptance, not a relaxed historical allowlist. This remains open for the
 [Fedora 45 candidates](../packaging/fedora/README.md).
+
+Run the isolated transfer, wipe and build-marker regression tests before
+binary inspection:
+
+```sh
+python3 -I -B phase-e/tools/test_codegen_boundaries.py
+python3 -I -B phase-e/tools/test_codegen_prerequisites.py
+```
+
+The X301 provider taint harness checks imported private-byte shadow bits and
+DH output separately from RNG-backed hybrid operations. Defined imports stay
+defined; tainted imports retain their marking. Fresh RNG output remains
+explicitly marked in instrumented builds in both modes.

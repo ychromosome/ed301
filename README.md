@@ -179,6 +179,11 @@ It did not establish universal constant-time behaviour or complete erasure
 of all secret intermediates. Codegen rules remain compiler- and
 artifact-specific; see the [codegen policy](phase-e/CODEGEN_POLICY.md).
 
+The [focused engineering assessment](docs/ASSESSMENT_20260912.md) covers
+lifecycle costs, cross-version key containers and isolated ownership tests.
+The [tooling follow-up](docs/TOOLING_FOLLOWUP_20260912.md) adds call/tail closure,
+byte-wipe and X301 import-taint checks, with fresh provider regression runs.
+
 Development history is on `Testing`, condensed review snapshots on `Review`;
 `main` is reserved for an explicitly approved product release.
 
