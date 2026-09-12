@@ -209,6 +209,7 @@ if contains_forbidden_instruction "$EVIDENCE/key_drop.asm" allow-terminal-call; 
 fi
 KEY_DROP_CALLS='core::ptr::drop_glue::<zeroize::Zeroizing<[u8; 38]>>
 core::ptr::drop_glue::<zeroize::Zeroizing<[u8; 38]>>
+core::ptr::drop_glue::<zeroize::Zeroizing<[u8; 38]>>
 _Unwind_Resume@plt
 core::panicking::panic_in_cleanup'
 if [ "$MODE" = core ]; then

@@ -27,7 +27,7 @@ extern unsigned int ed301_vg_running_on_valgrind(void);
 extern unsigned int ed301_vg_get_vbits(
     const void *address, unsigned char *vbits, size_t length);
 extern void ed301_vg_make_mem_defined(void *address, size_t length);
-static int consume_tainted_secret(unsigned char *value, size_t length)
+static int consume_secret(unsigned char *value, size_t length, int expected_taint)
 {
     unsigned char vbits[HYBRID_SECRET_BYTES] = { 0 };
     size_t index;
@@ -40,7 +40,7 @@ static int consume_tainted_secret(unsigned char *value, size_t length)
     for (index = 0; index < length; index++)
         tainted |= vbits[index] != 0;
     ed301_vg_make_mem_defined(value, length);
-    return tainted;
+    return tainted == expected_taint;
 }
 
 static EVP_PKEY *hybrid_public_key(
@@ -70,7 +70,9 @@ int main(int argc, char **argv)
     EVP_PKEY_CTX *ctx = NULL;
     unsigned char input_seed[X301_BYTES];
     unsigned char input_vbits[X301_BYTES];
+    unsigned char exported_vbits[X301_BYTES];
     unsigned char raw_secret[X301_BYTES] = { 0 };
+    unsigned char imported_seed[X301_BYTES] = { 0 };
     unsigned char hybrid_public_bytes[HYBRID_PUBLIC_BYTES];
     unsigned char ciphertext[HYBRID_PUBLIC_BYTES];
     unsigned char hybrid_secret_a[HYBRID_SECRET_BYTES] = { 0 };
@@ -104,9 +106,19 @@ int main(int argc, char **argv)
     for (size_t i = 0; i < sizeof(input_vbits); i++)
         if (input_vbits[i] != (tainted ? 0xffU : 0U))
             goto done;
-    stage = "raw X301 derive from undefined input seed";
+    stage = "raw X301 private import and export shadow state";
     private_key = EVP_PKEY_new_raw_private_key_ex(
         libctx, X301_NAME, X301_PROPERTIES, input_seed, sizeof(input_seed));
+    length = sizeof(imported_seed);
+    if (private_key == NULL
+            || EVP_PKEY_get_raw_private_key(private_key, imported_seed, &length) <= 0
+            || length != sizeof(imported_seed)
+            || ed301_vg_get_vbits(imported_seed, exported_vbits, length) != 1U
+            || CRYPTO_memcmp(exported_vbits, input_vbits, length) != 0
+            || !consume_secret(imported_seed, length, tainted)
+            || CRYPTO_memcmp(imported_seed, SECRET_A, length) != 0)
+        goto done;
+    stage = "raw X301 derive preserves imported shadow state";
     peer = EVP_PKEY_new_raw_public_key_ex(
         libctx, X301_NAME, X301_PROPERTIES, PUBLIC_B, sizeof(PUBLIC_B));
     ctx = private_key == NULL ? NULL
@@ -116,7 +128,7 @@ int main(int argc, char **argv)
             || EVP_PKEY_derive_set_peer(ctx, peer) <= 0
             || EVP_PKEY_derive(ctx, raw_secret, &length) <= 0
             || length != sizeof(raw_secret)
-            || !consume_tainted_secret(raw_secret, length)
+            || !consume_secret(raw_secret, length, tainted)
             || CRYPTO_memcmp(raw_secret, SHARED_AB, length) != 0)
         goto done;
     EVP_PKEY_CTX_free(ctx);
@@ -141,7 +153,7 @@ int main(int argc, char **argv)
                 hybrid_secret_a, &secret_length) <= 0
             || ciphertext_length != sizeof(ciphertext)
             || secret_length != sizeof(hybrid_secret_a)
-            || !consume_tainted_secret(hybrid_secret_a, secret_length))
+            || !consume_secret(hybrid_secret_a, secret_length, 1))
         goto done;
     EVP_PKEY_CTX_free(ctx);
     stage = "hybrid decapsulation";
@@ -152,7 +164,7 @@ int main(int argc, char **argv)
             || EVP_PKEY_decapsulate(ctx, hybrid_secret_b, &secret_length,
                 ciphertext, ciphertext_length) <= 0
             || secret_length != sizeof(hybrid_secret_b)
-            || !consume_tainted_secret(hybrid_secret_b, secret_length)
+            || !consume_secret(hybrid_secret_b, secret_length, 1)
             || CRYPTO_memcmp(hybrid_secret_a, hybrid_secret_b,
                 secret_length) != 0)
         goto done;
@@ -164,6 +176,7 @@ done:
     OPENSSL_cleanse(hybrid_secret_b, sizeof(hybrid_secret_b));
     OPENSSL_cleanse(hybrid_secret_a, sizeof(hybrid_secret_a));
     OPENSSL_cleanse(raw_secret, sizeof(raw_secret));
+    OPENSSL_cleanse(imported_seed, sizeof(imported_seed));
     OPENSSL_free(encoded_public);
     EVP_PKEY_CTX_free(ctx);
     EVP_PKEY_free(hybrid_public);
@@ -174,7 +187,7 @@ done:
     OSSL_PROVIDER_unload(deflt);
     OSSL_LIB_CTX_free(libctx);
     if (ok) {
-        printf("provider_x301_secret_taint: mode=%s PASS\n", mode);
+        printf("provider_x301_secret_taint: mode=%s import_propagation=1 rng_taint=1 PASS\n", mode);
     } else {
         fprintf(stderr, "provider_x301_secret_taint: FAIL at %s\n", stage);
         ERR_print_errors_fp(stderr);

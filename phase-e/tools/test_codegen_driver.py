@@ -23,7 +23,7 @@ if digest(elf) != args.elf_sha:
 receipt = Receipt(args.output, args.source_sha, "codegen-driver-failure-control")
 fixture = receipt.output / "synthetic-driver-fixture"
 fixture.mkdir()
-for name in ("check_codegen.sh", "codegen_ed.sh", "codegen_x.sh"):
+for name in ("check_codegen.sh", "codegen_ed.sh", "codegen_x.sh", "codegen_transfers.awk"):
     shutil.copy2(ROOT / "phase-e/tools" / name, fixture / name)
 # Only this isolated test fixture contains the rejecting stub. The original
 # checker, source snapshot and inspected ELF are never modified.

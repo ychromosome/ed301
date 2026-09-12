@@ -44,6 +44,18 @@ test -s "$TOOLCHAIN" && test ! -L "$TOOLCHAIN" || {
     echo "missing regular toolchain marker: $TOOLCHAIN" >&2
     exit 2
 }
+# Validate the recorded build compiler, not the compiler installed for replay.
+# Receipt hashes bind this marker to the ELF; the marker alone is not provenance.
+/usr/bin/awk '
+    /^rustc / { headers++; if ($2 != "1.98.0") bad=1 }
+    /^[[:space:]]*release:/ { releases++; if ($0 != "release: 1.98.0") bad=1 }
+    /^[[:space:]]*LLVM version:/ { llvms++; if ($0 != "LLVM version: 21.1.8") bad=1 }
+    /^[[:space:]]*host:/ { hosts++; if ($0 != "host: x86_64-unknown-linux-gnu") bad=1 }
+    END { exit (bad || headers != 1 || releases != 1 || llvms != 1 || hosts != 1) ? 1 : 0 }
+' "$TOOLCHAIN" || {
+    echo "unsupported codegen toolchain marker: require x86-64 Rust 1.98.0 / LLVM 21.1.8" >&2
+    exit 1
+}
 test ! -e "$EVIDENCE" || {
     echo "codegen evidence directory already exists: $EVIDENCE" >&2
     exit 2
@@ -223,29 +235,13 @@ symbol_instance_count() {
 contains_call_target() {
     file=$1
     pattern=$2
-    /usr/bin/awk -v pattern="$pattern" '
-        function canonical_symbol(value, marker) {
-            if (substr(value, 1, 1) == "<" &&
-                    (marker = index(value, ">::")) != 0)
-                value = substr(value, 2, marker - 2) \
-                    substr(value, marker + 1)
-            return value
-        }
-        function call_target(line, target, position) {
-            position = index(line, "<")
-            if (position == 0)
-                return ""
-            target = substr(line, position + 1)
-            sub(/>[[:space:]]*$/, "", target)
-            return canonical_symbol(target)
-        }
-        /^[[:space:]]*[[:xdigit:]]+:/ && $2 ~ /^call/ {
-            target = call_target($0)
-            if (target ~ ("(^|::)" pattern "$"))
-                found = 1
-        }
-        END { exit found ? 0 : 1 }
-    ' "$file"
+    /usr/bin/awk -v mode=contains -v policy="$pattern" \
+        -f "$TOOLS/codegen_transfers.awk" "$EVIDENCE/relative-got-targets.txt" "$file"
+    result=$?
+    case "$result" in
+        0|1) return "$result" ;;
+        *) echo 'FAIL codegen transfer scanner error' >&2; exit 1 ;;
+    esac
 }
 
 # Return success only when a forbidden transfer, variable-time division or
@@ -337,38 +333,14 @@ check_no_indexed_load() {
 check_call_closure() {
     file=$1
     allowed=$2
-    if /usr/bin/awk -v allowed="$allowed" '
-        function canonical_symbol(value, marker) {
-            if (substr(value, 1, 1) == "<" &&
-                    (marker = index(value, ">::")) != 0)
-                value = substr(value, 2, marker - 2) \
-                    substr(value, marker + 1)
-            return value
-        }
-        function call_target(line, target, position) {
-            position = index(line, "<")
-            if (position == 0)
-                return ""
-            target = substr(line, position + 1)
-            sub(/>[[:space:]]*$/, "", target)
-            return canonical_symbol(target)
-        }
-        BEGIN { exact = "^(" allowed ")$" }
-        /^[[:space:]]*[[:xdigit:]]+:/ && $2 ~ /^call/ {
-            target = call_target($0)
-            if (target == "" || target !~ exact) {
-                print
-                found = 1
-            }
-        }
-        END { exit found ? 0 : 1 }
-    ' "$file"; then
-        echo "FAIL unexpected call in branch-free arithmetic symbol" >&2
+    if ! /usr/bin/awk -v mode=closure -v policy="$allowed" \
+            -f "$TOOLS/codegen_transfers.awk" "$EVIDENCE/relative-got-targets.txt" "$file"; then
+        echo "FAIL unexpected call or tail in branch-free arithmetic symbol" >&2
         exit 1
     fi
 }
 
-# Record the exact direct and resolved-indirect call sequence of a reviewed
+# Record the exact direct and resolved-indirect call/tail sequence of a reviewed
 # secret-path symbol. Register-indirect memcpy calls are accepted only when
 # the register was populated from the named memcpy GOT slot and has not been
 # overwritten. Any unresolved or newly introduced call therefore changes the
@@ -380,110 +352,11 @@ check_exact_call_graph() {
     alternative=${4-}
     observed=$EVIDENCE/$label.calls
 
-    /usr/bin/awk '
-        function canonical_symbol(value, marker) {
-            if (substr(value, 1, 1) == "<" &&
-                    (marker = index(value, ">::")) != 0)
-                value = substr(value, 2, marker - 2) \
-                    substr(value, marker + 1)
-            return value
-        }
-        function normalize_address(value) {
-            sub(/^0+/, "", value)
-            return value == "" ? "0" : value
-        }
-        function canonical_register(value) {
-            gsub(/[[:space:]]/, "", value)
-            sub(/^\*/, "", value)
-            if (value ~ /^%(r|e)?bx$/ || value ~ /^%b[lh]$/)
-                return "%rbx"
-            if (value ~ /^%(r|e)?bp$/ || value == "%bpl")
-                return "%rbp"
-            if (value ~ /^%r1[2345]([dwb])?$/) {
-                sub(/[dwb]$/, "", value)
-                return value
-            }
-            return value
-        }
-        function comment_symbol(line, target, position) {
-            position = index(line, "<")
-            if (position == 0)
-                return ""
-            target = substr(line, position + 1)
-            sub(/>[[:space:]]*$/, "", target)
-            if (target ~ /^memcpy@/)
-                target = "memcpy"
-            return canonical_symbol(target)
-        }
-        function got_address(line, tail, parts) {
-            tail = line
-            sub(/^.*#[[:space:]]*/, "", tail)
-            split(tail, parts, /[[:space:]]+/)
-            return normalize_address(parts[1])
-        }
-        FNR == NR {
-            tab = index($0, "\t")
-            if (tab != 0)
-                got[normalize_address(substr($0, 1, tab - 1))] = \
-                    canonical_symbol(substr($0, tab + 1))
-            next
-        }
-        /^[[:space:]]*[[:xdigit:]]+:/ {
-            mnemonic = $2
-            operands = $3
-            line = $0
-
-            # Track only named, callee-saved register loads. Calls preserve
-            # these registers under the x86-64 ABI; any explicit write below
-            # invalidates the provenance before a later indirect call.
-            loaded_register = ""
-            loaded_target = ""
-            if (mnemonic ~ /^(mov|lea)/ && line ~ /<memcpy@/) {
-                count = split(operands, pieces, ",")
-                loaded_register = canonical_register(pieces[count])
-                loaded_target = "memcpy"
-            }
-
-            if (mnemonic ~ /^call/) {
-                target = ""
-                if (line ~ /<memcpy@/) {
-                    target = "memcpy"
-                } else if (operands ~ /^\*.*\(%rip\)/ &&
-                        line ~ /#[[:space:]]*[[:xdigit:]]+/) {
-                    address = got_address(line)
-                    target = got[address]
-                    if (target == "")
-                        target = "UNRESOLVED_RELATIVE_GOT:" address
-                } else if (index(line, "<") != 0) {
-                    target = comment_symbol(line)
-                } else if (operands ~ /^\*%/) {
-                    register = canonical_register(operands)
-                    target = register_target[register]
-                    if (target == "")
-                        target = "UNRESOLVED_REGISTER:" register
-                } else {
-                    target = "UNRESOLVED_CALL:" operands
-                }
-                print target
-            }
-
-            # Most AT&T instructions write their last register operand. The
-            # exclusions below are read-only/control instructions. Clear a
-            # tracked target before installing a new reviewed GOT load.
-            count = split(operands, pieces, ",")
-            destination = canonical_register(pieces[count])
-            if (destination in register_target &&
-                    mnemonic !~ /^(cmp|test|push|call|j|ret|nop|data16)/)
-                delete register_target[destination]
-            if (mnemonic ~ /^(xchg|xadd)/) {
-                source_register = canonical_register(pieces[1])
-                delete register_target[source_register]
-            }
-            if (loaded_register == "%rbx" || loaded_register == "%rbp" ||
-                    loaded_register ~ /^%r1[2345]$/)
-                register_target[loaded_register] = loaded_target
-        }
-    ' "$EVIDENCE/relative-got-targets.txt" "$file" >"$observed"
+    /usr/bin/awk -v mode=sequence -f "$TOOLS/codegen_transfers.awk" \
+        "$EVIDENCE/relative-got-targets.txt" "$file" >"$observed" || {
+        echo 'FAIL codegen transfer scanner error' >&2
+        exit 1
+    }
 
     expected=$(printf '%s\n' "$expected" | canonicalize_symbol_stream)
     actual=$(/usr/bin/cat "$observed")
@@ -699,6 +572,30 @@ fi
 printf '%s\n' 'PASS negative_control=unexpected-call-rejected' \
     | tee -a "$SUMMARY"
 
+# Inert instruction fixtures: internal edges stay local, external/unknown
+# tails must enter both callee checks, including the helper-name observer.
+TAIL=$EVIDENCE/tail-transfer-control.asm
+printf '%s\n' '10 <local_loop>:' '  10: jmp 20 <local_loop+0x10>' \
+    '  20: jmp 10 <local_loop>' >"$TAIL"
+check_exact_call_graph internal_tail_control "$TAIL" ''
+check_call_closure "$TAIL" '^$'
+printf '%s\n' '10 <external_tail>:' '  10: jmp 80 <unreviewed_tail>' >"$TAIL"
+contains_call_target "$TAIL" 'unreviewed_tail' || {
+    echo 'FAIL external tail missing from helper-name search' >&2
+    exit 1
+}
+for kind in direct indirect; do
+    if [ "$kind" = indirect ]; then
+        printf '%s\n' '10 <indirect_tail>:' '  10: jmp *%rax' >"$TAIL"
+    fi
+    if (check_exact_call_graph "${kind}_tail_control" "$TAIL" '') >/dev/null 2>&1 \
+            || (check_call_closure "$TAIL" '^$') >/dev/null 2>&1; then
+        echo 'FAIL unclassified tail accepted by callee policy' >&2
+        exit 1
+    fi
+done
+printf '%s\n' 'PASS tail_controls=internal-direct-external-and-unresolved' | tee -a "$SUMMARY"
+
 # E1/E3/E7 keep memcpy in additional callee-saved registers, including rbp
 # after E7's row-wise square changes allocation in public table preparation.
 # A named GOT load is required; narrow-register writes invalidate provenance.
@@ -747,6 +644,9 @@ if /usr/bin/grep -Eq 'JacobiSymbol|jacobi_symbol' "$EVIDENCE/core.nm"; then
     echo 'FAIL unclassified standalone Jacobi implementation in final ELF' >&2
     exit 1
 fi
-/usr/bin/sha256sum "$MODULE" "$TOOLCHAIN" "$DUMP" "$SUMMARY" >"$EVIDENCE/SHA256SUMS"
+/usr/bin/sha256sum "$MODULE" "$TOOLCHAIN" "$DUMP" "$SUMMARY" \
+    "$TOOLS/check_codegen.sh" "$TOOLS/codegen_$PROFILE.sh" \
+    "$TOOLS/codegen_transfers.awk" "$TOOLS/check_codegen_dataflow.py" \
+    >"$EVIDENCE/SHA256SUMS"
 printf 'PASS phase_e_codegen profile=%s module_sha256=%s evidence=%s\n' \
     "$PROFILE" "$(sha256sum "$MODULE" | awk '{print $1}')" "$EVIDENCE"

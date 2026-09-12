@@ -60,6 +60,68 @@ def single(symbols, name):
     return instances[0]
 
 
+BYTE_ZEROIZER = "core::ptr::drop_glue::<zeroize::Zeroizing<[u8; 38]>>"
+X_KEY_DROP = "core::ptr::drop_glue::<x301_core::x301::SecretKey>"
+
+
+def without_padding(items):
+    items = list(items)
+    while items and (items[-1].mnemonic.startswith("nop") or items[-1].mnemonic == "int3"
+                     or (items[-1].mnemonic in ("data16", "cs") and "nop" in items[-1].operands)):
+        items.pop()
+    return items
+
+
+def byte_zeroizer(items):
+    """Accept the reviewed byte-store lowering, relative to the entry %rdi."""
+    body = without_padding(items)
+    require(body and body[-1].operation == "ret ", "zeroizer must return after its writes")
+    offsets = []
+    pointer_finished = False
+    for item in body[:-1]:
+        require(not pointer_finished, "instruction after terminal zeroizer pointer update")
+        if item.mnemonic == "movb":
+            store = re.fullmatch(r"\$0x0,(0x[0-9a-f]+)?\(%rdi\)", item.operands)
+            require(store is not None, "unclassified or nonzero byte-zeroizer store")
+            offset = int(store[1] or "0", 16)
+            require(0 <= offset < 38 and offset not in offsets, "zeroizer store outside owner or duplicate byte")
+            offsets.append(offset)
+        elif item.mnemonic == "lea":
+            require(re.fullmatch(r"0x[0-9a-f]+\(%rdi\),%rax", item.operands),
+                    "zeroizer address origin changed")
+        else:
+            require(item.operation == "add $0x25,%rdi" and len(offsets) == 38,
+                    "unclassified zeroizer instruction or early pointer change")
+            pointer_finished = True
+    require(sorted(offsets) == list(range(38)), "incomplete 38-byte owner wipe")
+    return {"entry": hex(body[0].address), "base": "entry rdi", "zero_bytes": 38,
+            "first_offset": 0, "last_offset": 37}
+
+
+def x_key_drop_owners(items, zeroizer_addresses):
+    """Bind both owner arguments in the reviewed normal and landing-pad bodies."""
+    operations = []
+    for item in without_padding(items):
+        direct = re.fullmatch(r"([0-9a-f]+) <(.+)>", item.operands)
+        if direct and canonical(direct[2]) == BYTE_ZEROIZER:
+            require(int(direct[1], 16) in zeroizer_addresses, "drop target is not a checked zeroizer entry")
+            operations.append(item.mnemonic + " WIPE")
+        elif item.mnemonic == "call":
+            # The shell's exact call/tail manifest binds both cleanup targets.
+            operations.append("call CLEANUP")
+        else:
+            operations.append(item.operation)
+    require(operations == [
+        "push %r14", "push %rbx", "push %rax", "mov %rdi,%rbx", "call WIPE",
+        "add $0x26,%rbx", "mov %rbx,%rdi", "add $0x8,%rsp", "pop %rbx", "pop %r14",
+        "jmp WIPE", "mov %rax,%r14", "add $0x26,%rbx", "mov %rbx,%rdi", "call WIPE",
+        "mov %r14,%rdi", "call CLEANUP", "call CLEANUP",
+    ], "changed X301 normal/unwind owner-pointer flow")
+    return {"entry": hex(items[0].address), "first_owner_offset": 0,
+            "normal_second_owner_offset": 38, "landing_pad_second_owner_offset": 38,
+            "scope": "linked drop body and call targets; not an exception-table or whole-process erasure proof"}
+
+
 def register(name):
     name = name.strip()
     if re.fullmatch(r"%r1[2345][dwb]?", name):
@@ -390,6 +452,29 @@ def main():
             else "x301_core::x301::SecretKey::public_key")
     fixed = single(symbols, name)
     result = {"fixed_base": fixed_base(fixed), "negative_controls": []}
+    zeroizers = symbols.get(BYTE_ZEROIZER, [])
+    require(len(zeroizers) == 2, "expected two separately checked byte-zeroizer instances")
+    result["byte_zeroizers"] = [byte_zeroizer(items) for items in zeroizers]
+    first_store = next(i for i, item in enumerate(zeroizers[0]) if item.mnemonic == "movb")
+    for operands, label in (("$0x1,(%rdi)", "nonzero-byte-wipe"),
+                            ("$0x0,0x26(%rdi)", "out-of-owner-byte-wipe"),
+                            ("$0x0,(%rax)", "wrong-byte-wipe-base")):
+        altered = list(zeroizers[0])
+        altered[first_store] = replace(altered[first_store], operands=operands)
+        result["negative_controls"].append(rejects(lambda: byte_zeroizer(altered), label))
+    shortened = zeroizers[0][:first_store] + zeroizers[0][first_store + 1:]
+    result["negative_controls"].append(rejects(lambda: byte_zeroizer(shortened), "missing-wipe-byte"))
+    if args.profile == "x":
+        drops = symbols.get(X_KEY_DROP, [])
+        expected_drops = len(parse((args.evidence / "key_drop.asm").read_text()).get(X_KEY_DROP, []))
+        require(expected_drops in (1, 2) and len(drops) == expected_drops, "missing linked X301 key drops")
+        result["key_drop_owners"] = [x_key_drop_owners(items, {body[0].address for body in zeroizers})
+                                     for items in drops]
+        for index, label in ((5, "wrong-normal-owner-offset"), (12, "wrong-landing-pad-owner-offset")):
+            altered = list(drops[0])
+            altered[index] = replace(altered[index], operands="$0x25,%rbx")
+            result["negative_controls"].append(rejects(
+                lambda: x_key_drop_owners(altered, {body[0].address for body in zeroizers}), label))
     bad_fixed = [replace(item, operands="$0xfffffffffffffffd,%rbx")
                  if item.operation == "mov $0xffffffffffffffff,%rbx" else item for item in fixed]
     result["negative_controls"].append(rejects(lambda: fixed_base(bad_fixed), "wrong-fixed-base-origin"))

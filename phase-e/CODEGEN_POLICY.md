@@ -25,6 +25,11 @@ binutils tools nm/objdump/readelf, and Python 3 for the dataflow checks.
 X301 additionally requires GNU awk at /usr/bin/gawk: its strtonum-based
 address checks cannot be replaced by an arbitrary /usr/bin/awk. The driver
 checks this X-only dependency before creating evidence or disassembling.
+The supplied build marker must name Rust 1.98.0, LLVM 21.1.8 and the
+x86_64-unknown-linux-gnu host exactly once. Missing, duplicate or unsupported
+fields fail before evidence creation. Replay does not require the same
+compiler to be installed locally; receipt hashes still provide the binding
+between the recorded build marker and its binary.
 
 ## Inherited rules
 
@@ -32,16 +37,45 @@ The D2 parser, legacy/v0 symbol-name normalization, local relative-GOT
 resolution, exact call sequences (including unwind/panic paths), division/trap
 rejection and terminal-padding distinction are retained. Every original
 borrow/select minimum remains unchanged. An emitted field helper must still
-be branch-free; an absent helper must have no unresolved call anywhere.
+be branch-free; an absent named helper must have no remaining resolved call or
+external tail. Unresolved transfers fail within each checked callee closure;
+the whole-binary helper-name search does not classify unrelated FFI callbacks.
 The new X301 Edwards leaves use the same minima as their Ed301 counterparts.
 X301's inlined cached-point negation keeps the original negation minima inside
 its branch-free, non-indexed selector.
 
 Memcpy's additional callee-saved registers r12/r14/r15 are resolved only from a
 named memcpy GOT load. Narrow aliases and exchange instructions invalidate
-that provenance. Four positive controls and eight alias/exchange negative
+that provenance. Only full-width named GOT loads establish a pointer origin;
+every direct control-flow predecessor must preserve such an origin before a
+register transfer. Skipped, conditional-only and partial-width origins fail.
+Four positive controls and eight alias/exchange negative
 controls supplement the existing unexpected-call, suffix-confusion, missing
 helper, terminal-trap and same-binary public-branch controls.
+
+All three transfer consumers use the same parser: helper-presence checks,
+allowed-callee checks and exact call/tail sequences. A direct jump is internal
+only if its numeric destination is an instruction start in that same symbol
+instance. External tails enter the callee policy; unresolved indirect tails
+fail. Duplicate symbol instances do not share register provenance or internal
+address sets. The existing X301 drop-to-zeroizer tail is now included in its
+exact sequence as well as its separate shape check.
+
+## Byte zeroizers and X301 owner offsets
+
+Each linked 38-byte zeroizer instance must write zero exactly once to every
+offset 0 through 37 relative to its entry pointer. Unknown writes, other bases,
+nonzero values, incomplete coverage and premature pointer changes fail.
+X301's reviewed drop body additionally binds the first owner at offset 0 and
+the second owner at offset 38 in both the normal and landing-pad sequences.
+These checks cover the named bodies and call targets, not all other wipe
+callers, exception-table routing, compiler-created copies or process-wide
+remanence. The older 76-byte digit-loop checks remain separate.
+
+Inert parser controls run with `test_codegen_boundaries.py`; build-marker
+admission controls run with `test_codegen_prerequisites.py`. The linked-binary
+dataflow gate also exercises missing/nonzero/misaddressed byte writes and
+incorrect X301 owner offsets on in-memory instruction copies.
 
 ## E1: fixed base and shared finalization
 
