@@ -153,7 +153,7 @@ if (out / "modules/ed301_eddsa_v2_pki_test.so").stat().st_ino == (out / "fresh-m
 
 ed_harnesses = ["provider_load", "provider_keymgmt", "provider_signature", "provider_serialization", "provider_oid_collision",
                 "provider_pki", "provider_rand", "provider_lifecycle", "provider_tls", "provider_hardening",
-                "provider_load_fresh", "provider_shim_unit", "val01_decoder_bio", "val03_retry",
+                "provider_load_fresh", "provider_shim_unit", "provider_param_helpers", "val01_decoder_bio", "val03_retry",
                 "val05_codepoint", "provider_context_contract", "provider_generation_policy", "provider_discovery_order", "provider_tls_lengths", "provider_tls_tcp"]
 x_harnesses = ["provider_x301_contract", "provider_x301_hybrid_contract",
                "provider_x301_nested_properties", "provider_x301_hybrid_kat"]

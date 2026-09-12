@@ -1,0 +1,70 @@
+{
+  "schema": "ed301-review-followup-evidence-v1",
+  "reviewed_commit": "e959518366b747957ae050dfbc36ff43a0187796",
+  "testing_base": "5a6c84b96ac234fbd144ebc1c91c0b4205fef6b4",
+  "review_report": "../phase-e/reference/review_20260912/ED301-Review-20260912.md",
+  "review_report_sha256": "a84f229341e5116c4d16aa5ee5bcab2b918eb5e72205aaa86f5c694f2d0844a4",
+  "artifact_directory": "Review_Nacharbeiten_2026-09-12/run-02",
+  "source_manifest_sha256": "492cd7308c4eba9b67e0114e6eb714b71d0e094e2959fa849bf090e115691d90",
+  "source_file_count": 1990,
+  "receipts": [
+    {
+      "directory": "functional-3.5.8",
+      "manifest_sha256": "5187d09b8741d928048db6b02c9e8799b2f30f0dd539322e01d987f62efe56ab",
+      "commands": 139,
+      "status": "PASS"
+    },
+    {
+      "directory": "functional-4.0.2",
+      "manifest_sha256": "57fb1623ff3221d31a45d787c6d453f4bef00392c1cd55cba7ae5095926487e8",
+      "commands": 139,
+      "status": "PASS"
+    },
+    {
+      "directory": "default-cli-3.5.8",
+      "manifest_sha256": "df123beab0ce1a2be962f51398eb690992aba1d57162e61178e0da7a9a6c563a",
+      "commands": 48,
+      "status": "PASS"
+    },
+    {
+      "directory": "default-cli-4.0.2",
+      "manifest_sha256": "04b83eedd0710733cd2391626614b9512f8007f78b749a5031cf36c4ce604f95",
+      "commands": 48,
+      "status": "PASS"
+    },
+    {
+      "directory": "tcp-host-3.5.8",
+      "manifest_sha256": "abcb6e6d23e0cfdbe88e9024bbddc9244b3a60fd6d014ef04c914d5e34c3e854",
+      "test_cases": 95,
+      "status": "PASS"
+    },
+    {
+      "directory": "tcp-host-4.0.2",
+      "manifest_sha256": "ff1401056d1816cca5ceac26730c1647870d89087aa7ec1b6cc49cf19631a69f",
+      "test_cases": 95,
+      "status": "PASS"
+    },
+    {
+      "directory": "ED301-v2_PHASE_E_core-check_ce8vwtae",
+      "manifest_sha256": "2e1491f0bf2c8fddd4f44a5175601ed270c74616e4e48d951e434b6425df9693",
+      "commands": 33,
+      "core_tests": {
+        "ed": 65,
+        "ed_self_verify": 65,
+        "x": 58,
+        "x_taint_feature": 58
+      },
+      "status": "PASS"
+    }
+  ],
+  "post_execution_files": [
+    "docs/REVIEW_FOLLOWUP_20260912.md",
+    "docs/REVIEW_FOLLOWUP_20260912.json"
+  ],
+  "limits": [
+    "No new full codegen, timing or taint gate",
+    "No Fedora RPM rebuild or activation",
+    "No standalone Miri or concurrency-model review of Shared<T>",
+    "Password-cost policy unchanged"
+  ]
+}
