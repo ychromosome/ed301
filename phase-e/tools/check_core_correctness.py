@@ -156,7 +156,7 @@ if previous:
         if not set(inventories["previous-" + name]).issubset(inventories["current-" + name]):
             raise SystemExit("FAIL: a named previous Phase-E test was lost")
 # Bind Phase-B inputs to the approved baseline, except the maintained README
-# and the exact E8a public-import note. Replay the unchanged historical package.
+# and the exact documented edits below. Replay the unchanged historical package.
 phase_b_manifest = "phase-b/PHASE_B_SOURCE_MANIFEST.sha256"
 if (ROOT / phase_b_manifest).read_bytes() != (baseline / phase_b_manifest).read_bytes():
     raise SystemExit("FAIL: historical Phase-B manifest was changed")
@@ -169,6 +169,12 @@ public_import_note = (
 ).encode()
 anchor = ("A public key must decode canonically, differ from the identity, and satisfy\n"
           "`[q]A = O`. R must decode canonically, but need not have prime order.\n").encode()
+reference_reorders = {
+    "reference/x301.py": (b"    u = curve.decode_field(u_encoding)\n",
+                          b"    scalar = decode_secret_scalar(secret)\n"),
+    "reference/node/x301.mjs": (b"  const u = decode(peer);\n",
+                               b"  const scalar = little(clamp(secret));\n"),
+}
 phase_b_binding = []
 for line in (baseline / phase_b_manifest).read_text().splitlines():
     expected, name = line.split("  ", 1)
@@ -188,6 +194,12 @@ for line in (baseline / phase_b_manifest).read_text().splitlines():
         if old_bytes.count(anchor) != 1 or new_bytes != old_bytes.replace(anchor, anchor + public_import_note, 1):
             raise SystemExit("FAIL: specification differs beyond the authorized E8 public-import note")
         change = "exact public-input timing note; no byte-contract change"
+    elif name in reference_reorders:
+        peer_line, secret_line = reference_reorders[name]
+        old_order = peer_line + secret_line
+        if old_bytes.count(old_order) != 1 or new_bytes != old_bytes.replace(old_order, secret_line + peer_line, 1):
+            raise SystemExit("FAIL: reference differs beyond the reviewed secret-first ordering: " + name)
+        change = "exact secret-first input-validation reorder; no arithmetic change"
     else:
         if new_bytes != old_bytes:
             raise SystemExit("FAIL: current Phase-B executable/reference input changed: " + name)
@@ -195,6 +207,9 @@ for line in (baseline / phase_b_manifest).read_text().splitlines():
     phase_b_binding.append({"path": name, "baseline_sha256": expected, "current_sha256": sha(new), "change": change})
 (work / "PHASE_B_CURRENT_BINDING.json").write_text(json.dumps(phase_b_binding, indent=2) + "\n")
 run(["python3", "-B", baseline / "tools/check_phase_b.py"], "phase-b-replay", cwd=baseline)
+run(["python3", "-B", "-m", "unittest", "discover", "-s", "tests", "-v"], "current-python", cwd=ROOT)
+for script in ("check_vectors.mjs", "check_x301_vectors.mjs", "check_x301_error_precedence.mjs"):
+    run(["node", ROOT / "reference/node" / script], "current-" + script, cwd=ROOT)
 if manifest(ROOT) != before or manifest(baseline) != old_before:
     raise SystemExit("FAIL: source changed during checks")
 if previous and manifest(previous) != previous_before:
@@ -202,7 +217,7 @@ if previous and manifest(previous) != previous_before:
 (work / "TEST_INVENTORIES.json").write_text(json.dumps(inventories, indent=2) + "\n")
 summary = {"status": "PASS", "test_counts": {key: len(value) for key, value in inventories.items()},
            "all_named_gate_c_d1_tests_retained": True, "nostd_host_consumer": True,
-           "phase_b_replay": "8/8", "phase_b_current_binding": "executable/reference inputs byte-identical; exact E8 public-import note; maintained README recorded separately",
+           "phase_b_replay": "8/8", "phase_b_current_binding": "exact E8 public-import note and secret-first reference reorder; maintained README; other inputs unchanged",
            "rustc": toolchain, "source_manifest_sha256": sha(work / "SOURCE_SHA256SUMS"),
            "baseline_rust_manifest_sha256": sha(work / "BASELINE_RUST_SHA256SUMS"),
            "all_named_previous_phase_e_tests_retained": bool(previous),

@@ -1,12 +1,12 @@
-//! Loadable OpenSSL provider adapter for experimental X301 operations.
+//! OpenSSL provider adapter for X301-v2 operations.
 //!
 //! The base module exposes raw key management and key exchange. The optional
 //! `tls-x301-mlkem1024` artifact adds the `KEYMGMT` and `KEM` substrate
 //! that stock OpenSSL requires for the provider-defined hybrid. Although
 //! those operations are unavoidably EVP-fetchable, they are not a supported
-//! standalone hybrid-KEM profile. The same test artifact adds parameterless
+//! standalone hybrid-KEM profile. The same TLS module adds parameterless
 //! v2 key codecs and an explicitly selected raw TLS test group. It provides
-//! no signature or combiner KDF; the hybrid is the recommended group.
+//! no signature or combiner KDF; TLS owns the hybrid key schedule.
 //!
 //! Sources: OpenSSL provider(7), provider-keymgmt(7), provider-keyexch(7),
 //! provider-kem(7), provider-base(7) TLS-GROUP, RFC 9846, RFC 9954, RFC

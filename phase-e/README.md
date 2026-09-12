@@ -11,19 +11,20 @@ Later [review follow-ups](E8_REVIEW_FOLLOWUP.md) and the
 
 The combined runner requires an immutable approved Gate-D baseline. The
 optional previous snapshot adds a test-retention check against a later
-Phase-E state. For the local evidence trees:
+Phase-E state. Set `GATE_D_SOURCE` and `PREVIOUS_E_SOURCE` to the authenticated
+source trees from the corresponding evidence packages. From the repository root:
 
 ```sh
-python3 -I -B /home/martin/Dokumente/ED301/ed301/phase-e/tools/check_core_correctness.py \
-  --baseline /home/martin/Dokumente/ED301/ED301-v2_PHASE_E_e4_before_2026-09-10/source \
-  --previous /home/martin/Dokumente/ED301/ED301-v2_PHASE_E_e8_final_01_2026-09-10/source
+python3 -I -B phase-e/tools/check_core_correctness.py \
+  --baseline "$GATE_D_SOURCE" --previous "$PREVIOUS_E_SOURCE"
 ```
 
 For an extracted package, substitute its corresponding authenticated source
 trees. The runner rebuilds the baseline and previous inventories, retains
 every named test, and checks both current core feature variants, generated
 parameters, field bounds, vendor integrity, profile markers, Clippy,
-formatting, a downstream `no_std` consumer and historical Phase-B replay.
+formatting, a downstream `no_std` consumer, historical Phase-B replay and
+current Python/Node checks including the shared X301 error-priority corpus.
 It does not run the side-channel gates.
 
 Historical C and D1 runners apply only to their recorded commits: C expects

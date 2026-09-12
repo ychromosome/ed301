@@ -32,6 +32,9 @@ and TLS checks were performed separately in the isolated Fedora build root.
 
 NVR: `0.2.0-0.1.20260912git1ebf575.fc45`.
 Toolchain: Rust 1.97.1 / LLVM 22.1.8; OpenSSL 4.0.1.
+This candidate predates the September 12 review follow-ups. Its pinned source,
+patch and RPM inputs remain unchanged. A new candidate must use the corrected
+source and rebase the native-flags patch onto the shared build helper.
 
 | Check | Result |
 | --- | --- |

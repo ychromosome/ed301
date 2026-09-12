@@ -63,9 +63,10 @@ Canonical SPKI is 58 bytes; PKCS#8 version 0 is 62 bytes and retains the
 original 38-byte seed/secret. The TLS values are project assignments, not
 IANA registrations.
 
-Normative contracts: [Ed301-EdDSA](specifications/Ed301-EdDSA-v2.md),
-[X301](specifications/X301-v2.md), [identifiers](docs/OID_REGISTRY.md) and
-[OpenSSL integration](phase-d/d2/INTEGRATION_CONTRACT.md).
+Normative contracts: [current Ed301/X301 v2 profile](specifications/CURRENT_PROFILE.md),
+[identifiers](docs/OID_REGISTRY.md) and [OpenSSL integration](docs/INTEGRATION.md).
+The current profile identifies the frozen mathematical/byte specifications
+and supersedes their historical phase-status and future-allocation statements.
 
 ## Performance
 
@@ -124,7 +125,7 @@ cargo test --locked --offline --release --features sign-self-verify
 cargo test --manifest-path crates/x301/Cargo.toml --locked --offline --release
 ```
 
-This runs 65 Ed301 tests in each feature configuration and 57 X301 tests.
+This runs 65 Ed301 tests in each feature configuration and 58 X301 tests.
 It is a correctness smoke test, not the complete release-profile or
 side-channel gate. The [Rust guide](rust/README.md) and
 [Phase-E verification guide](phase-e/README.md) cover the full checks.
@@ -136,6 +137,7 @@ with SHAKE256 support:
 python3 -B -m unittest discover -s tests -v
 node reference/node/check_vectors.mjs
 node reference/node/check_x301_vectors.mjs
+node reference/node/check_x301_error_precedence.mjs
 ```
 
 The Python and Node implementations are variable-time references for public
@@ -150,7 +152,8 @@ Load providers before creating `SSL_CTX` objects, in the same `OSSL_LIB_CTX`.
 Do not co-load v1 and v2 generations in one context.
 
 The tested E8 OpenSSL lanes are 3.5.8 and 4.0.2; the integration's minimum
-supported patch levels are 3.5.7 and 4.0.1 respectively. Applications select
+supported combined-stack patch levels are 3.5.7 and 4.0.1 respectively;
+[module guards differ](docs/INTEGRATION.md#versions-and-deployment). Applications select
 `X301MLKEM1024` explicitly to require the hybrid. Loading providers does not
 change OpenSSL's `DEFAULT` group list; raw `X301` has no ML-KEM protection.
 

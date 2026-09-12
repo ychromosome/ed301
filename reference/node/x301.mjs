@@ -99,8 +99,8 @@ export function finalize([x, z]) {
 }
 
 export function x301(secret, peer) {
-  const u = decode(peer);
   const scalar = little(clamp(secret));
+  const u = decode(peer);
   return finalize(ladder(scalar, u));
 }
 

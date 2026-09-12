@@ -5,7 +5,7 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 publish = false
-description = "Experimental signature-only OpenSSL provider for Ed301-EdDSA-v2"
+description = "Ed301-EdDSA-v2 OpenSSL provider with optional codecs and TLS"
 build = "build.rs"
 autobins = false
 autoexamples = false
@@ -18,8 +18,8 @@ crate-type = ["cdylib"]
 path = "src/lib.rs"
 
 # The ordinary module is built with the default (empty) feature set.  Every
-# diagnostic or private-use TLS surface is compiled into a separately named
-# test artifact, never into the ordinary provider.
+# diagnostic or TLS surface is compiled into a separately named module,
+# never into the ordinary provider.
 [features]
 default = []
 test-failpoint = []

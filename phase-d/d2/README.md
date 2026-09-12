@@ -5,7 +5,7 @@ The completed D2 snapshot is commit
 It adds Ed301/X301 providers, DER/PEM codecs, the OpenSSL-owned ML-KEM hybrid
 and TLS 1.3 integration to the original Rust cores.
 
-- [Integration contract](INTEGRATION_CONTRACT.md) and [identifier registry](../../docs/OID_REGISTRY.md)
+- [Current integration contract](../../docs/INTEGRATION.md) and [identifier registry](../../docs/OID_REGISTRY.md)
 - [D2 report](D2_REPORT_2026-09-10.md), [feature inventory](FEATURE_INVENTORY.md) and [benchmarks](D2_BENCHMARKS_2026-09-10.md)
 - [Gate-D approval](GATE_D_APPROVAL.md) and [handoff/replay guide](HANDOFF.md)
 - [Later stock-CLI and module-name checks](N2_N4_PREPARATION.md)

@@ -1,7 +1,7 @@
 # Ed301 / X301 identifier registry
 
-Allocation decision: Martin, 10 September 2026, recorded in
-/home/martin/Dokumente/ED301/ed301/phase-d/d2/inputs/D1_BEWERTUNG_UND_D2_ENTSCHEIDUNGEN_2026-09-10.md
+Allocation decision: Martin, 10 September 2026, recorded in the
+[D2 decisions](../phase-d/d2/inputs/D1_BEWERTUNG_UND_D2_ENTSCHEIDUNGEN_2026-09-10.md)
 (SHA-256 `c5c18ad17baa32718cb6d5d3805d206334800facfa26896ae08b49766f04e0c7`).
 The historical entries follow the bound Ed301-v1 registry at commit
 `5c688206a15f6ab88a50d53fe503665a302cec4d`; they are not reassigned.
@@ -12,8 +12,8 @@ The historical entries follow the bound Ed301-v1 registry at commit
 | `1.3.6.1.4.1.66282.301.2` | X301-v1 | Historical assignment; unchanged |
 | `1.3.6.1.4.1.66282.301.3` | Ed301-EdDSA-draft-00 | Frozen; never reinterpret |
 | `1.3.6.1.4.1.66282.301.4` | Ed301-EdDSA-v1 key and signature algorithm | Historical assignment; unchanged |
-| `1.3.6.1.4.1.66282.301.5` | Ed301-EdDSA-v2 key and signature algorithm | Assigned for Phase D; not a release |
-| `1.3.6.1.4.1.66282.301.6` | X301-v2 key algorithm | Assigned for Phase D; not a release |
+| `1.3.6.1.4.1.66282.301.5` | Ed301-EdDSA-v2 key and signature algorithm | Current v2 assignment |
+| `1.3.6.1.4.1.66282.301.6` | X301-v2 key algorithm | Current v2 assignment |
 
 Both v2 AlgorithmIdentifiers have absent parameters (not ASN.1 NULL).
 SPKI contains 38 public-key bytes. PKCS#8 PrivateKeyInfo version 0 contains
@@ -45,5 +45,5 @@ persistent-key OID or standalone application KEM format.
 
 These are project/private-use assignments, not IANA TLS registrations or
 standards. OIDs, SignatureSchemes, NamedGroups and CipherSuites are separate
-namespaces; the G301 CipherSuite `0xFF30` is unchanged. No production-readiness,
-Gate-D approval, installation or publication follows from this registry.
+namespaces; the G301 CipherSuite `0xFF30` is unchanged. See the
+[current profile](../specifications/CURRENT_PROFILE.md) for the active contract.

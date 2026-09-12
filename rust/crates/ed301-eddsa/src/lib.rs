@@ -1,9 +1,5 @@
-//! Rust implementation candidate for `Ed301-EdDSA-v2`.
-//! Adapted from the version-bound v1 source; Phase-C gates are still pending.
-//!
-//! The crate implements the versioned, Ed448-style native-domain one-shot byte
-//! contract. It is review software, not a production or standards-conformance
-//! claim.
+//! Ed301-EdDSA-v2 deterministic, one-shot signatures with native contexts.
+//! Public-key import is variable-time and accepts only public data.
 
 #![no_std]
 #![forbid(unsafe_code)]

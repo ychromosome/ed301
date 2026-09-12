@@ -59,8 +59,8 @@ def x301(secret: bytes, u_encoding: bytes) -> bytes:
     Decode the public input before invoking the ladder. No normalization,
     curve/twist classification, KDF, fallback or partial-output API is used.
     """
-    u = curve.decode_field(u_encoding)
     scalar = decode_secret_scalar(secret)
+    u = curve.decode_field(u_encoding)
     result = curve.montgomery_ladder_u(scalar, u)
     if result is None:
         raise AllZeroError("X301 result is the point at infinity")

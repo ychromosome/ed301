@@ -56,6 +56,30 @@ fn text<'a>(v: &'a Value, name: &str) -> &'a str {
 }
 
 #[test]
+fn shared_cross_language_error_precedence() {
+    let v: Value = serde_json::from_str(include_str!(
+        "../../../../vectors/x301-error-precedence.json"
+    ))
+    .unwrap();
+    let mut count = 0;
+    for secret in v["secrets"].as_array().unwrap() {
+        for peer in v["peers"].as_array().unwrap() {
+            let Some(expected) = secret["error"].as_str().or(peer["error"].as_str()) else {
+                continue;
+            };
+            reset_rounds();
+            let error = shared_secret(&hex(text(secret, "hex")), &hex(text(peer, "hex")))
+                .err()
+                .expect("input must fail");
+            assert_eq!(std::format!("{error:?}"), expected);
+            assert_eq!(rounds(), 0);
+            count += 1;
+        }
+    }
+    assert_eq!(count, 39);
+}
+
+#[test]
 fn all_gate_b_keys_preserve_raw_import_and_exact_clamp() {
     let v = corpus();
     assert_eq!(v["keys"].as_array().unwrap().len(), 7);

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-"""Bind v2 EVP fixtures to Phase B and retain the v1 boundary-test intentions."""
+"""Bind EVP fixtures to the current reference and unchanged Phase-B vectors."""
 
 import argparse
 import hashlib
@@ -11,7 +11,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[2]
 BOUND = {
     "vectors/x301-v2.json": "b675f677f0d717a09f3c1cc55bf0c2ad97d17ca14a7890565a41916222cc80f0",
-    "reference/x301.py": "5ddcca043cb51c0c098b16b8d4a2b62907dbe7cc55e69648eb5f0a4b84dde367",
+    "reference/x301.py": "c06137ae72989c5b3bb784e2ba8570c3db5a3407c30ebc0d75459f5246d127fe",
     "reference/ed301_curve.py": "b6e5f7d1788965f3efb40a9057b7d830b411ed806c82b765f0c2e47ee34c893f",
 }
 for name, expected in BOUND.items():
@@ -27,8 +27,7 @@ def shake(label, index, length=38):
 
 
 def evaluate(secret, public, operation):
-    # The published Phase-B Python module remains untouched. This D2 adapter
-    # enforces the later clarified secret-before-u precedence before calling it.
+    # Classify error stages in the current secret-before-peer order.
     if len(secret) != 38:
         return "invalid", "", "secret_length"
     try:

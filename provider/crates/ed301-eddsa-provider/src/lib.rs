@@ -1,13 +1,6 @@
-//! Loadable OpenSSL provider for the experimental `Ed301-EdDSA-v2`
-//! signature primitive.
-//!
-//! The provider is signature-only.  It exposes raw EVP key management and
-//! deterministic one-shot 76-byte signatures for the manifest-bound Rust
-//! input crate `ed301-eddsa`.  Optional test artifacts exercise the
-//! project-assigned Ed301-EdDSA OID and a separate private-use TLS identifier.
-//! It makes no production, constant-time, standards or release claim, and it
-//! deliberately does not reuse the historical `Ed301-Sig-v1` identity or
-//! semantics.
+//! OpenSSL key management and one-shot Ed301-EdDSA-v2 signatures.
+//! The separately built TLS variant adds codecs and the private-use signature
+//! scheme. Diagnostic variants retain separate module identities.
 
 #![deny(missing_docs)]
 #![deny(unsafe_op_in_unsafe_fn)]
