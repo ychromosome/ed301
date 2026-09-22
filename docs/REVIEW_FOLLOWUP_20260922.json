@@ -1,0 +1,80 @@
+{
+  "schema": "ed301-review-followup-v1",
+  "base_commit": "698848712662564c91015002522e242ff8c2f690",
+  "artifact_root_label": "Grok_Nacharbeiten_2026-09-22",
+  "external_review_sha256": "3302adf6e18377d2aa41e2c87861fcd584ee18698069a56523d599146f3a1150",
+  "source_manifest_sha256": "e0ff8f90569bf6882ac3bdd4a403015929d2a07633ab666f89b00697f2a2641d",
+  "build_source_sha256": "4e8f9de4738056280100a0841e44cff06a5350e31591ee302bed510f2e200d20",
+  "source_file_count": 2009,
+  "final_password_harness_sha256": "c6b3858deacffdf48f50d4ee10b07468c6565b44cf0938e819ca9fb6004b9ae4",
+  "production_changes": ["Shared PKCS8 export default and validated iteration parameter"],
+  "unchanged": ["Curve parameters", "Cryptographic cores", "Decoder", "Provider RAND implementation", "Vendored Keccak"],
+  "dispositions": {
+    "aarch64": "Documented backend and evidence scope; no demonstrated vulnerability or new architecture acceptance",
+    "pkcs8": "Fixed weak fixed export default; configurable explicit costs and compatibility checks",
+    "rand": "Documented and tested configuration boundary; automatic parent RAND inheritance remains unsupported"
+  },
+  "patch_review": {
+    "candidate_sha256": "416829cd3eb283d453daba9fd1c210e64a6310da797e3f1c8cd0c73a891a8db6",
+    "finding": "Cipher-reset wording overstated behavior for explicit EncryptedPrivateKeyInfo",
+    "correction": "Narrowed documentation and added encrypted DER/PEM reset rejection tests",
+    "final_verification": "Local execution; no second independent review cycle"
+  },
+  "artifacts": [
+    {
+      "path": "run-02/functional-3.5.8/SHA256SUMS",
+      "sha256": "8d98aa2ab0fc003ff05485391cc8fd58107b5f78e758aad8e52db6158b9fa7f0",
+      "commands": 147
+    },
+    {
+      "path": "run-02/functional-4.0.2/SHA256SUMS",
+      "sha256": "5f85eddefbc2659f5187ab5f1d29692866ab36964969522637faf2a8629a986b",
+      "commands": 147
+    },
+    {
+      "path": "run-02/memory-3.5.8/SHA256SUMS",
+      "sha256": "b82b31360084ac6420d44a04a05800b91d48511ca81932f9537d10e62e4329fe",
+      "commands": 119,
+      "asan_ubsan": 26,
+      "memcheck": 26
+    },
+    {
+      "path": "run-02/memory-4.0.2/SHA256SUMS",
+      "sha256": "59792dd7bf38d1760549753de35a08a5bb3b7da891c4a5eddc216cc7bc7d3e2e",
+      "commands": 119,
+      "asan_ubsan": 26,
+      "memcheck": 26
+    },
+    {
+      "path": "focused-final/commands.json",
+      "sha256": "3e175b69ba93a5ce1c2e879fe44e5f32dc28fe1e859ef47d21ef1d3f9b8d93b5",
+      "password_checks_per_algorithm_abi": 78,
+      "rand_checks_per_algorithm_abi": 13
+    },
+    {
+      "path": "focused-02/commands.json",
+      "sha256": "b7a3113a685b8b04869c5caf17f55803d86dca5385a7f1788341ab8db6e1dcf9",
+      "scope": "Native cost observations before the final reset-test additions"
+    },
+    {
+      "path": "legacy-containers-02/RESULT.json",
+      "sha256": "04aa08bb432dde288b83f8da3a6219d83d89eb63429252b18ad01d0f4af8d797",
+      "old_provider_fixtures": 4,
+      "new_provider_imports": 8
+    },
+    {
+      "path": "legacy-containers-02/commands.json",
+      "sha256": "ff6c1d56e786dc3a616c8ebbfe4db28c8b2421fc0af57bc70ed3c193c7a9470b"
+    },
+    {
+      "path": "run_focus.py",
+      "sha256": "65c733c5280a1334f177b3861e043cab976674d4483630ef11309167426c4b07"
+    },
+    {
+      "path": "check_legacy_files.py",
+      "sha256": "781a25803fd83ff57dcbdb950b35871b18fc82f334d70722d90d8a3885b21c71"
+    }
+  ],
+  "platform": "x86-64 Ryzen 9 5950X; Rust 1.98.1 / LLVM 22.1.8; OpenSSL 3.5.8 and 4.0.2",
+  "limits": ["No AArch64 acceptance", "No new codegen/timing or RPM acceptance", "No automatic RAND configuration inheritance", "Existing files retain their original password cost"]
+}

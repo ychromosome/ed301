@@ -586,8 +586,11 @@ int main(void)
     ED301V2_CHECK(settable != NULL
             && strcmp(settable[0].key, OSSL_ENCODER_PARAM_CIPHER) == 0
             && strcmp(settable[1].key, OSSL_ENCODER_PARAM_PROPERTIES) == 0
-            && settable[2].key == NULL,
-        "private encoder advertises cipher and property parameters");
+            && strcmp(settable[2].key,
+                CURVE301_ENCODER_PARAM_PBKDF2_ITERATIONS) == 0
+            && settable[2].data_type == OSSL_PARAM_UNSIGNED_INTEGER
+            && settable[3].key == NULL,
+        "private encoder advertises cipher, properties and password cost");
 
     codec_provider.libctx = OSSL_LIB_CTX_new();
     codec_provider.zalloc = unit_zalloc;
@@ -596,6 +599,7 @@ int main(void)
         : OSSL_PROVIDER_load(codec_provider.libctx, "default");
     codec.provider = &codec_provider;
     codec.structure = CURVE301_CODEC_PRIVATE_KEY_INFO;
+    codec.pbkdf2_iterations = CURVE301_PKCS8_DEFAULT_ITERATIONS;
     cipher[0] = OSSL_PARAM_construct_utf8_string(
         OSSL_ENCODER_PARAM_CIPHER, "AES-256-CBC", 0);
     cipher[1] = OSSL_PARAM_construct_utf8_string(

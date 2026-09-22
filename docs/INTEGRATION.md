@@ -62,6 +62,26 @@ fetch uses the child context's mirrored default properties, not the outer
 `provider=x301_v2_tls` selector. See the
 [nested-property tests](../provider-tests/x301/provider_x301_nested_properties.c).
 
+## Randomness configuration
+
+Direct Ed301 and X301 private generation uses provider-owned, locked OpenSSL
+CTR-DRBG instances with AES-256-CTR, parented by the child context's primary
+DRBG. PKCS#8 salt/IV generation uses the corresponding public-output DRBG.
+The child mirrors loaded providers and default properties, but it does not
+inherit the application's selected RAND/seed-source configuration or
+`rand.seed` / `seed_strict` settings. Selecting a seed source in the parent
+therefore does not impose that source on these operations. The
+[boundary test](../provider-tests/provider_rand_boundary.c) distinguishes
+parent seed selection from the existing mirrored-provider/property tests.
+
+Applications requiring a particular entropy source must validate that policy
+at the actual generation boundary; configuring only the parent is insufficient.
+The provider's separate DRBG ownership avoids per-thread child-context state
+surviving provider teardown. Existing instantiated DRBGs also remain usable
+after later default-property changes; this is not dynamic policy revocation.
+The delegated ML-KEM implementation has its own RAND consumers and must not
+be assumed to share this exact boundary solely from its fetch context.
+
 ## Enforcement boundaries
 
 | Property | Provider/DSO | Application responsibility |
@@ -81,10 +101,28 @@ certificate verification callback for the all-Ed301 test profile. Stock CLI
 success alone does not establish those additional whole-file/PKI properties.
 
 PEM, encrypted PKCS#8, PBES2 and PKCS#12 cryptography are delegated to OpenSSL.
-The provider encoder currently uses `PKCS5_DEFAULT_ITER` for PBES2. A calibrated,
-configurable password-cost policy remains a separate task before relying on
-human-password protection for persistent keys; this contract does not change
-the KDF or its parameters.
+The Ed301/X301 provider encoder uses **1,000,000 PBKDF2 iterations** by default
+for encrypted PKCS#8. The provider-specific unsigned integer parameter
+`curve301-pbkdf2-iterations` accepts 1 through 10,000,000 via
+`OSSL_ENCODER_CTX_set_params()`, before or after setting the cipher. It applies
+to both private structures and both DER/PEM outputs; AES-256-CBC uses
+PBKDF2-HMAC-SHA256. Lower costs require an explicit application choice.
+
+Zero, negative, oversized, duplicate and non-integer values fail. A rejected
+cost blocks output even after a cipher-only update; setting a valid cost
+restores it. Clearing the cipher resets the cost to its default, unless a
+valid cost accompanies that same parameter call. With `PrivateKeyInfo` it
+restores unencrypted output; explicit `EncryptedPrivateKeyInfo` still requires
+a cipher and fails without output when it is cleared.
+Old encrypted files remain readable; existing files are not upgraded in place.
+The [password-policy tests](../provider-tests/provider_password_policy.c)
+inspect ASN.1 costs, private-byte preservation and rejection behavior.
+
+Applications should calibrate export/import latency on their deployment
+hardware and use strong passwords. This encoder setting does not control
+separate OpenSSL PKCS#12 or `openssl pkcs8 -iter` operations. For example,
+`openssl pkcs8 -topk8 -v2 aes-256-cbc -iter 1000000` configures that command's
+own wrapping operation, not this encoder's private parameter.
 
 The agreed container-interoperability target is OpenSSL 3.5.8 and 4.0.2.
 The [cross-version assessment](ASSESSMENT_20260912.md#2-verbindlicher-containerumfang)

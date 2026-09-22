@@ -152,7 +152,8 @@ if (out / "modules/ed301_eddsa_v2_pki_test.so").stat().st_ino == (out / "fresh-m
     raise SystemExit("fresh-load fixture is not a separate physical file")
 
 ed_harnesses = ["provider_load", "provider_keymgmt", "provider_signature", "provider_serialization", "provider_oid_collision",
-                "provider_pki", "provider_rand", "provider_lifecycle", "provider_tls", "provider_hardening",
+                "provider_pki", "provider_rand", "provider_rand_boundary", "provider_password_policy",
+                "provider_lifecycle", "provider_tls", "provider_hardening",
                 "provider_load_fresh", "provider_shim_unit", "provider_param_helpers", "val01_decoder_bio", "val03_retry",
                 "val05_codepoint", "provider_context_contract", "provider_generation_policy", "provider_discovery_order", "provider_tls_lengths", "provider_tls_tcp"]
 x_harnesses = ["provider_x301_contract", "provider_x301_hybrid_contract",
@@ -174,7 +175,8 @@ for name in ed_harnesses:
     compile_harness(name, ROOT / "provider-tests" / (name + ".c"))
 for name in x_harnesses:
     compile_harness(name, ROOT / "provider-tests/x301" / (name + ".c"))
-for source, name in (("provider_serialization", "x301_serialization"), ("val01_decoder_bio", "x301_decoder")):
+for source, name in (("provider_serialization", "x301_serialization"), ("val01_decoder_bio", "x301_decoder"),
+                     ("provider_password_policy", "x301_password_policy"), ("provider_rand_boundary", "x301_rand_boundary")):
     compile_harness(name, ROOT / "provider-tests" / (source + ".c"), ["-DX301_CODEC_TEST"])
 compile_harness("x301_tls_contract", ROOT / "provider-tests/x301/provider_x301_contract.c",
                 ['-DX301_PROVIDER="x301_v2_tls"'])
@@ -193,7 +195,7 @@ for name in x_harnesses:
     if name != "provider_x301_hybrid_kat":
         command.append(out / "modules")
     receipt.run("run-" + name, command, runtime)
-for name in ("x301_serialization", "x301_decoder"):
+for name in ("x301_serialization", "x301_decoder", "x301_password_policy", "x301_rand_boundary"):
     receipt.run("run-" + name, [out / "bin" / name], runtime)
 receipt.run("run-x301-tls-contract", [out / "bin/x301_tls_contract", out / "modules"], runtime)
 receipt.run("run-x301-failpoints", [out / "bin/x301_failpoint_contract", out / "modules"],

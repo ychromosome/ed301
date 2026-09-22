@@ -84,7 +84,8 @@ for index in (0, 1, 7):
     build("taint-" + variant, package, features, library, module, "modules-taint")
 
 ed_harnesses = ["provider_load", "provider_keymgmt", "provider_signature", "provider_serialization", "provider_pki",
-                "provider_rand", "provider_lifecycle", "provider_tls", "provider_hardening",
+                "provider_rand", "provider_rand_boundary", "provider_password_policy",
+                "provider_lifecycle", "provider_tls", "provider_hardening",
                 "provider_shim_unit", "val01_decoder_bio", "provider_context_contract", "provider_generation_policy", "provider_discovery_order", "provider_tls_lengths"]
 x_harnesses = ["provider_x301_contract", "provider_x301_hybrid_contract", "provider_x301_nested_properties",
                "provider_x301_hybrid_kat"]
@@ -104,7 +105,8 @@ for name in ed_harnesses:
     compile_harness("asan-" + name, ROOT / "provider-tests" / (name + ".c"), sanitizer=True)
 for name in x_harnesses:
     compile_harness("asan-" + name, ROOT / "provider-tests/x301" / (name + ".c"), sanitizer=True)
-for source, name in (("provider_serialization", "x301_serialization"), ("val01_decoder_bio", "x301_decoder")):
+for source, name in (("provider_serialization", "x301_serialization"), ("val01_decoder_bio", "x301_decoder"),
+                     ("provider_password_policy", "x301_password_policy"), ("provider_rand_boundary", "x301_rand_boundary")):
     compile_harness("asan-" + name, ROOT / "provider-tests" / (source + ".c"), ["-DX301_CODEC_TEST"], True)
 compile_harness("provider_secret_taint", ROOT / "provider-tests/provider_secret_taint.c")
 compile_harness("provider_x301_secret_taint", ROOT / "provider-tests/x301/provider_x301_secret_taint.c",
@@ -114,7 +116,7 @@ compile_harness("asan-x301_failpoint_contract", ROOT / "provider-tests/x301/prov
                 ['-DX301_PROVIDER="x301_v2_failpoint"'], True)
 asan = dict(runtime, OPENSSL_MODULES=str(out / "modules-asan"),
             ASAN_OPTIONS="detect_leaks=0:halt_on_error=1", UBSAN_OPTIONS="halt_on_error=1:print_stacktrace=1")
-for name in ed_harnesses + x_harnesses + ["x301_serialization", "x301_decoder"]:
+for name in ed_harnesses + x_harnesses + ["x301_serialization", "x301_decoder", "x301_password_policy", "x301_rand_boundary"]:
     command = [out / "bin" / ("asan-" + name)]
     if name in x_harnesses and name != "provider_x301_hybrid_kat":
         command.append(out / "modules-asan")
@@ -123,7 +125,7 @@ receipt.run("run-asan-x301-failpoints", [out / "bin/asan-x301_failpoint_contract
             dict(asan, X301_V2_PROVIDER_FAILPOINT_MODE="active"))
 valgrind = ["/usr/bin/valgrind", "--tool=memcheck", "--vgdb=no", "--error-exitcode=99",
             "--leak-check=full", "--errors-for-leak-kinds=definite,indirect,possible", "--quiet"]
-for name in ed_harnesses + x_harnesses + ["x301_serialization", "x301_decoder"]:
+for name in ed_harnesses + x_harnesses + ["x301_serialization", "x301_decoder", "x301_password_policy", "x301_rand_boundary"]:
     command = valgrind + [functional / "bin" / name]
     if name in x_harnesses and name != "provider_x301_hybrid_kat":
         command.append(functional / "modules")
