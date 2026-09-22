@@ -4,6 +4,8 @@
 #ifndef CURVE301_PROVIDER_CODEC_H
 #define CURVE301_PROVIDER_CODEC_H
 
+#include "encoder_params.h"
+
 typedef enum curve301_codec_structure_st {
     CURVE301_CODEC_PRIVATE_KEY_INFO = 1,
     CURVE301_CODEC_SUBJECT_PUBLIC_KEY_INFO = 2,
@@ -27,6 +29,7 @@ typedef struct curve301_codec_context_st {
     int cipher_intent;
     int selection;
     int invalid;
+    unsigned int pbkdf2_iterations;
 } CURVE301_CODEC_CONTEXT;
 
 static CURVE301_CODEC_CONTEXT *curve301_codec_new_context(
@@ -54,6 +57,7 @@ static CURVE301_CODEC_CONTEXT *curve301_codec_new_context(
     codec->cipher_intent = 0;
     codec->selection = 0;
     codec->invalid = 0;
+    codec->pbkdf2_iterations = CURVE301_PKCS8_DEFAULT_ITERATIONS;
     return codec;
 }
 
@@ -213,6 +217,7 @@ static const OSSL_PARAM *curve301_private_codec_settable_ctx_params(
     static const OSSL_PARAM parameters[] = {
         OSSL_PARAM_utf8_string(OSSL_ENCODER_PARAM_CIPHER, NULL, 0),
         OSSL_PARAM_utf8_string(OSSL_ENCODER_PARAM_PROPERTIES, NULL, 0),
+        OSSL_PARAM_uint(CURVE301_ENCODER_PARAM_PBKDF2_ITERATIONS, NULL),
         OSSL_PARAM_END
     };
 
@@ -227,21 +232,43 @@ static int curve301_private_codec_set_ctx_params(
     CURVE301_CODEC_CONTEXT *codec = codec_context;
     const OSSL_PARAM *cipher_parameter;
     const OSSL_PARAM *properties_parameter;
+    const OSSL_PARAM *iterations_parameter = NULL;
+    const OSSL_PARAM *parameter;
     const char *cipher_name = NULL;
     const char *properties = NULL;
     EVP_CIPHER *cipher;
     char *properties_copy = NULL;
     size_t properties_length = 0;
+    unsigned int iterations;
 
     if (!curve301_codec_is_private(codec) || codec->provider == NULL
             || codec->provider->libctx == NULL)
         return 0;
     if (parameters == NULL)
         return 1;
+    iterations = codec->pbkdf2_iterations;
+    for (parameter = parameters; parameter->key != NULL; parameter++) {
+        if (strcmp(parameter->key,
+                CURVE301_ENCODER_PARAM_PBKDF2_ITERATIONS) != 0)
+            continue;
+        if (iterations_parameter != NULL
+                || !OSSL_PARAM_get_uint(parameter, &iterations)
+                || iterations == 0
+                || iterations > CURVE301_PKCS8_MAX_ITERATIONS) {
+            /* A subsequent cipher-only update must not hide a rejected cost. */
+            codec->pbkdf2_iterations = 0;
+            curve301_raise(codec->provider, CURVE301_R_SERIALIZATION_FAILURE,
+                "invalid encrypted PKCS#8 PBKDF2 iteration count");
+            return 0;
+        }
+        iterations_parameter = parameter;
+    }
     cipher_parameter = OSSL_PARAM_locate_const(
         parameters, OSSL_ENCODER_PARAM_CIPHER);
-    if (cipher_parameter == NULL)
+    if (cipher_parameter == NULL) {
+        codec->pbkdf2_iterations = iterations;
         return 1;
+    }
     properties_parameter = OSSL_PARAM_locate_const(
         parameters, OSSL_ENCODER_PARAM_PROPERTIES);
     if (!OSSL_PARAM_get_utf8_string_ptr(cipher_parameter, &cipher_name)
@@ -262,6 +289,8 @@ static int curve301_private_codec_set_ctx_params(
         codec->cipher_properties_length = 0;
         codec->cipher_intent = 0;
         codec->invalid = 0;
+        codec->pbkdf2_iterations = iterations_parameter != NULL
+            ? iterations : CURVE301_PKCS8_DEFAULT_ITERATIONS;
         return 1;
     }
     codec->cipher_intent = 1;
@@ -293,6 +322,7 @@ static int curve301_private_codec_set_ctx_params(
     codec->cipher_properties = properties_copy;
     codec->cipher_properties_length = properties_length;
     codec->invalid = 0;
+    codec->pbkdf2_iterations = iterations;
     return 1;
 }
 
@@ -508,6 +538,8 @@ static int curve301_codec_write_encrypted_pkcs8(
     if (codec == NULL || codec->provider == NULL
             || codec->provider->libctx == NULL || codec->cipher == NULL
             || output == NULL || der == NULL || der_length > LONG_MAX
+            || codec->pbkdf2_iterations == 0
+            || codec->pbkdf2_iterations > CURVE301_PKCS8_MAX_ITERATIONS
             || passphrase_callback == NULL)
         goto cleanup;
     private_key_info = d2i_PKCS8_PRIV_KEY_INFO(
@@ -525,7 +557,7 @@ static int curve301_codec_write_encrypted_pkcs8(
             || !curve301_fill_random(
                 codec->provider, iv, (size_t)iv_length, 0))
         goto cleanup;
-    pbe = PKCS5_pbe2_set_iv_ex(codec->cipher, PKCS5_DEFAULT_ITER,
+    pbe = PKCS5_pbe2_set_iv_ex(codec->cipher, (int)codec->pbkdf2_iterations,
         salt, (int)sizeof(salt), iv, -1, codec->provider->libctx);
     if (pbe == NULL)
         goto cleanup;
@@ -703,6 +735,8 @@ static int curve301_codec_encode(
     int result = 0;
 
     if (codec == NULL || codec->invalid || output == NULL || key_data == NULL
+            || (curve301_codec_is_private(codec)
+                && codec->pbkdf2_iterations == 0)
             || key_parameters != NULL
             || !curve301_codec_does_selection(codec, selection))
         goto cleanup;

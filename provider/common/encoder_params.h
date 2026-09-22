@@ -1,0 +1,10 @@
+/* SPDX-License-Identifier: Apache-2.0 */
+#ifndef CURVE301_ENCODER_PARAMS_H
+#define CURVE301_ENCODER_PARAMS_H
+
+/* Provider-specific OSSL_ENCODER_CTX_set_params input, shared by Ed301/X301. */
+#define CURVE301_ENCODER_PARAM_PBKDF2_ITERATIONS "curve301-pbkdf2-iterations"
+#define CURVE301_PKCS8_DEFAULT_ITERATIONS 1000000U
+#define CURVE301_PKCS8_MAX_ITERATIONS 10000000U
+
+#endif

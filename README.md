@@ -18,6 +18,9 @@ The algorithms are not standardized or approved for production use.
 - Vendored Rust dependencies, Python references, independent Node.js vector
   checks, and source- and binary-bound verification tools.
 
+SHAKE256 may select the dependency's SHA3-intrinsics backend on AArch64;
+see [hash backends and platform coverage](rust/README.md#hash-backends-and-platform-coverage).
+
 Ed301 supports one-shot signing, not prehash or streaming modes. X301 returns
 raw Diffie–Hellman output: applications still need a KDF and authentication.
 Ed301 and raw X301 are classical, not post-quantum, algorithms; the hybrid
@@ -183,6 +186,8 @@ The [focused engineering assessment](docs/ASSESSMENT_20260912.md) covers
 lifecycle costs, cross-version key containers and isolated ownership tests.
 The [tooling follow-up](docs/TOOLING_FOLLOWUP_20260912.md) adds call/tail closure,
 byte-wipe and X301 import-taint checks, with fresh provider regression runs.
+The [September 22 follow-up](docs/REVIEW_FOLLOWUP_20260922.md) strengthens
+PKCS#8 password costs and documents the RAND and architecture boundaries.
 
 Development history is on `Testing`, condensed review snapshots on `Review`;
 `main` is reserved for an explicitly approved product release.

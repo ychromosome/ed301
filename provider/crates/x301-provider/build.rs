@@ -15,6 +15,7 @@ fn main() {
     println!("cargo:rerun-if-changed=c/provider_internal.h");
     println!("cargo:rerun-if-changed=../../common/generated_x301_profile.h");
     println!("cargo:rerun-if-changed=../../common/provider_codec.h");
+    println!("cargo:rerun-if-changed=../../common/encoder_params.h");
     println!("cargo:rerun-if-changed=../../common/provider_rand.h");
     for name in [
         "X301_HERMETIC_PROVIDER_BUILD",
