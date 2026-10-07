@@ -133,7 +133,7 @@ impl FieldElement {
         CtOption::new(candidate, candidate.square().ct_eq(&self))
     }
 
-    /// Independent Euler-criterion oracle for the production Jacobi symbol.
+    /// Independent Montgomery-backend Euler oracle for the nonzero-square predicate.
     #[cfg(test)]
     pub(crate) fn legendre_euler(self) -> i8 {
         let exponent = MODULUS.wrapping_sub(&U320::ONE).shr_vartime(1);
