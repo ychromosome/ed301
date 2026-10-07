@@ -771,4 +771,33 @@ pub(crate) mod test_support {
         assert!(core::mem::size_of::<ValidatedPublicKey>() < 1024);
         assert!(core::mem::size_of::<VerifyingKey>() > 10 * 1024);
     }
+
+    #[test]
+    fn public_key_import_rejects_order_2q_keys_with_structured_symbols() {
+        use crate::test_support::decode_hex_array;
+
+        // Canonical order-2q encodings (both x signs) that pass every halving
+        // condition except the second symbol. Its structured input made the
+        // crypto-bigint 0.7.5 optimized Jacobi symbol return the wrong sign
+        // (RustCrypto/crypto-bigint#1295).
+        for hex in [
+            b"ed8b187e0fefe3d1252ef9f781f5b2795d7398935796fe01be1c018acc1c3e34713cff546b16",
+            b"ed8b187e0fefe3d1252ef9f781f5b2795d7398935796fe01be1c018acc1c3e34713cff546b96",
+            b"fceba967d0e3fcb4f389613b043e6cf02e53f659a2df9e59c31a7531d2c27d855d323c28621f",
+            b"fceba967d0e3fcb4f389613b043e6cf02e53f659a2df9e59c31a7531d2c27d855d323c28629f",
+        ] {
+            let encoded = decode_hex_array::<PUBLIC_KEY_BYTES>(hex);
+            assert!(EdwardsPoint::decode(&encoded).is_ok());
+            assert!(ValidatedPublicKey::from_bytes(&encoded).is_err());
+            assert!(!validate_public_key(&encoded));
+        }
+
+        // Valid order-q control whose structured first symbol (w) was wrongly
+        // classified as a non-square by the same library path.
+        let control = decode_hex_array::<PUBLIC_KEY_BYTES>(
+            b"30f76623141955fc2ad3a7211a5dd7a1605cc414df94d1ce9294797ce29707ae2b8f2c124a1c",
+        );
+        assert!(ValidatedPublicKey::from_bytes(&control).is_ok());
+        assert!(validate_public_key(&control));
+    }
 }

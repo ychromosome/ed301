@@ -128,7 +128,7 @@ cargo test --locked --offline --release --features sign-self-verify
 cargo test --manifest-path crates/x301/Cargo.toml --locked --offline --release
 ```
 
-This runs 65 Ed301 tests in each feature configuration and 58 X301 tests.
+This runs 67 Ed301 tests in each feature configuration and 59 X301 tests.
 It is a correctness smoke test, not the complete release-profile or
 side-channel gate. The [Rust guide](rust/README.md) and
 [Phase-E verification guide](phase-e/README.md) cover the full checks.
@@ -188,6 +188,9 @@ The [tooling follow-up](docs/TOOLING_FOLLOWUP_20260912.md) adds call/tail closur
 byte-wipe and X301 import-taint checks, with fresh provider regression runs.
 The [September 22 follow-up](docs/REVIEW_FOLLOWUP_20260922.md) strengthens
 PKCS#8 password costs and documents the RAND and architecture boundaries.
+The [October 7 follow-up](docs/REVIEW_FOLLOWUP_20261007.md) restores the
+Euler criterion in public-key subgroup validation after the bound
+crypto-bigint Jacobi symbol accepted order-2q keys.
 
 Development history is on `Testing`, condensed review snapshots on `Review`;
 `main` is reserved for an explicitly approved product release.

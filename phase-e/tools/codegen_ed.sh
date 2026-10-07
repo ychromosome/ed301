@@ -196,7 +196,8 @@ core::panicking::panic_bounds_check'
 
 # E3: this exponentiator branches/indexes only on fixed public exponents.
 # The companion dataflow check verifies every linked call site and the actual
-# read-only square-root exponent bytes. Jacobi is public-input-only (E8a).
+# read-only square-root and Euler exponent bytes. The nonzero-square predicate
+# is public-input-only (E8a); since 2026-10-07 it uses Euler's criterion.
 check_expected_branches field_pow \
     '<ed301_eddsa::field_5x64::Fe301>::pow_fixed_window4' \
     'cmp $0x2a0,%rcx|jne
@@ -207,7 +208,10 @@ check_exact_call_graph field_pow "$EVIDENCE/field_pow.asm" ''
 # E8a/c: validation is separate from preparation, with an explicit no-inline
 # boundary. These two symbols may depend on public input; no secret-path
 # branch rule is relaxed. The companion gate audits every resolved incoming
-# edge and rejects an import/Jacobi call from signing or key derivation.
+# edge and rejects an import/nonzero-square call from signing or key
+# derivation. The predicate itself only calls the fixed-exponent
+# exponentiator; the library Jacobi symbol is not linked
+# (RustCrypto/crypto-bigint#1295).
 extract_symbol '<ed301_eddsa::signature::ValidatedPublicKey>::from_bytes' \
     "$EVIDENCE/public_import.asm"
 extract_symbol '<ed301_eddsa::field_5x64::Fe301>::is_nonzero_square' \
@@ -217,6 +221,8 @@ check_exact_call_graph public_import "$EVIDENCE/public_import.asm" \
 <ed301_eddsa::field_5x64::Fe301>::pow_fixed_window4
 <ed301_eddsa::field_5x64::Fe301>::is_nonzero_square
 <ed301_eddsa::field_5x64::Fe301>::is_nonzero_square'
+check_exact_call_graph public_jacobi "$EVIDENCE/public_jacobi.asm" \
+    '<ed301_eddsa::field_5x64::Fe301>::pow_fixed_window4'
 printf '%s\n' 'PASS public_only=validated-public-key-import-and-jacobi variable_public_time=allowed' \
     | tee -a "$SUMMARY"
 

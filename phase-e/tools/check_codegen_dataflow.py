@@ -232,8 +232,10 @@ def exponent_sites(symbols, elf):
     name = "ed301_eddsa::field_5x64::Fe301::pow_fixed_window4"
     importer = "ed301_eddsa::signature::ValidatedPublicKey::from_bytes"
     decoder = "ed301_eddsa::edwards::EdwardsPoint::decode"
+    nonzero_square = "ed301_eddsa::field_5x64::Fe301::is_nonzero_square"
     p = (1 << 301) - (1 << 89) + 907
-    expected = {decoder: [(p - 3) // 4], importer: [(p + 1) // 4]}
+    expected = {decoder: [(p - 3) // 4], importer: [(p + 1) // 4],
+                nonzero_square: [(p - 1) // 2]}
     observed = {}
     sites = []
     for symbol, instances in symbols.items():

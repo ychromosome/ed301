@@ -9,7 +9,9 @@
 //! backend, are independently verified, and are differentially tested against
 //! the Montgomery oracle.
 
-use crypto_bigint::{Choice, CtAssign, CtEq, CtOption, JacobiSymbol, Odd, U320};
+use crypto_bigint::{Choice, CtAssign, CtEq, CtOption};
+#[cfg(test)]
+use crypto_bigint::{JacobiSymbol, Odd, U320};
 
 use crate::generated_parameters as parameters;
 use crate::parameters::FIELD_BYTES;
@@ -23,13 +25,14 @@ const _: () = assert!(parameters::SMALL_MULTIPLIER_BITS == 36);
 
 // p in little-endian radix 2^64.
 const MODULUS: [u64; LIMBS] = parameters::MODULUS_WORDS;
+#[cfg(test)]
 const ODD_MODULUS: Odd<U320> = U320::from_words(MODULUS)
     .to_odd()
     .expect_copied("the generated field modulus is odd");
 const _: () = assert!(MODULUS[0] & 3 == 3);
 
-// Keep the retained Euler oracle's generated exponent bound to this modulus
-// even when the production nonzero-square predicate uses Jacobi instead.
+// Bind the generated Euler exponent (p - 1) / 2 of the production
+// nonzero-square predicate to this modulus.
 const _: () = {
     let mut limb = 0;
     while limb < LIMBS {
@@ -224,22 +227,20 @@ impl Fe301 {
         CtOption::new(candidate, candidate.square().ct_eq(&self))
     }
 
-    /// Public-input-only nonzero-square predicate using the library Jacobi API.
-    /// Its result-to-enum conversion may branch on the public symbol. This
-    /// helper must not be used for secret field elements. Zero is rejected.
+    /// Public-input-only nonzero-square predicate: Euler's criterion with the
+    /// fixed public exponent `(p - 1) / 2`. Zero is rejected. The bound
+    /// crypto-bigint 0.7.5 Jacobi symbol is not used here because its
+    /// optimized path returns wrong signs for some structured inputs with at
+    /// least four limbs (RustCrypto/crypto-bigint#1295). This helper must not
+    /// be used for secret field elements.
     #[inline(never)] // Keep every use visible to the public-only call-site gate.
     pub(crate) fn is_nonzero_square(self) -> Choice {
-        self.legendre().is_one()
-    }
-
-    /// Retained E3/E7 fixed-exponent implementation, independent of Jacobi.
-    #[cfg(test)]
-    pub(crate) fn is_nonzero_square_euler(self) -> Choice {
         self.pow_fixed_window4(parameters::LEGENDRE_WORDS, 300)
             .ct_eq(&Self::ONE)
     }
 
-    /// Public-input-only Jacobi symbol, with equal widths and a fixed modulus.
+    /// Library Jacobi symbol, retained only as a test cross-check.
+    #[cfg(test)]
     pub(crate) fn legendre(self) -> JacobiSymbol {
         U320::from_words(self.0).jacobi_symbol(&ODD_MODULUS)
     }
@@ -1011,6 +1012,51 @@ mod tests {
     }
 
     #[test]
+    fn nonzero_square_is_correct_on_structured_symbol_inputs() {
+        use crate::test_support::decode_hex_array;
+
+        // Both halving-symbol inputs (w, then second) of the public-key import
+        // regression keys in `signature.rs`. Their repeating bit patterns made
+        // the crypto-bigint 0.7.5 optimized Jacobi symbol return the wrong
+        // sign (RustCrypto/crypto-bigint#1295) for the order-2q second symbols
+        // and for the order-q control's w.
+        let cases: [(&[u8], i8); 6] = [
+            (
+                b"e95af16966ff15e7476e96a46c6ec82b9737731d318d913fc5e48e7e87bf4430e5d76d65fc1e",
+                1,
+            ),
+            (
+                b"da163bb1133bb1133bb113c78ddcc88ddcc88ddcc88ddcc88ddcc88ddcc88ddcc88ddcc88d1c",
+                -1,
+            ),
+            (
+                b"449e73d66104d9e4f1afc3c8b91e7b370d4c8a7e1301c8f2401e1a94a5513b38d8d0c649ae12",
+                1,
+            ),
+            (
+                b"394416b290852c64210b59f0334afc8c123fa3c4cf28f1334afc8c123fa3c4cf28f1334afc0c",
+                -1,
+            ),
+            (
+                b"2056555555555555555555711cc7711cc7711cc7711cc7711cc7711cc7711cc7711cc7711c07",
+                1,
+            ),
+            (
+                b"16b6d3d47c6cd1fdab3b7ab84ad95c135e84d813aef4e4ce399f0b7dab3415ea7fb27619240d",
+                1,
+            ),
+        ];
+        let mut mismatches = [false; 6];
+        for (index, (hex, expected)) in cases.into_iter().enumerate() {
+            let value = Fe301::from_canonical_bytes(&decode_hex_array::<FIELD_BYTES>(hex))
+                .expect_copied("canonical regression input");
+            assert_eq!(oracle(value).legendre_euler(), expected, "oracle {index}");
+            mismatches[index] = value.is_nonzero_square().to_bool() != (expected == 1);
+        }
+        assert_eq!(mismatches, [false; 6], "wrong nonzero-square result");
+    }
+
+    #[test]
     fn fixed_jacobi_and_square_root_match_independent_euler_oracles() {
         let mut state = 0x4841_4c56_494e_4733_u64;
         for index in 0..100_003 {
@@ -1035,12 +1081,7 @@ mod tests {
             assert_eq!(
                 value.is_nonzero_square().to_bool(),
                 oracle(value).legendre_euler() == 1,
-                "production Jacobi {index}"
-            );
-            assert_eq!(
-                value.is_nonzero_square_euler().to_bool(),
-                value.is_nonzero_square().to_bool(),
-                "retained E3/E7 Euler {index}"
+                "production Euler {index}"
             );
             let root = value.sqrt_fixed();
             let reference = value.sqrt();

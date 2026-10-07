@@ -126,18 +126,23 @@ All 16 scaled-memory instructions are explicitly classified; counter and
 exponent-pointer stack slots have exact checked write inventories.
 
 Every linked call site's exponent-pointer origin is followed to read-only
-allocated ELF bytes. The decoder has one (p-3)/4 call and the importer one
-(p+1)/4 call, for p = 2^301 - 2^89 + 907. Wrong read-only exponent bytes and a
-shortened window counter remain negative controls. Both Legendre symbols now
-use the unchanged, bound crypto-bigint Jacobi implementation. The earlier
-Euler implementation remains an independent cfg(test) oracle and must not
-appear in ordinary linked artifacts.
+allocated ELF bytes. The decoder has one (p-3)/4 call, the importer one
+(p+1)/4 call and the nonzero-square predicate one (p-1)/2 call, for
+p = 2^301 - 2^89 + 907. Wrong read-only exponent bytes and a shortened window
+counter remain negative controls. Since 2026-10-07 both Legendre symbols use
+Euler's criterion through this exponentiator again. The bound crypto-bigint
+0.7.5 Jacobi implementation returns wrong signs for some structured inputs
+with at least four limbs (RustCrypto/crypto-bigint#1295, fixed upstream by
+#1313), which let order-2q public keys pass validation. It remains only a
+cfg(test) cross-check and must not appear in ordinary linked artifacts.
 
 Martin explicitly approved E8a option c after the fresh result-dependent enum
 branch had been reported. Public-key validation and its Jacobi predicate are
 public-input-only, like the existing variable-time verification path. Their
 timing may depend on the input key. This is not a claim that Jacobi has a
-fixed binary structure and is not an exception for secret arithmetic.
+fixed binary structure and is not an exception for secret arithmetic. The
+library-Jacobi part of option c was withdrawn on 2026-10-07 for correctness
+(see above); the public-input-only classification of the import is unchanged.
 
 ValidatedPublicKey::from_bytes and Fe301::is_nonzero_square retain explicit
 no-inline boundaries. The linked-code gate records every direct and
@@ -145,7 +150,7 @@ relative-GOT incoming edge, rejects unclassified callers, and rejects escaped
 public-helper addresses or unaccounted function-pointer relocations. The two
 mixed provider callbacks key_import/key_set_encoded_public are NOT themselves
 classified as public-only: only their supplied public-key argument reaches
-the public parser. Both Jacobi calls remain inside that parser. Direct and
+the public parser. Both nonzero-square calls remain inside that parser. Direct and
 GOT-based secret-to-public calls and function-pointer escapes are negative
 controls. This bounded call-site check is complemented by source review,
 unit call counters and instrumented input-Vbit admission checks; it is not a
