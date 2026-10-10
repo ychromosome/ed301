@@ -118,6 +118,15 @@ Wrong-counter and earlier-decoy-counter controls both must fail.
 
 ## E3/E8a: public exponents and the public-only import boundary
 
+Since 2026-10-10 the runtime computes all three public exponents from one
+fixed addition chain for (p-3)/4 (`Fe301::pow_p_minus_3_over_4`, see
+docs/PERFORMANCE_REVIEW_20261010.md); the four-bit window exponentiator
+described below is test-only. The `field_pow`, `pow_structure` and
+`exponent_sites` rules and their negative controls still describe the
+removed symbol and therefore fail closed on the new source. They must be
+re-formulated and reviewed on the actual Rust 1.98.0 / LLVM 21.1.8 binary,
+not weakened or skipped.
+
 The production exponentiator has no call. It precomputes powers 1..15 with a
 fixed 40-byte stride, then visits 75 four-bit windows. Its digit branch and
 power-table index come only from the public exponent, never the field input.

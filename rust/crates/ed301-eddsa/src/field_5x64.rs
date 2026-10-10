@@ -53,6 +53,37 @@ const INVERSION_EXPONENT: [u64; LIMBS] = parameters::INVERSION_WORDS;
 // square roots of ratios for p = 3 (mod 4).
 const SQRT_RATIO_EXPONENT: [u64; LIMBS] = parameters::SQRT_RATIO_WORDS;
 
+// `Fe301::pow_p_minus_3_over_4` hard-codes the addition chain for
+// (p - 3) / 4 = (2^212 - 1) * 2^87 + 226. Bind that shape to the generated
+// exponent and to the modulus (4e + 3 = p), and bind the square-root
+// exponent e + 1 = (p + 1) / 4 and the Euler exponent 2e + 1 = (p - 1) / 2
+// that are derived from it.
+const _: () = {
+    let mut chain = [0_u64; LIMBS];
+    let mut bit = 87;
+    while bit < 87 + 212 {
+        chain[bit / 64] |= 1 << (bit % 64);
+        bit += 1;
+    }
+    chain[0] |= 226;
+    let mut limb = 0;
+    while limb < LIMBS {
+        let previous = if limb == 0 { 0 } else { chain[limb - 1] };
+        let low_bits = if limb == 0 { 3 } else { 0 };
+        assert!(chain[limb] == SQRT_RATIO_EXPONENT[limb]);
+        assert!(((chain[limb] << 2) | (previous >> 62) | low_bits) == MODULUS[limb]);
+        assert!(
+            ((chain[limb] << 1) | (previous >> 63) | (low_bits & 1))
+                == parameters::LEGENDRE_WORDS[limb]
+        );
+        assert!((chain[limb] | (low_bits & 1)) == parameters::SQRT_WORDS[limb]);
+        limb += 1;
+    }
+    // e is even and below 2^299, so the shifts and OR-ed low bits above
+    // are exact additions without carries.
+    assert!(chain[0] & 1 == 0 && chain[LIMBS - 1] >> 43 == 0);
+};
+
 /// Canonical field element in five little-endian limbs.
 #[derive(Clone, Copy)]
 pub(crate) struct Fe301([u64; LIMBS]);
@@ -222,20 +253,24 @@ impl Fe301 {
     }
 
     /// Fixed-exponent square root, including an explicit validity mask.
+    ///
+    /// The exponent is `(p + 1) / 4 = (p - 3) / 4 + 1`.
     pub(crate) fn sqrt_fixed(self) -> CtOption<Self> {
-        let candidate = self.pow_fixed_window4(parameters::SQRT_WORDS, 299);
+        let candidate = self.pow_p_minus_3_over_4().mul(self);
         CtOption::new(candidate, candidate.square().ct_eq(&self))
     }
 
     /// Public-input-only nonzero-square predicate: Euler's criterion with the
-    /// fixed public exponent `(p - 1) / 2`. Zero is rejected. The bound
-    /// crypto-bigint 0.7.5 Jacobi symbol is not used here because its
-    /// optimized path returns wrong signs for some structured inputs with at
-    /// least four limbs (RustCrypto/crypto-bigint#1295). This helper must not
-    /// be used for secret field elements.
+    /// fixed public exponent `(p - 1) / 2 = 2 * (p - 3) / 4 + 1`. Zero is
+    /// rejected. The bound crypto-bigint 0.7.5 Jacobi symbol is not used here
+    /// because its optimized path returns wrong signs for some structured
+    /// inputs with at least four limbs (RustCrypto/crypto-bigint#1295). This
+    /// helper must not be used for secret field elements.
     #[inline(never)] // Keep every use visible to the public-only call-site gate.
     pub(crate) fn is_nonzero_square(self) -> Choice {
-        self.pow_fixed_window4(parameters::LEGENDRE_WORDS, 300)
+        self.pow_p_minus_3_over_4()
+            .square()
+            .mul(self)
             .ct_eq(&Self::ONE)
     }
 
@@ -247,12 +282,11 @@ impl Fe301 {
 
     /// Compute and verify a square root of `numerator / denominator`.
     ///
-    /// The exponent is public and fixed.  A four-bit table reduces the number
-    /// of five-limb multiplications without introducing input-dependent
-    /// control flow or table indices.
+    /// The exponent `(p - 3) / 4` is public and fixed; its addition chain has
+    /// no input-dependent control flow or table index.
     pub(crate) fn sqrt_ratio(numerator: Self, denominator: Self) -> CtOption<Self> {
         let product = numerator.mul(denominator);
-        let candidate = numerator.mul(product.pow_fixed_window4(SQRT_RATIO_EXPONENT, 299));
+        let candidate = numerator.mul(product.pow_p_minus_3_over_4());
         let is_root = candidate
             .square()
             .mul(denominator)
@@ -261,7 +295,40 @@ impl Fe301 {
         CtOption::new(candidate, is_root)
     }
 
+    /// Raise to the fixed public exponent `(p - 3) / 4`.
+    ///
+    /// The exponent is `(2^212 - 1) * 2^87 + 226`; the constant block beside
+    /// [`SQRT_RATIO_EXPONENT`] binds this shape to the generated parameters.
+    /// `x_k` below denotes `self^(2^k - 1)`. The straight-line chain uses 298
+    /// squarings and 13 multiplications, all in the lazily reduced `[0, 2p)`
+    /// domain, and canonicalises once. Every step passes a literal count;
+    /// there is no table, no index and no branch other than those fixed
+    /// counts, so the operation sequence is independent of the input. The
+    /// four-bit window exponentiator, which needs about 70 multiplications,
+    /// remains as its test oracle.
+    #[inline(never)]
+    fn pow_p_minus_3_over_4(self) -> Self {
+        let x1 = Fe301Lazy::from_fe301(self);
+        let x2 = x1.square_times_mul(1, x1);
+        let x3 = x2.square_times_mul(1, x1);
+        let x6 = x3.square_times_mul(3, x3);
+        let x12 = x6.square_times_mul(6, x6);
+        let x24 = x12.square_times_mul(12, x12);
+        let x48 = x24.square_times_mul(24, x24);
+        let x96 = x48.square_times_mul(48, x48);
+        let x192 = x96.square_times_mul(96, x96);
+        let x204 = x192.square_times_mul(12, x12);
+        let x210 = x204.square_times_mul(6, x6);
+        let x212 = x210.square_times_mul(2, x2);
+        // (2^212 - 1) * 2^82 + 7, then * 2^4 + 1, then * 2.
+        x212.square_times_mul(82, x3)
+            .square_times_mul(4, x1)
+            .square()
+            .canonical()
+    }
+
     /// Exponentiate by a public compile-time value using four-bit windows.
+    #[cfg(test)]
     fn pow_fixed_window4(self, exponent: [u64; LIMBS], exponent_bits: usize) -> Self {
         let mut powers = [Self::ONE; 16];
         let mut index = 1;
@@ -473,6 +540,20 @@ impl Fe301Lazy {
     #[inline(always)]
     pub(crate) fn square(self) -> Self {
         Self(reduce_wide_unreduced(square_wide(self.0)))
+    }
+
+    /// Square `count` times, then multiply by `rhs`, retaining the `[0, 2p)`
+    /// bound. Callers pass a public literal count; the single out-of-line
+    /// loop keeps the exponent chain compact.
+    #[inline(never)]
+    fn square_times_mul(self, count: u32, rhs: Self) -> Self {
+        let mut value = self;
+        let mut index = 0;
+        while index < count {
+            value = value.square();
+            index += 1;
+        }
+        value.mul(rhs)
     }
 
     /// Multiply by a public value below 2^36, retaining the `[0, 2p)` bound.
@@ -1095,6 +1176,57 @@ mod tests {
                 reference.to_inner_unchecked().to_canonical_bytes(),
                 "root candidate {index}"
             );
+        }
+    }
+
+    #[test]
+    fn addition_chain_matches_the_window_exponentiator_for_all_three_exponents() {
+        fn check(value: Fe301, label: &str) {
+            let chain = value.pow_p_minus_3_over_4();
+            let window = value.pow_fixed_window4(SQRT_RATIO_EXPONENT, 299);
+            assert_eq!(
+                chain.to_canonical_bytes(),
+                window.to_canonical_bytes(),
+                "(p-3)/4 {label}"
+            );
+            let root = value.sqrt_fixed().to_inner_unchecked();
+            let window_root = value.pow_fixed_window4(parameters::SQRT_WORDS, 299);
+            assert_eq!(
+                root.to_canonical_bytes(),
+                window_root.to_canonical_bytes(),
+                "(p+1)/4 {label}"
+            );
+            let window_euler = value.pow_fixed_window4(parameters::LEGENDRE_WORDS, 300);
+            assert_eq!(
+                value.is_nonzero_square().to_bool(),
+                window_euler.ct_eq(&Fe301::ONE).to_bool(),
+                "(p-1)/2 {label}"
+            );
+        }
+
+        // Small values, both ends of the field, single bits and dense words,
+        // then random canonical values.
+        let modulus_minus = |delta: u64| Fe301::ZERO.sub(Fe301::from_u64(delta));
+        for small in 0..64 {
+            check(Fe301::from_u64(small), "small");
+            check(modulus_minus(small + 1), "near p");
+        }
+        for bit in 0..301 {
+            let mut words = [0_u64; LIMBS];
+            words[bit / 64] = 1 << (bit % 64);
+            check(
+                Fe301(conditional_subtract_modulus_const(words)),
+                "single bit",
+            );
+        }
+        for word in [u64::MAX, 0xaaaa_aaaa_aaaa_aaaa, 0x5555_5555_5555_5555] {
+            let mut words = [word; LIMBS];
+            words[4] &= TOP_MASK;
+            check(Fe301(conditional_subtract_modulus_const(words)), "dense");
+        }
+        let mut state = 0x4144_4443_4841_494e_u64;
+        for _ in 0..20_000 {
+            check(generated(&mut state), "random");
         }
     }
 

@@ -8,7 +8,7 @@
 use crypto_bigint::Choice;
 
 use crate::{
-    field_5x64::{Fe301 as FieldElement, Fe301Lazy as Lazy},
+    field_5x64::{Fe301 as FieldElement, Fe301Lazy as Lazy, Fe301LazyLinear as LazyLinear},
     parameters::{FIELD_BITS, FIELD_BYTES},
     scalar::Scalar,
     secret::secret,
@@ -149,6 +149,105 @@ impl AffineNielsPoint {
     }
 }
 
+/// Linear terms of the complete dedicated doubling.
+///
+/// The formula reads only `X`, `Y` and `Z`. The result is
+/// `X' = cross*difference`, `Y' = sum*twisted_difference`,
+/// `Z' = difference*sum` and `T' = cross*twisted_difference`; `T'` is needed
+/// only by a subsequent addition.
+#[derive(Clone, Copy)]
+struct DoublingTerms {
+    cross: LazyLinear,
+    sum: LazyLinear,
+    difference: LazyLinear,
+    twisted_difference: LazyLinear,
+}
+
+impl DoublingTerms {
+    /// Inputs may be lazily reduced below `2p`.
+    #[inline(always)]
+    fn new(x: Lazy, y: Lazy, z: Lazy) -> Self {
+        let xx = x.square();
+        let yy = y.square();
+        let zz = z.square();
+        let two_zz = zz.add_loose(zz).tighten();
+        let twisted_xx = xx.mul_small(EDWARDS_A);
+        let cross = x
+            .add_loose(y)
+            .square()
+            .sub_loose(xx.add_loose(yy).tighten());
+        let sum = twisted_xx.add_loose(yy);
+        let difference = sum.tighten().sub_loose(two_zz);
+        let twisted_difference = twisted_xx.sub_loose(yy);
+        Self {
+            cross,
+            sum,
+            difference,
+            twisted_difference,
+        }
+    }
+
+    /// Form all four canonical extended coordinates.
+    #[inline(always)]
+    fn extended(self) -> EdwardsPoint {
+        EdwardsPoint {
+            x: self.cross.mul(self.difference).canonical(),
+            y: self.sum.mul(self.twisted_difference).canonical(),
+            z: self.difference.mul(self.sum).canonical(),
+            t: self.cross.mul(self.twisted_difference).canonical(),
+        }
+    }
+
+    /// Form only the lazily reduced projective coordinates, omitting `T'`.
+    #[inline(always)]
+    fn projective(self) -> ProjectivePoint {
+        ProjectivePoint {
+            x: self.cross.mul(self.difference),
+            y: self.sum.mul(self.twisted_difference),
+            z: self.difference.mul(self.sum),
+        }
+    }
+}
+
+/// Public projective `(X:Y:Z)` accumulator for variable-time verification.
+///
+/// Coordinates stay lazily reduced below `2p`. A run of doublings that is not
+/// followed by an addition does not need `T`, so each such doubling saves one
+/// field multiplication and the canonical corrections; only the doubling
+/// before an addition forms the extended point. Secret-scalar paths keep
+/// using [`EdwardsPoint::double`].
+#[derive(Clone, Copy)]
+struct ProjectivePoint {
+    x: Lazy,
+    y: Lazy,
+    z: Lazy,
+}
+
+impl ProjectivePoint {
+    fn from_extended(point: EdwardsPoint) -> Self {
+        Self {
+            x: Lazy::from_fe301(point.x),
+            y: Lazy::from_fe301(point.y),
+            z: Lazy::from_fe301(point.z),
+        }
+    }
+
+    /// Kept out of line so the verification loop carries one copy of the
+    /// shared doubling terms for both result forms.
+    #[inline(never)]
+    fn doubling_terms(self) -> DoublingTerms {
+        DoublingTerms::new(self.x, self.y, self.z)
+    }
+
+    fn double(self) -> Self {
+        self.doubling_terms().projective()
+    }
+
+    fn double_extended(self) -> EdwardsPoint {
+        self.doubling_terms().extended()
+    }
+}
+
 impl EdwardsPoint {
     #[cfg(test)]
     pub(crate) fn zeroization_count_for_test() -> usize {
@@ -249,30 +348,12 @@ impl EdwardsPoint {
 
     /// Double a valid extended point with the complete dedicated formula.
     pub(crate) fn double(self) -> Self {
-        let (x, y, z) = (
+        DoublingTerms::new(
             Lazy::from_fe301(self.x),
             Lazy::from_fe301(self.y),
             Lazy::from_fe301(self.z),
-        );
-        let xx = x.square();
-        let yy = y.square();
-        let zz = z.square();
-        let two_zz = zz.add_loose(zz).tighten();
-        let twisted_xx = xx.mul_small(EDWARDS_A);
-        let cross = x
-            .add_loose(y)
-            .square()
-            .sub_loose(xx.add_loose(yy).tighten());
-        let sum = twisted_xx.add_loose(yy);
-        let difference = sum.tighten().sub_loose(two_zz);
-        let twisted_difference = twisted_xx.sub_loose(yy);
-
-        Self {
-            x: cross.mul(difference).canonical(),
-            y: sum.mul(twisted_difference).canonical(),
-            z: difference.mul(sum).canonical(),
-            t: cross.mul(twisted_difference).canonical(),
-        }
+        )
+        .extended()
     }
 
     const fn add_const(self, rhs: Self) -> Self {
@@ -542,17 +623,25 @@ impl EdwardsPoint {
             top -= 1;
         }
 
+        // Horner evaluation from the leading nonzero position; doubling the
+        // initial identity is omitted. Positions without a digit are doubled
+        // projectively, and `T` is formed only before the next addition or
+        // for the returned point.
         let mut result = Self::IDENTITY;
         loop {
-            result = result.double();
             result = vartime_add_signed(result, base_digits[top], &BASEPOINT_ODD_TABLE, false);
             result = vartime_add_signed(result, point_digits[top], point_table, true);
             if top == 0 {
-                break;
+                return result;
             }
             top -= 1;
+            let mut projective = ProjectivePoint::from_extended(result);
+            while top != 0 && base_digits[top] == 0 && point_digits[top] == 0 {
+                projective = projective.double();
+                top -= 1;
+            }
+            result = projective.double_extended();
         }
-        result
     }
 
     /// Precompute public odd multiples for repeated verification.
@@ -1188,6 +1277,118 @@ mod tests {
                 "batch-normalized affine entries must retain their odd multiple"
             );
             odd_multiple = odd_multiple.add(step);
+        }
+    }
+
+    /// The previous Straus loop, which doubled the full extended point at every
+    /// position including the initial identity, is the differential oracle.
+    fn vartime_double_scalar_mul_reference(
+        base_scalar: &Scalar,
+        point_scalar: &Scalar,
+        point_table: &VartimePointTable,
+    ) -> EdwardsPoint {
+        let base_digits = base_scalar.vartime_wnaf(BASEPOINT_WNAF_WIDTH);
+        let point_digits = point_scalar.vartime_wnaf(POINT_WNAF_WIDTH);
+        let mut result = EdwardsPoint::IDENTITY;
+        let mut top = FIELD_BITS + 1;
+        while top != 0 {
+            top -= 1;
+            result = result.double();
+            result = vartime_add_signed(result, base_digits[top], &BASEPOINT_ODD_TABLE, false);
+            result = vartime_add_signed(result, point_digits[top], point_table, true);
+        }
+        result
+    }
+
+    #[test]
+    fn projective_doubling_chains_match_extended_doubling() {
+        let order_two = EdwardsPoint::decode(&ORDER_TWO_ENCODING).expect("order two");
+        let order_four = EdwardsPoint::decode(&ORDER_FOUR_ENCODING).expect("order four");
+        let mixed = EdwardsPoint::decode(&MIXED_ORDER_FOUR_ENCODING).expect("mixed point");
+        let mut points = std::vec![
+            EdwardsPoint::IDENTITY,
+            EdwardsPoint::BASEPOINT,
+            EdwardsPoint::BASEPOINT.negate(),
+            order_two,
+            order_four,
+            mixed,
+        ];
+        let mut state = 0x5052_4f4a_4442_4c45_u64;
+        for _ in 0..500 {
+            let mut bytes = [0_u8; FIELD_BYTES];
+            for byte in &mut bytes {
+                *byte = splitmix64(&mut state) as u8;
+            }
+            bytes[FIELD_BYTES - 1] &= 0x1f;
+            // Non-affine starting points exercise Z != 1.
+            points.push(EdwardsPoint::scalar_mul_base_pruned(&bytes).add(mixed));
+        }
+
+        for point in points {
+            let mut extended = point;
+            let mut projective = ProjectivePoint::from_extended(point);
+            for chain in 0..12 {
+                let expected = extended.double();
+                let actual = projective.double_extended();
+                assert!(actual.is_valid().to_bool(), "chain {chain}: invalid point");
+                assert!(actual.ct_eq(&expected).to_bool(), "chain {chain}: differs");
+                projective = projective.double();
+                for coordinate in [projective.x, projective.y, projective.z] {
+                    coordinate.assert_lazy_bound_for_test();
+                }
+                extended = expected;
+            }
+        }
+    }
+
+    #[test]
+    fn public_straus_matches_the_full_extended_reference_on_sparse_and_random_scalars() {
+        let public = EdwardsPoint::decode_strict_subgroup(&TEST_PUBLIC_ENCODING)
+            .expect("the reference public key is a strict subgroup point");
+        let table = public.prepare_vartime_table();
+        let mut near_order = PRIME_ORDER_BYTES;
+        near_order[0] -= 1;
+
+        let mut scalars = std::vec![
+            Scalar::ZERO,
+            Scalar::ONE,
+            scalar(&SCALAR_12345),
+            scalar(&TEST_NONCE_SCALAR),
+            scalar(&near_order),
+        ];
+        // Sparse scalars give long runs of projective doublings, a leading
+        // digit at the top position and a final digit at position zero.
+        for bit in [1_usize, 7, 8, 9, 63, 64, 150, 298, 299] {
+            let mut bytes = [0_u8; FIELD_BYTES];
+            bytes[bit >> 3] |= 1 << (bit & 7);
+            scalars.push(scalar(&bytes));
+            bytes[0] |= 1;
+            scalars.push(scalar(&bytes));
+        }
+        let mut state = 0x5354_5241_5553_3031_u64;
+        for _ in 0..40 {
+            let mut bytes = [0_u8; crate::parameters::HASH_BYTES];
+            for byte in &mut bytes {
+                *byte = splitmix64(&mut state) as u8;
+            }
+            scalars.push(*Scalar::reduce_hash_le(&bytes));
+        }
+
+        for base_scalar in &scalars {
+            for point_scalar in &scalars {
+                let expected =
+                    vartime_double_scalar_mul_reference(base_scalar, point_scalar, &table);
+                let actual = EdwardsPoint::vartime_double_scalar_mul_basepoint(
+                    base_scalar,
+                    point_scalar,
+                    &table,
+                );
+                assert!(actual.is_valid().to_bool());
+                assert!(
+                    actual.ct_eq(&expected).to_bool(),
+                    "projective doubling runs must retain the extended Straus result"
+                );
+            }
         }
     }
 

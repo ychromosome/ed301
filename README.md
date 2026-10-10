@@ -128,7 +128,7 @@ cargo test --locked --offline --release --features sign-self-verify
 cargo test --manifest-path crates/x301/Cargo.toml --locked --offline --release
 ```
 
-This runs 67 Ed301 tests in each feature configuration and 59 X301 tests.
+This runs 70 Ed301 tests in each feature configuration and 62 X301 tests.
 It is a correctness smoke test, not the complete release-profile or
 side-channel gate. The [Rust guide](rust/README.md) and
 [Phase-E verification guide](phase-e/README.md) cover the full checks.
@@ -191,6 +191,9 @@ PKCS#8 password costs and documents the RAND and architecture boundaries.
 The [October 7 follow-up](docs/REVIEW_FOLLOWUP_20261007.md) restores the
 Euler criterion in public-key subgroup validation after the bound
 crypto-bigint Jacobi symbol accepted order-2q keys.
+The [October 10 performance review](docs/PERFORMANCE_REVIEW_20261010.md)
+speeds up verification and public-key import on public-only paths; the
+codegen-gate rules for the replaced exponentiator await re-baselining.
 
 Development history is on `Testing`, condensed review snapshots on `Review`;
 `main` is reserved for an explicitly approved product release.
