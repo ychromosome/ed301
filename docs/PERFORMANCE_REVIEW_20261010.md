@@ -105,6 +105,14 @@ Ausgeführt mit rustc 1.97.0 / LLVM 22.1.6 (x86-64):
   Importgrenze definiert/markiert/definiert wie
   `run_import_boundary_taint.py` (markierte Eingabe abgelehnt, Exit 101);
   X301 vollständiger Gate-B-Korpus, 263 Fälle (526 Läufe). Alle bestanden.
+- Provider-Workspace (Nachtrag): 20 Ed301- und 7 X301-Tests gegen ein lokal
+  aus dem Release-Archiv gebautes OpenSSL 3.5.8, mit rustc 1.97.0 und 1.91.0:
+  bestanden.
+- Mindestversion (Nachtrag): Mit rustc 1.91.0 / LLVM 21.1.2 bestehen
+  zusätzlich alle Kern-Tests (70/70/62) und alle oben genannten Taint-Läufe
+  (36 + 3 + 526). Rust 1.90.0 scheitert einzig an `u64::borrowing_sub`
+  (stabil seit 1.91); die Abhängigkeiten verlangen höchstens 1.85. Die
+  deklarierte Mindestversion 1.91 ist damit die tatsächlich nötige und bleibt.
 - Codegröße: Die Kette (3,6 KB) ist kleiner als der Fenster-Exponentiator
   (7,3 KB). Die Verifikationsschleife wächst um etwa 17 KB; das Ed301-
   Benchmark-Binary insgesamt von 538 240 auf 555 040 Byte Text (+3,1 %).
@@ -129,8 +137,6 @@ Ausgeführt mit rustc 1.97.0 / LLVM 22.1.6 (x86-64):
   keinen Aufruf; beide haben keine indizierten Zugriffe. Die Exponent-Herkunft liegt
   nicht mehr als Read-only-Bytes vor, sondern in dieser Zählerfolge und den
   Multiplikanden; die Quellbindung leisten Konstantenblock und Tests.
-- Provider-Tests (benötigen OpenSSL ≥ 3.5.7; hier nur 3.0.13). Der Provider
-  nutzt die unveränderte öffentliche Rust-API.
 - Benchmarks auf dem E8-Referenzrechner, Speicher-/Timing-Lanes,
   OpenSSL-Lanes, Python-/Node-Referenzen (Referenzen unverändert).
 

@@ -9,6 +9,14 @@ Run Cargo from this directory so that `.cargo/config.toml` selects the
 vendored dependencies; keep `CARGO_HOME` and `CARGO_TARGET_DIR` outside the
 checkout. The declared minimum Rust version is 1.91.
 
+1.91 is the actual minimum: the field arithmetic uses `u64::borrowing_sub`,
+stable since 1.91, for its branch-free runtime borrow chain; all vendored
+dependencies require at most 1.85. Rust 1.90.0 fails at exactly that call,
+while 1.91.0 passes the core, provider and secret-taint checks (checked
+2026-10-10). The Rust 1.98.0 / LLVM 21.1.8 named by the codegen gate is
+the identity of the reviewed compiler output, not a build requirement;
+any other compiler needs its own review of its actual binaries.
+
 Public-key import is variable-time and must receive only public data.
 Secret-key derivation and signing do not use that import path.
 
