@@ -128,7 +128,7 @@ cargo test --locked --offline --release --features sign-self-verify
 cargo test --manifest-path crates/x301/Cargo.toml --locked --offline --release
 ```
 
-This runs 70 Ed301 tests in each feature configuration and 62 X301 tests.
+This runs 71 Ed301 tests in each feature configuration and 63 X301 tests.
 It is a correctness smoke test, not the complete release-profile or
 side-channel gate. The [Rust guide](rust/README.md) and
 [Phase-E verification guide](phase-e/README.md) cover the full checks.
@@ -194,6 +194,9 @@ crypto-bigint Jacobi symbol accepted order-2q keys.
 The [October 10 performance review](docs/PERFORMANCE_REVIEW_20261010.md)
 speeds up verification and public-key import on public-only paths; the
 codegen-gate rules for the replaced exponentiator await re-baselining.
+The [adversarial review](docs/ADVERSARIAL_REVIEW_20261010.md) of both cores
+and the provider FFI found no exploitable defect and makes the subgroup
+predicate fail closed for non-affine input.
 
 Development history is on `Testing`, condensed review snapshots on `Review`;
 `main` is reserved for an explicitly approved product release.

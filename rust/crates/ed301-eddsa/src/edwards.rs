@@ -533,7 +533,9 @@ impl EdwardsPoint {
     }
 
     /// Require nonidentity membership in `4E = E[q]` after canonical decoding.
-    /// The caller must supply an affine point returned by `decode` (`Z = 1`).
+    /// The caller must supply an affine point returned by `decode` (`Z = 1`);
+    /// the halving terms read `y` as an affine coordinate, so any other
+    /// representation is rejected rather than misjudged.
     /// This is a public-input-only path, not a constant-time secret-point test.
     /// Both symbols and the square-root validity mask are always computed;
     /// no division or selection of a rational halving root is needed.
@@ -544,6 +546,7 @@ impl EdwardsPoint {
         first_symbol
             .and(second_symbol)
             .and(root_valid)
+            .and(self.z.ct_eq(&FieldElement::ONE))
             .and(self.y.ct_eq(&FieldElement::ONE.neg()).not())
             .and(self.is_identity().not())
     }
@@ -1421,6 +1424,29 @@ mod tests {
 
         assert_eq!(rounds, 301);
         assert!(result.is_identity().to_bool());
+    }
+
+    /// The halving terms read `y` as an affine coordinate. A projective
+    /// representation of a valid prime-order point must be rejected, not
+    /// misjudged, so a future caller that skips canonical decoding fails
+    /// closed in release builds as well.
+    #[test]
+    fn halving_predicate_rejects_non_affine_representations() {
+        let public = EdwardsPoint::decode_strict_subgroup(&TEST_PUBLIC_ENCODING)
+            .expect("the reference public key is a strict subgroup point");
+        assert!(public.is_prime_subgroup_decoded().to_bool());
+        let projective = public.double().add(public.negate());
+        assert!(projective.ct_eq(&public).to_bool());
+        assert!(!projective.z.ct_eq(&FieldElement::ONE).to_bool());
+        // Bypass the debug assertion in `halving_terms` by evaluating the
+        // production predicate only through its public release behaviour.
+        if cfg!(debug_assertions) {
+            return;
+        }
+        assert!(!projective.is_prime_subgroup_decoded().to_bool());
+        let canonical = EdwardsPoint::decode(&projective.encode().expect("valid point"))
+            .expect("canonical re-decoding");
+        assert!(canonical.is_prime_subgroup_decoded().to_bool());
     }
 
     #[test]
