@@ -1,0 +1,12 @@
+#ifndef ED301V2_PARAM_HELPERS_H
+#define ED301V2_PARAM_HELPERS_H
+
+#include "../../../common/param_helpers.h"
+
+#define ed301v2_param_set_optional_int curve301_param_set_optional_int
+#define ed301v2_param_set_optional_utf8_ptr curve301_param_set_optional_utf8_ptr
+#define ed301v2_param_set_optional_utf8_string curve301_param_set_optional_utf8_string
+#define ed301v2_param_set_optional_octet_string curve301_param_set_optional_octet_string
+#define ed301v2_param_get_strict_octet_string curve301_param_get_strict_octet_string
+
+#endif
