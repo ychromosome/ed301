@@ -1,0 +1,24 @@
+Prepared reference environment (not a confirmation-run receipt)
+Recorded at: 2026-09-09T17:28:35Z
+Platform: Fedora 43, x86-64
+Available logical CPUs: 32
+Selected worker count: 10
+
+GP/PARI CALCULATOR Version 2.17.4 (released)
+amd64 running linux (x86-64/GMP-6.3.0 kernel) 64-bit version
+compiled: Jul 9 2026, gcc version 15.2.1 20260123 (GCC)
+threading engine: pthread
+readline v8.3 disabled, extended help enabled
+
+Python 3.14.7
+git version 2.55.0
+
+RPM package identifiers:
+pari-gp-2.17.4-1.fc43.x86_64
+pari-seadata-20090618-29.fc43.noarch
+python3-3.14.7-1.fc43.x86_64
+git-2.55.0-1.fc43.x86_64
+
+The actual A2/A3 run must record and check its environment against this file.
+These version strings are provenance metadata, not software signatures or
+evidence that any confirmation computation has already run.

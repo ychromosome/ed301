@@ -1,0 +1,19 @@
+Ed301-EdDSA and X301
+Copyright 2026 Martin Wolf
+
+Author: Martin Wolf. He designed Ed301-EdDSA and X301, chose the curve
+parameters and the rule that selected them, assigned the identifiers and
+directs the project.
+
+Co-authors: the AI assistants OpenAI ChatGPT and Anthropic Claude. Under
+Martin Wolf's direction they contributed source code, test and verification
+tooling, reviews and documentation.
+
+The Python references adapt earlier Ed301 work by the same author. The file
+vectors/v1/ed301-eddsa-v1.json is retained unchanged as a negative test
+control for the earlier generation.
+
+No ownership is claimed in mathematical facts, formulae or algorithms.
+References to RFC, NIST and Explicit-Formulas Database publications do not
+relicense or incorporate those publications. Third-party code keeps its own
+license; see rust/THIRD_PARTY_NOTICES.md.
