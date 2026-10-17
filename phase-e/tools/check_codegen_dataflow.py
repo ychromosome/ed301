@@ -307,7 +307,9 @@ def public_import_boundary(symbols, relative_got):
                     incoming[target].append({"caller": caller, "instruction": hex(item.address)})
     require(incoming[importer], "public parser has no audited incoming edge")
     require(observed_got == set(protected_got), "unaccounted public-only function-pointer relocation")
-    require(len(incoming[jacobi]) == 2, "public import must retain both Jacobi symbol calls")
+    # Since 2026-10-17 the import evaluates one Euler symbol (the second
+    # halving step); the first symbol is implied by the square-root mask.
+    require(len(incoming[jacobi]) == 1, "public import must retain the second-step Euler symbol call")
     return {"classification": "public-input-only; variable public timing permitted",
             "incoming_edges": incoming,
             "scope": "resolved direct and relative-GOT edges across explicit no-inline boundaries; complemented by source and taint checks"}

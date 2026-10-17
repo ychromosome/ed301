@@ -47,6 +47,12 @@ const MODULUS: U320 = U320::from_be_hex(generated_parameters::FIELD_MODULUS_HEX)
 #[derive(Clone, Copy)]
 pub(crate) struct FieldElement(MontgomeryFieldElement);
 
+impl zeroize::Zeroize for FieldElement {
+    fn zeroize(&mut self) {
+        self.0.zeroize();
+    }
+}
+
 impl FieldElement {
     /// Additive identity.
     pub(crate) const ZERO: Self = Self(MontgomeryFieldElement::ZERO);

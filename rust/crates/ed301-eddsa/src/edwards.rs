@@ -468,6 +468,10 @@ impl EdwardsPoint {
     }
 
     fn scalar_mul_base_encoded(scalar: &[u8; FIELD_BYTES]) -> Self {
+        // `signed_radix16` does not propagate a carry out of the top digit, so
+        // that digit must stay within the table width even after a carry:
+        // canonical scalars have a zero top nibble, pruned scalars a one.
+        debug_assert!(scalar[FIELD_BYTES - 1] < 0x80);
         let digits = signed_radix16(scalar);
         let mut result = crate::secret::secret(Self::IDENTITY);
         #[cfg(test)]
@@ -537,14 +541,21 @@ impl EdwardsPoint {
     /// the halving terms read `y` as an affine coordinate, so any other
     /// representation is rejected rather than misjudged.
     /// This is a public-input-only path, not a constant-time secret-point test.
-    /// Both symbols and the square-root validity mask are always computed;
-    /// no division or selection of a rational halving root is needed.
+    /// The square-root validity mask and the second symbol are always
+    /// computed; no division or selection of a rational halving root is
+    /// needed.
+    ///
+    /// The first halving symbol `chi(w)` is not evaluated separately: on the
+    /// curve `1 - y^2 = x^2 (a - d y^2)`, so `w = B (1 - y^2) =
+    /// (2x / (a - d))^2 * delta`, and `delta = (a - d)(a - d y^2)` never
+    /// vanishes because `a / d` is a non-square. For `x != 0` the symbol of
+    /// `w` therefore equals the square-root validity of `delta`; `x = 0`
+    /// means `y = ±1`, which the identity and `y = -1` checks below exclude.
+    /// The tests compare both predicates and `[q]P` on every halving vector.
     pub(crate) fn is_prime_subgroup_decoded(&self) -> Choice {
-        let (w, _, _, second, root_valid) = self.halving_terms();
-        let first_symbol = w.is_nonzero_square();
+        let (_, _, _, second, root_valid) = self.halving_terms();
         let second_symbol = second.is_nonzero_square();
-        first_symbol
-            .and(second_symbol)
+        second_symbol
             .and(root_valid)
             .and(self.z.ct_eq(&FieldElement::ONE))
             .and(self.y.ct_eq(&FieldElement::ONE.neg()).not())
@@ -1486,6 +1497,16 @@ mod tests {
                 old.to_bool(),
                 "random point {index}, torsion {class}"
             );
+            // The omitted first symbol chi(w) equals the root validity of
+            // delta on every point with y != -1.
+            let (w, _, _, _, root_valid) = decoded.halving_terms();
+            if !decoded.y.ct_eq(&FieldElement::ONE.neg()).to_bool() {
+                assert_eq!(
+                    w.is_nonzero_square().to_bool(),
+                    root_valid.to_bool(),
+                    "chi(w) versus root validity, point {index}, torsion {class}"
+                );
+            }
             assert_eq!(
                 new.to_bool(),
                 class == 0 && !decoded.is_identity().to_bool()
@@ -1576,6 +1597,13 @@ mod tests {
                     case["chi_w"].as_i64().expect("chi w"),
                     "{label}"
                 );
+                if !point.y.ct_eq(&FieldElement::ONE.neg()).to_bool() {
+                    assert_eq!(
+                        w.is_nonzero_square().to_bool(),
+                        valid.to_bool(),
+                        "chi(w) versus root validity, {label}"
+                    );
+                }
             }
             if case.get("delta_decimal").is_some() {
                 assert!(valid.to_bool(), "{label}");

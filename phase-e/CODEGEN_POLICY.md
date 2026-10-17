@@ -159,7 +159,9 @@ relative-GOT incoming edge, rejects unclassified callers, and rejects escaped
 public-helper addresses or unaccounted function-pointer relocations. The two
 mixed provider callbacks key_import/key_set_encoded_public are NOT themselves
 classified as public-only: only their supplied public-key argument reaches
-the public parser. Both nonzero-square calls remain inside that parser. Direct and
+the public parser. The remaining nonzero-square call (one since 2026-10-17; the
+first halving symbol is implied by the square-root mask) stays inside that
+parser. Direct and
 GOT-based secret-to-public calls and function-pointer escapes are negative
 controls. This bounded call-site check is complemented by source review,
 unit call counters and instrumented input-Vbit admission checks; it is not a

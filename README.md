@@ -197,6 +197,9 @@ codegen-gate rules for the replaced exponentiator await re-baselining.
 The [adversarial review](docs/ADVERSARIAL_REVIEW_20261010.md) of both cores
 and the provider FFI found no exploitable defect and makes the subgroup
 predicate fail closed for non-affine input.
+The [October 17 follow-up](docs/REVIEW_FOLLOWUP_20261017.md) drops a
+redundant Euler symbol from public-key import, wipes the inversion
+conversion buffers and records the isomorphism to the `a = 1` model.
 
 Development history is on `Testing`, condensed review snapshots on `Review`;
 `main` is reserved for an explicitly approved product release.
