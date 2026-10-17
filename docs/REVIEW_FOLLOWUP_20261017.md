@@ -45,17 +45,11 @@ Signaturpfade sind unverändert.
   hart abgewiesen. Ergebnis gleich, kein anderer Decoder kennt die OID.
 - `WeakSecret` in X301: doppelte Absicherung neben dem `Z = 0`-Test; bleibt.
 
-## Offen
+## Entschieden
 
-- **ML-KEM auf dem Child-Libctx** (`hybrid_kem.c`: `EVP_PKEY_Q_keygen`,
-  `EVP_PKEY_encapsulate`): OpenSSL legt dabei Thread-DRBGs mit
-  Thread-Exit-Handlern auf dem Child-Kontext an, genau das, was
-  `provider_rand.h` für X301 vermeidet. Lösung: Keygen-Seed
-  (`OSSL_PKEY_PARAM_ML_KEM_SEED`) und Encapsulate-Zufall
-  (`OSSL_KEM_PARAM_IKME`) aus dem Provider-DRBG übergeben.
-- **Fermat-Inversion** `z^(p−2) = (z^((p−3)/4))⁴·z` statt safegcd: entfernt
-  safegcd und `field.rs` aus dem Produktionspfad und löst die
-  Nullungsfrage vollständig. Messung siehe unten; Entscheidung offen.
+- **Fermat-Inversion** `z^(p−2) = (z^((p−3)/4))⁴·z` statt safegcd: würde
+  safegcd und `field.rs` aus dem Produktionspfad entfernen, kostet aber rund
+  3 µs je Inversion (Messung unten). safegcd bleibt.
 
 ## Messung
 
