@@ -18,10 +18,14 @@ per-call latency percentiles.
 | Ed301 key expansion | 28.1 (27.9) |
 | Ed301 sign (prepared key) | 29.3 (29.1) |
 | Ed301 verify (prepared key) | 68.8 (68.7) |
-| Ed301 public-key import | 50.4 (50.3) |
+| Ed301 public-key import | 44.6 (44.5) ¹ |
 | X301 public key from secret | 28.0 (27.8) |
 | X301 shared secret | 58.3 (58.2) |
 | X301 public-key import | 0.005 (0.005) |
+
+¹ Re-measured on 2026-10-17 with the same method after the subgroup check
+dropped its redundant first Euler symbol (50.4 µs before). The other rows
+are unaffected by that change and were not re-measured.
 
 Ed301 public-key import includes the full prime-order subgroup check. X301
 public-key import is only the canonical-encoding check; the small-order and

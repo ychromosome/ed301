@@ -222,14 +222,24 @@ impl Fe301 {
         Self(reduce_wide_const(square_wide(self.0)))
     }
 
+    /// The conversion buffers and the Montgomery-form copies are wiped
+    /// before returning; the library's own inversion temporaries are not
+    /// under this crate's control.
     pub(crate) fn invert(self) -> CtOption<Self> {
-        let oracle = crate::field::FieldElement::from_canonical_bytes(&self.to_canonical_bytes())
-            .to_inner_unchecked();
+        use zeroize::Zeroize;
+
+        let mut encoded = self.to_canonical_bytes();
+        let mut oracle =
+            crate::field::FieldElement::from_canonical_bytes(&encoded).to_inner_unchecked();
+        encoded.zeroize();
         let inverse = oracle.invert();
+        oracle.zeroize();
         let present = inverse.is_some();
-        let converted =
-            Self::from_canonical_bytes(&inverse.to_inner_unchecked().to_canonical_bytes())
-                .to_inner_unchecked();
+        let mut inverse_value = inverse.to_inner_unchecked();
+        let mut inverse_bytes = inverse_value.to_canonical_bytes();
+        inverse_value.zeroize();
+        let converted = Self::from_canonical_bytes(&inverse_bytes).to_inner_unchecked();
+        inverse_bytes.zeroize();
         CtOption::new(converted, present)
     }
 

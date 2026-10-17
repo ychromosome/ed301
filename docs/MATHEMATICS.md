@@ -31,6 +31,15 @@ E:  a·x² + y² = 1 + d·x²·y²   over F_p,   a = 247399² = 61206265201,   d
 has `a` a square and `d` a non-square in `F_p`, so the addition law is complete:
 it has no exceptional cases on `E(F_p)`.
 
+Because `a = s²` is a square, the substitution `x̃ = s·x` maps `E` onto the
+untwisted Edwards curve `x̃² + y² = 1 + (d/a)·x̃²y²` over `F_p`; `d/a` is again
+a non-square. The two models are isomorphic over `F_p` and share the group,
+its order and every security figure below. Since `p ≡ 3 (mod 4)`, `−1` is a
+non-square, so a complete curve over this field necessarily has a square `a`
+and the `a = −1` speed-up of Ed25519 is unavailable; the implementation
+keeps `a = s²` and pays one multiplication by the 36-bit constant `a` per
+doubling and mixed addition.
+
 | Quantity | Value |
 | --- | --- |
 | `#E(F_p)` | `4q` |
@@ -131,10 +140,17 @@ reduces its input. X301 transmits only the canonical Montgomery `u`.
 
 Ed301 accepts a public key only if it lies in the order-`q` subgroup. Since the
 group is cyclic of order `4q`, this is equivalent to the point being divisible
-by 4. The implementation tests this with two halving steps, each decided by a
-quadratic-residue test (Euler's criterion with the fixed exponent
-`(p − 1)/2`), instead of computing `[q]P`. The result is checked against
-`[q]P = O` in the tests; see
+by 4. The implementation tests this with two halving steps instead of
+computing `[q]P`. With `B = 4/(a − d)`, `w = B(1 − y²)` and
+`Δ = (a − d)(a − dy²)`, the first step asks whether `w` is a square. On the
+curve `1 − y² = x²(a − dy²)`, hence `w = (2x/(a − d))²·Δ`, and `Δ` never
+vanishes because `a/d` is a non-square; for `x ≠ 0` the first step is thus
+equivalent to `Δ` having a square root, which the second step needs anyway
+(`x = 0` means `y = ±1`, handled separately). The code therefore computes
+one fixed-exponent square root of `Δ` and one Euler symbol (exponent
+`(p − 1)/2`) for the second step: three exponentiations per import including
+decoding. The predicate is checked against `[q]P = O` on 100,000 random
+points of all four cosets and on the vectors in
 [`vectors/ed301-v2-subgroup-halving.json`](../vectors/ed301-v2-subgroup-halving.json).
 
 The bundled `crypto-bigint 0.7.5` `jacobi_symbol` returns wrong signs for some
