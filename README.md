@@ -90,9 +90,9 @@ AMD Ryzen 9 5950X, one core, microseconds (median of 9 runs):
 
 | Operation | Ed301 / X301 | Ed25519 / X25519 | Ed448 / X448 |
 | --- | ---: | ---: | ---: |
-| Sign (EVP) | 30.0 | 28.2 | 162.7 |
-| Verify (EVP) | 69.0 | 78.1 | 176.9 |
-| Key exchange, derive (EVP) | 58.3 | 23.7 | 169.7 |
+| Sign (EVP) | 25.1 | 28.5 | 161.4 |
+| Verify (EVP) | 68.9 | 78.0 | 186.4 |
+| Key exchange, derive (EVP) | 57.6 | 23.6 | 171.2 |
 
 Details and the method are in [benchmarks](docs/BENCHMARKS.md).
 

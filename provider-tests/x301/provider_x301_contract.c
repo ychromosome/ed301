@@ -311,6 +311,37 @@ static int public_only_cross_libctx_export(
     return result;
 }
 
+static int mixed_get_params(EVP_PKEY *key, int expect_private)
+{
+    unsigned char public_bytes[X301_BYTES + 1] = { 0 };
+    unsigned char secret[X301_BYTES + 1];
+    unsigned char untouched[X301_BYTES + 1];
+    OSSL_PARAM params[] = {
+        OSSL_PARAM_octet_string(
+            OSSL_PKEY_PARAM_PUB_KEY, public_bytes, sizeof(public_bytes)),
+        OSSL_PARAM_octet_string(
+            OSSL_PKEY_PARAM_PRIV_KEY, secret, sizeof(secret)),
+        OSSL_PARAM_END
+    };
+    int result;
+
+    memset(secret, 0xa5, sizeof(secret));
+    memset(untouched, 0xa5, sizeof(untouched));
+    result = EVP_PKEY_get_params(key, params) == 1
+        && OSSL_PARAM_modified(&params[0])
+        && params[0].return_size == X301_BYTES
+        && CRYPTO_memcmp(public_bytes, PUBLIC_A, X301_BYTES) == 0
+        && OSSL_PARAM_modified(&params[1]) == expect_private
+        && (expect_private
+            ? params[1].return_size == X301_BYTES
+                && CRYPTO_memcmp(secret, SECRET_A, X301_BYTES) == 0
+            : memcmp(secret, untouched, sizeof(secret)) == 0);
+
+    OPENSSL_cleanse(secret, sizeof(secret));
+    ERR_clear_error();
+    return result;
+}
+
 static int derive_initialized(
     EVP_PKEY_CTX *context,
     unsigned char output[X301_BYTES])
@@ -1647,6 +1678,12 @@ int main(int argc, char **argv)
         goto done;
     }
     pass("T6 public-only KEYPAIR export supports cross-libctx peers");
+
+    if (!mixed_get_params(public_a, 0) || !mixed_get_params(private_a, 1)) {
+        fail("T6 pub+priv query skips the absent private key");
+        goto done;
+    }
+    pass("T6 pub+priv query skips the absent private key");
 
     if (!aliases_are_rejected_without_changing_keys(
             libctx, private_a, public_a, public_b)) {
