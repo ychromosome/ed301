@@ -89,13 +89,12 @@ impl zeroize::Zeroize for EncodingInverse {
 }
 
 /// Affine cached point for the mixed-addition formulas used by fixed-base and
-/// public verification tables. `xy = x + y` and `dt_abs = |d|*x*y` remove one
-/// field multiplication and the small-constant multiply from every table add.
+/// public verification tables. `dt_abs = |d|*x*y` removes one field
+/// multiplication and the small-constant multiply from every table add.
 #[derive(Clone, Copy)]
 pub(crate) struct AffineNielsPoint {
     x: FieldElement,
     y: FieldElement,
-    xy: FieldElement,
     dt_abs: FieldElement,
 }
 
@@ -103,7 +102,6 @@ impl AffineNielsPoint {
     const IDENTITY: Self = Self {
         x: FieldElement::ZERO,
         y: FieldElement::ONE,
-        xy: FieldElement::ONE,
         dt_abs: FieldElement::ZERO,
     };
 
@@ -113,7 +111,6 @@ impl AffineNielsPoint {
         Self {
             x,
             y,
-            xy: x.add(y),
             dt_abs: x.mul(y).mul_small(EDWARDS_D_MAGNITUDE),
         }
     }
@@ -124,17 +121,14 @@ impl AffineNielsPoint {
         Self {
             x,
             y,
-            xy: x.add_const(y),
             dt_abs: x.mul_const(y).mul_small_const(EDWARDS_D_MAGNITUDE),
         }
     }
 
     fn negate(self) -> Self {
-        let x = self.x.neg();
         Self {
-            x,
+            x: self.x.neg(),
             y: self.y,
-            xy: x.add(self.y),
             dt_abs: self.dt_abs.neg(),
         }
     }
@@ -143,7 +137,6 @@ impl AffineNielsPoint {
         Self {
             x: FieldElement::conditional_select(when_false.x, when_true.x, choice),
             y: FieldElement::conditional_select(when_false.y, when_true.y, choice),
-            xy: FieldElement::conditional_select(when_false.xy, when_true.xy, choice),
             dt_abs: FieldElement::conditional_select(when_false.dt_abs, when_true.dt_abs, choice),
         }
     }
@@ -327,12 +320,13 @@ impl EdwardsPoint {
             Lazy::from_fe301(self.z),
             Lazy::from_fe301(self.t),
         );
-        let xx = x.mul(Lazy::from_fe301(rhs.x));
-        let yy = y.mul(Lazy::from_fe301(rhs.y));
+        let (rhs_x, rhs_y) = (Lazy::from_fe301(rhs.x), Lazy::from_fe301(rhs.y));
+        let xx = x.mul(rhs_x);
+        let yy = y.mul(rhs_y);
         let dt_abs = t.mul(Lazy::from_fe301(rhs.dt_abs));
         let cross = x
             .add_loose(y)
-            .mul_tight(Lazy::from_fe301(rhs.xy))
+            .mul(rhs_x.add_loose(rhs_y))
             .sub_loose(xx.add_loose(yy).tighten());
         let difference = z.add_loose(dt_abs);
         let sum = z.sub_loose(dt_abs);
@@ -1170,7 +1164,6 @@ mod tests {
         fn check(cached: AffineNielsPoint) {
             let affine = EdwardsPoint::from_affine(cached.x, cached.y);
             assert!(affine.is_valid().to_bool());
-            assert!(cached.xy.ct_eq(&cached.x.add(cached.y)).to_bool());
             assert!(
                 cached
                     .dt_abs

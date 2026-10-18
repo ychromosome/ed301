@@ -769,7 +769,7 @@ pub(crate) mod test_support {
         assert_eq!(core::mem::size_of_val(&signature), SIGNATURE_BYTES);
         assert_eq!(signature.as_bytes(), &signature.to_bytes());
         assert!(core::mem::size_of::<ValidatedPublicKey>() < 1024);
-        assert!(core::mem::size_of::<VerifyingKey>() > 10 * 1024);
+        assert!(core::mem::size_of::<VerifyingKey>() > 7 * 1024);
     }
 
     #[test]

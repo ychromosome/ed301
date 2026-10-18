@@ -533,7 +533,8 @@ static int x301_key_get_params(void *key_data, OSSL_PARAM params[])
     }
 
     private_param = OSSL_PARAM_locate(params, OSSL_PKEY_PARAM_PRIV_KEY);
-    if (private_param != NULL) {
+    if (private_param != NULL
+            && key->provider->rust->key_has(key->inner, 1, 0) == 1) {
         if (key->provider->rust->key_get_private(
                 key->inner, private_key, sizeof(private_key)) != 1
                 || !x301_param_set_optional_octet_string(

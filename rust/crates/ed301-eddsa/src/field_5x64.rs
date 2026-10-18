@@ -619,7 +619,8 @@ impl Fe301LazyLinear {
     }
 
     /// Multiply a value below `4p` by a lazy value below `2p`.
-    /// Used by mixed Edwards addition and the full-domain oracle tests.
+    /// Retained for the full-domain oracle tests.
+    #[cfg(test)]
     #[inline(always)]
     pub(crate) fn mul_tight(self, rhs: Fe301Lazy) -> Fe301Lazy {
         Fe301Lazy(reduce_wide_unreduced(multiply_wide(self.0, rhs.0)))
@@ -906,6 +907,7 @@ const fn reduce_wide_const(product: [u64; LIMBS * 2]) -> [u64; LIMBS] {
 /// `2^301 + 2^183 < 2p`, so one conditional subtraction canonicalises it.
 #[inline(always)]
 const fn reduce_wide_unreduced(product: [u64; LIMBS * 2]) -> [u64; LIMBS] {
+    debug_assert!(product[LIMBS * 2 - 1] >> 30 == 0);
     let low = [
         product[0],
         product[1],

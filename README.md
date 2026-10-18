@@ -73,43 +73,44 @@ and supersedes their historical phase-status and future-allocation statements.
 
 ## Performance
 
-Selected E8 measurements on an AMD Ryzen 9 5950X, x86-64, CPU 2, using
-Rust 1.98.0 / LLVM 21.1.8, O3, ThinLTO and one codegen unit. Values are
-microseconds, rounded to three decimals, and are medians of nine run means.
-These are the recorded E8 results, not measurements of the Fedora RPMs.
+AMD Ryzen 9 5950X, x86-64, CPU 2, O3, ThinLTO and one codegen unit. Values
+are microseconds and medians of nine run means. v1 values are the recorded
+E8 results (Rust 1.98.0 / LLVM 21.1.8, OpenSSL 3.5.8); v2 and the reference
+algorithms were measured on 2026-10-19 (Rust 1.99.0, OpenSSL 4.0.3).
+None of these are measurements of the Fedora RPMs.
 
 ### Rust core
 
 | Operation | v1 | v2 |
 | --- | ---: | ---: |
-| Ed301 key expansion | 28.371 | 28.321 |
-| Ed301 prepared sign | 29.047 | 29.192 |
-| Ed301 prepared verify | 86.926 | 85.145 |
-| Ed301 public-key import | 99.561 | 50.780 |
-| X301 public-key derivation | 27.943 | 28.767 |
-| X301 shared-secret derivation | 58.001 | 58.605 |
+| Ed301 key expansion | 28.371 | 23.2 |
+| Ed301 prepared sign | 29.047 | 24.4 |
+| Ed301 prepared verify | 86.926 | 67.9 |
+| Ed301 public-key import | 99.561 | 43.5 |
+| X301 public-key derivation | 27.943 | 22.0 |
+| X301 shared-secret derivation | 58.001 | 58.9 |
 
-### OpenSSL EVP, 3.5.8 lane
+### OpenSSL EVP
 
 | Signature algorithm | Keygen | Sign | Verify |
 | --- | ---: | ---: | ---: |
-| Ed25519 | 24.964 | 23.948 | 78.379 |
+| Ed25519 | 28.6 | 28.2 | 78.2 |
 | Ed301-v1 | 56.966 | 29.880 | 87.186 |
-| Ed301-v2 | 29.968 | 29.925 | 83.613 |
-| Ed448 | 149.430 | 148.748 | 157.536 |
+| Ed301-v2 | 25.0 | 24.9 | 68.3 |
+| Ed448 | 160.9 | 161.9 | 178.5 |
 
 | Key exchange | Keygen | Derive, steady state |
 | --- | ---: | ---: |
-| X25519 | 23.943 | 23.879 |
+| X25519 | 27.8 | 23.6 |
 | X301-v1 | 29.674 | 57.390 |
-| X301-v2 | 29.481 | 58.146 |
-| X448 | 147.212 | 120.311 |
+| X301-v2 | 23.7 | 58.0 |
+| X448 | 159.1 | 169.2 |
 
-Public-key import and EVP Ed301 key generation are substantially faster than
-v1; not every v2 median is lower. All v2 builds use overflow checks; the
-historical X301-v1 comparison retains its documented crypto-bigint exception
-and C-O0 profile. Results depend on the platform, build and API layer.
-The [full benchmark tables](phase-e/E8_FINAL_BENCHMARKS.md) include dispersion,
+The v1 and v2 values come from different toolchains and OpenSSL versions;
+compare v2 with the reference rows of the same run. All v2 builds use
+overflow checks; the historical X301-v1 comparison retains its documented
+crypto-bigint exception and C-O0 profile. Results depend on the platform, build and API layer.
+The [historical E8 tables](phase-e/E8_FINAL_BENCHMARKS.md) include dispersion,
 both OpenSSL lanes, hybrid KEM, codecs and TLS-engine measurements;
 [resource measurements](phase-e/E8_FINAL_RESOURCES.md) cover size and memory.
 
@@ -200,6 +201,9 @@ predicate fail closed for non-affine input.
 The [October 17 follow-up](docs/REVIEW_FOLLOWUP_20261017.md) drops a
 redundant Euler symbol from public-key import, wipes the inversion
 conversion buffers and records the isomorphism to the `a = 1` model.
+The [October 19 follow-up](docs/REVIEW_FOLLOWUP_20261019.md) drops the
+cached `x + y` from the basepoint table and aligns X301 parameter queries on
+public-only keys with OpenSSL.
 
 Development history is on `Testing`, condensed review snapshots on `Review`;
 `main` is reserved for an explicitly approved product release.

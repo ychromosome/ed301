@@ -1617,9 +1617,9 @@ static int ed301v2_provider_get_capabilities(
     if (strcmp(capability, ED301V2_TLS_SIGALG_CAPABILITY) == 0)
         return callback(sigalg_parameters, callback_argument);
     /*
-     * Unknown capabilities succeed with zero entries; returning failure
-     * would abort the caller's provider iteration (libssl treats a zero
-     * return from the capability query as a hard error).
+     * Other capabilities succeed with zero entries. libssl treats a zero
+     * return from the TLS-GROUP query as a hard error and would fail
+     * SSL_CTX creation; the TLS-SIGALG result is ignored.
      */
     return 1;
 }
