@@ -35,7 +35,7 @@ Kurvenparameter, Byteformate und Ausgaben sind unverändert.
 
 ## Messung
 
-Ryzen 9 5950X, rustc 1.99, `rust/performance/ed301-bench`, CPU 2,
+Ryzen 9 5950X, rustc 1.99.1, `rust/performance/ed301-bench`, CPU 2,
 7 × 20 000 Aufrufe abwechselnd, Median in µs:
 
 | Operation | Vorher (`e6b8c50`) | Nachher |
@@ -50,7 +50,7 @@ Die README-Werte stammen aus einem eigenen Lauf mit dem Messverfahren aus
 
 ## Prüfungen
 
-rustc 1.99.0, x86-64:
+rustc 1.99.1, x86-64:
 
 - `cargo fmt --check`, `cargo clippy --all-targets` für Ed301 (ohne und mit
   `sign-self-verify`) und X301: ohne Befund.

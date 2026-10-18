@@ -76,7 +76,7 @@ and supersedes their historical phase-status and future-allocation statements.
 AMD Ryzen 9 5950X, x86-64, CPU 2, O3, ThinLTO and one codegen unit. Values
 are microseconds and medians of nine run means. v1 values are the recorded
 E8 results (Rust 1.98.0 / LLVM 21.1.8, OpenSSL 3.5.8); v2 and the reference
-algorithms were measured on 2026-10-19 (Rust 1.99.0, OpenSSL 4.0.3).
+algorithms were measured on 2026-10-19 (Rust 1.99.1, OpenSSL 4.0.3).
 None of these are measurements of the Fedora RPMs.
 
 ### Rust core
