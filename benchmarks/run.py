@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-"""Measure the Rust cores and the OpenSSL EVP layer; print Markdown tables.
+"""Measure the Rust cores, libsodium and the OpenSSL EVP layer; print Markdown tables.
 
 From the repository root, after building the provider modules (for example
 with provider-tests/run.py, which leaves them in <workdir>/modules):
@@ -9,8 +9,9 @@ with provider-tests/run.py, which leaves them in <workdir>/modules):
 
 Each case runs --runs times on one pinned CPU. Each run uses an iteration
 count calibrated to about 200 ms and reports its mean; the tables give the
-median and minimum of those run means in microseconds. Ed25519, Ed448,
-X25519 and X448 come from the same OpenSSL as reference points.
+median and minimum of those run means in microseconds. libsodium provides
+the optimized Ed25519/X25519 reference for the Rust cores; Ed25519, Ed448,
+X25519 and X448 in the EVP tables come from the same OpenSSL.
 """
 
 import argparse
@@ -47,6 +48,9 @@ def build():
         subprocess.run(["gcc", "-std=c11", "-D_GNU_SOURCE", "-O2", "-Wall", "-Wextra", "-Werror",
                         f"-I{prefix / 'include'}", ROOT / "benchmarks/evp" / f"{name}.c",
                         "-o", work / name, f"-L{lib}", f"-Wl,-rpath,{lib}", "-lcrypto"], check=True)
+    subprocess.run(["gcc", "-std=c11", "-D_GNU_SOURCE", "-O2", "-Wall", "-Wextra", "-Werror",
+                    ROOT / "benchmarks/native/sodium_bench.c", "-o", work / "sodium_bench", "-lsodium"],
+                   check=True)
 
 
 def mean_us(command):
@@ -82,13 +86,21 @@ def cell(result):
 
 build()
 ed, x = work / "target/release/ed301-benchmark", work / "target/release/x301-benchmark"
-table("Rust core", ["Operation", "Median (min) µs"], [
-    [label, cell(measure(lambda n, b=binary, o=op: [b, o, n]))]
-    for label, binary, op in (
-        ("Ed301 key expansion", ed, "expand"), ("Ed301 sign (prepared key)", ed, "sign"),
-        ("Ed301 verify (prepared key)", ed, "verify"), ("Ed301 public-key import", ed, "import"),
-        ("X301 public key from secret", x, "public"), ("X301 shared secret", x, "shared"),
-        ("X301 public-key import", x, "import-public"))])
+sodium = work / "sodium_bench"
+
+
+def row(label, binary, op, sodium_op):
+    ours = cell(measure(lambda n: [binary, op, n]))
+    reference = cell(measure(lambda n: [sodium, sodium_op, n])) if sodium_op else "–"
+    return [label, ours, reference]
+
+
+table("Rust core", ["Operation", "Ed301 / X301", "Ed25519 / X25519 (libsodium)"], [
+    row("Key expansion", ed, "expand", "expand"), row("Sign", ed, "sign", "sign"),
+    row("Verify", ed, "verify", "verify"), row("Public-key import", ed, "import", "import"),
+    row("X public key from secret", x, "public", "x-public"),
+    row("X shared secret", x, "shared", "x-shared"),
+    row("X public-key import", x, "import-public", None)])
 
 signatures = (("Ed25519", "ED25519", "-"), ("Ed301", "Ed301-EdDSA", "ed301_eddsa_v2"), ("Ed448", "ED448", "-"))
 table("OpenSSL EVP signatures", ["Algorithm", "Keygen", "Sign", "Verify"], [

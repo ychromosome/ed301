@@ -60,7 +60,7 @@ value are in [`math/`](math). See [the mathematics](docs/MATHEMATICS.md).
 
 Requirements: Rust 1.91 or later, Python 3.10 or later, gcc, OpenSSL 3.5.7+
 or 4.0.1+ with headers, and access to crates.io. Valgrind with its headers is
-needed for the taint harnesses.
+needed for the taint harnesses, libsodium with its headers for the benchmarks.
 
 ```sh
 # Rust cores
@@ -90,11 +90,13 @@ AMD Ryzen 9 5950X, one core, microseconds (median of 9 runs):
 
 | Operation | Ed301 / X301 | Ed25519 / X25519 | Ed448 / X448 |
 | --- | ---: | ---: | ---: |
-| Sign (EVP) | 25.1 | 28.5 | 161.4 |
-| Verify (EVP) | 68.9 | 78.0 | 186.4 |
-| Key exchange, derive (EVP) | 57.6 | 23.6 | 171.2 |
+| Sign (EVP) | 24.9 | 27.8 | 162.7 |
+| Verify (EVP) | 68.0 | 77.5 | 177.4 |
+| Key exchange, derive (EVP) | 57.8 | 23.6 | 168.2 |
 
-Details and the method are in [benchmarks](docs/BENCHMARKS.md).
+The reference columns are OpenSSL's built-in implementations. libsodium's
+optimized Ed25519/X25519 is about twice as fast as Ed301/X301. Details and the
+method are in [benchmarks](docs/BENCHMARKS.md).
 
 ## Security notes
 
