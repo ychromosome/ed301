@@ -220,6 +220,34 @@ fn all_gate_b_dh_pairs_match_both_directions_and_prepared_objects() {
 }
 
 #[test]
+fn wycheproof_pattern_edge_cases_match_reference_and_canonical_oracle() {
+    let v: Value =
+        serde_json::from_str(include_str!("../../../../vectors/x301-v2-wycheproof.json")).unwrap();
+    let cases = v["testGroups"][0]["tests"].as_array().unwrap();
+    assert_eq!(cases.len() as u64, v["numberOfTests"].as_u64().unwrap());
+    for case in cases {
+        let secret = hex(text(case, "private"));
+        let public = hex(text(case, "public"));
+        let expected = match text(case, "result") {
+            "valid" => Ok(fixed(text(case, "shared"))),
+            "invalid" => Err(X301Error::AllZeroSharedSecret),
+            _ => panic!("unexpected vector result"),
+        };
+        let id = &case["tcId"];
+        assert_eq!(
+            shared_secret(&secret, &public).map(|value| *value.as_bytes()),
+            expected,
+            "tcId {id}"
+        );
+        assert_eq!(
+            crate::x301::canonical_shared_for_test(&secret, &public).map(|value| *value.as_bytes()),
+            expected,
+            "tcId {id}"
+        );
+    }
+}
+
+#[test]
 fn all_thirty_three_gate_b_errors_have_the_correct_stage_and_no_output() {
     let v = corpus();
     let cases = v["errors"].as_array().unwrap();

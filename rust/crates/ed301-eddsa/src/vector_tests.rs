@@ -487,7 +487,7 @@ fn point_sign_and_reserved_bit_boundaries_are_explicit() {
 }
 
 #[test]
-fn deterministic_single_byte_mutations_fail_closed() {
+fn deterministic_single_bit_mutations_fail_closed() {
     let document = fixture();
     let case = by_id(
         document["signing"].as_array().expect("cases"),
@@ -497,28 +497,155 @@ fn deterministic_single_byte_mutations_fail_closed() {
     let message = decode_hex(case["message_hex"].as_str().expect("message"));
     let signature = decode_hex(case["trace"]["signature"].as_str().expect("signature"));
 
-    for index in 0..public_key.len() {
+    for index in 0..public_key.len() * 8 {
         let mut changed = public_key.clone();
-        changed[index] ^= 1;
+        changed[index >> 3] ^= 1 << (index & 7);
         assert!(
             !verify(&changed, &message, &signature),
-            "public byte {index}"
+            "public bit {index}"
         );
     }
-    for index in 0..signature.len() {
+    for index in 0..signature.len() * 8 {
         let mut changed = signature.clone();
-        changed[index] ^= 1;
+        changed[index >> 3] ^= 1 << (index & 7);
         assert!(
             !verify(&public_key, &message, &changed),
-            "signature byte {index}"
+            "signature bit {index}"
         );
     }
-    for index in 0..message.len() {
+    for index in 0..message.len() * 8 {
         let mut changed = message.clone();
-        changed[index] ^= 1;
+        changed[index >> 3] ^= 1 << (index & 7);
         assert!(
             !verify(&public_key, &changed, &signature),
-            "message byte {index}"
+            "message bit {index}"
+        );
+    }
+}
+
+fn add_le(target: &mut [u8], addend: &[u8]) {
+    let mut carry = 0_u16;
+    for (byte, add) in target.iter_mut().zip(addend) {
+        let sum = u16::from(*byte) + u16::from(*add) + carry;
+        *byte = sum as u8;
+        carry = sum >> 8;
+    }
+    assert_eq!(carry, 0);
+}
+
+// libsodium test/default/sign.c: per-case and trailing checks; the overlap case has
+// no safe-Rust equivalent because shared and mutable slices cannot alias.
+#[test]
+fn libsodium_pattern_sign_kat() {
+    let document: serde_json::Value = serde_json::from_str(include_str!(
+        "../../../../vectors/ed301-eddsa-v2-sign-kat.json"
+    ))
+    .expect("sign KAT parses");
+    let q = decode_hex(
+        by_id(
+            fixture()["scalar_decoding"].as_array().expect("scalars"),
+            "scalar-q",
+        )["encoded_hex"]
+            .as_str()
+            .expect("q"),
+    );
+    let cases = document["cases"].as_array().expect("cases");
+    assert_eq!(cases.len(), 1024);
+    for (i, case) in cases.iter().enumerate() {
+        let seed = array::<38>(case["seed"].as_str().expect("seed"));
+        let public_key = array::<38>(case["pk"].as_str().expect("pk"));
+        let expected = array::<76>(case["sig"].as_str().expect("sig"));
+        let message = decode_hex(case["m"].as_str().expect("m"));
+        assert_eq!(message.len(), i);
+        let key = SigningKey::from_seed(&seed).expect("seed");
+        assert_eq!(key.verifying_key().expect("public").to_bytes(), public_key);
+        let signature = key.sign(&message).expect("sign").to_bytes();
+        assert_eq!(signature, expected, "signature {i}");
+        assert!(verify(&public_key, &message, &signature), "verify {i}");
+
+        let mut malleated = signature;
+        add_le(&mut malleated[38..], &q);
+        assert!(!verify(&public_key, &message, &malleated), "malleable {i}");
+
+        let mut signed = Vec::from(signature.as_slice());
+        signed.extend_from_slice(&message);
+        signed[i + SIGNATURE_BYTES - 1] = signed[i + SIGNATURE_BYTES - 1].wrapping_add(1);
+        assert!(
+            !verify(
+                &public_key,
+                &signed[SIGNATURE_BYTES..],
+                &signed[..SIGNATURE_BYTES]
+            ),
+            "forged {i}"
+        );
+        assert!(
+            !verify(&public_key, &message, &signature[..i % SIGNATURE_BYTES]),
+            "short {i}"
+        );
+    }
+
+    let last = &cases[1023];
+    let message = decode_hex(last["m"].as_str().expect("m"));
+    let public_key = array::<38>(last["pk"].as_str().expect("pk"));
+    let mut signature = array::<76>(last["sig"].as_str().expect("sig"));
+    // Bits 300..303 of S lie above every canonical scalar, like bits 253..255 for Ed25519.
+    for j in 1_u8..16 {
+        signature[75] ^= j << 4;
+        assert!(
+            !verify(&public_key, &message, &signature),
+            "high S bits {j}"
+        );
+        signature[75] ^= j << 4;
+    }
+    let mut non_canonical = decode_hex(
+        by_id(
+            fixture()["point_decoding"].as_array().expect("points"),
+            "y-p",
+        )["encoded_hex"]
+            .as_str()
+            .expect("p"),
+    );
+    add_le(&mut non_canonical, &[9]);
+    assert!(!verify(&non_canonical, &message, &signature));
+    let mut public = [0_u8; 38];
+    assert!(!verify(&public, &message, &signature));
+    let mut invalid_r = signature;
+    invalid_r[..38].fill(0xff);
+    invalid_r[0] = 0xdb;
+    assert!(!verify(&public, &message, &invalid_r));
+    assert!(!verify(&public_key, &message, &invalid_r));
+    for y in [2_u8, 5] {
+        public[0] = y;
+        assert!(!verify(&public, &message, &signature), "public y={y}");
+    }
+}
+
+#[test]
+fn wycheproof_pattern_verification_cases() {
+    let document: serde_json::Value = serde_json::from_str(include_str!(
+        "../../../../vectors/ed301-eddsa-v2-wycheproof.json"
+    ))
+    .expect("Wycheproof-pattern vectors parse");
+    let group = &document["testGroups"][0];
+    let public_key = decode_hex(group["publicKey"]["pk"].as_str().expect("pk"));
+    let tests = group["tests"].as_array().expect("tests");
+    assert_eq!(
+        tests.len() as u64,
+        document["numberOfTests"].as_u64().expect("count")
+    );
+    for case in tests {
+        let message = decode_hex(case["msg"].as_str().expect("msg"));
+        let signature = decode_hex(case["sig"].as_str().expect("sig"));
+        let valid = match case["result"].as_str().expect("result") {
+            "valid" => true,
+            "invalid" => false,
+            _ => panic!("unexpected vector result"),
+        };
+        assert_eq!(
+            verify(&public_key, &message, &signature),
+            valid,
+            "tcId {}",
+            case["tcId"]
         );
     }
 }

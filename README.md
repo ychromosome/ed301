@@ -129,7 +129,7 @@ cargo test --locked --offline --release --features sign-self-verify
 cargo test --manifest-path crates/x301/Cargo.toml --locked --offline --release
 ```
 
-This runs 71 Ed301 tests in each feature configuration and 63 X301 tests.
+This runs 73 Ed301 tests in each feature configuration and 64 X301 tests.
 It is a correctness smoke test, not the complete release-profile or
 side-channel gate. The [Rust guide](rust/README.md) and
 [Phase-E verification guide](phase-e/README.md) cover the full checks.
@@ -142,7 +142,13 @@ python3 -B -m unittest discover -s tests -v
 node reference/node/check_vectors.mjs
 node reference/node/check_x301_vectors.mjs
 node reference/node/check_x301_error_precedence.mjs
+node reference/node/check_x301_wycheproof.mjs
 ```
+
+Three corpora follow external test patterns: a 1024-case signing KAT in the
+layout of libsodium's `test/default/sign.c`, and Wycheproof-style Ed301
+verification and X301 edge-case vectors. `tools/generate_external_pattern_vectors.py`
+regenerates them; the X301 corpus additionally needs PARI/GP.
 
 The Python and Node implementations are variable-time references for public
 test data, not implementations for real secret keys. Historical phase
