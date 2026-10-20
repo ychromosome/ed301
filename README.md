@@ -80,9 +80,18 @@ python3 -I provider-tests/run.py --workdir /tmp/ed301-provider
 python3 -I rust/run_secret_taint.py
 ```
 
-On the current tree these run 71 Ed301 tests in each configuration, 63 X301
-tests, 29 Python tests, 111 provider build and test steps, and 562 Valgrind
+On the current tree these run 73 Ed301 tests in each configuration, 64 X301
+tests, 32 Python tests, 111 provider build and test steps, and 562 Valgrind
 runs.
+
+Three vector sets follow external test patterns: a 1024-case signing KAT in
+the layout of libsodium's `test/default/sign.c`, Ed301 verification cases in
+Wycheproof's `eddsa_verify` format (every bit of `R` flipped with a recomputed
+`S`, special `r`/`s` values), and 508 X301 cases in Wycheproof's `xdh_comp`
+categories (special values of the RFC 7748 ladder variables for `k = 2 … 9`,
+edge-case shared secrets, special public and private keys).
+`tools/generate_external_pattern_vectors.py` regenerates them; the X301 set
+needs PARI/GP.
 
 ## Performance
 

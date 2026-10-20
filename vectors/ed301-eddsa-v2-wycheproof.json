@@ -1,0 +1,3278 @@
+{
+ "algorithm": "Ed301-EdDSA-v2",
+ "schema": "eddsa_verify_schema_v1.json",
+ "pattern": "https://github.com/C2SP/wycheproof",
+ "parameter_sha256": "13f0eaf541919a1447b9d3c58e6d57eb77ffab94ebe37539c70301d6fddcfaa0",
+ "numberOfTests": 326,
+ "testGroups": [
+  {
+   "type": "EddsaVerify",
+   "publicKey": {
+    "pk": "27fb81c114e72abe660a4844efbaf2f8771d72d1b1b4d0438628c30e052612cd7ad7fe9d760f"
+   },
+   "seed": "9e34fd4e228460636f0a1361fe478a1e9d9c1d55abf42829768a4e563ac8b5b92e40ec24a661",
+   "tests": [
+    {
+     "tcId": 1,
+     "comment": "",
+     "flags": [
+      "Valid"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d3148763073e526c85e122db5a712c85510c065cd4737b4f258d192da01d2f30d2dc195e14b02",
+     "result": "valid"
+    },
+    {
+     "tcId": 2,
+     "comment": "modified bit 0 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "69e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d9b9e0b4a0501e92e5a794453a7a0791b13efd027a2a06b4ebae934dd3f9525e27d9e2c02c405",
+     "result": "invalid"
+    },
+    {
+     "tcId": 3,
+     "comment": "modified bit 1 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "6ae3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d5ef8a7a241cec67345fb8a6483c8a18c7eddb5be437bfab6b954e8fdd59ac4778c5154518b01",
+     "result": "invalid"
+    },
+    {
+     "tcId": 4,
+     "comment": "modified bit 2 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "6ce3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d43a98af3d81e60c4a4c0089139e377e8b8d69636c7955d3f520e5cf96a0e08a9d816f478d706",
+     "result": "invalid"
+    },
+    {
+     "tcId": 5,
+     "comment": "modified bit 3 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "60e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d82f795cd82397cbb331e7a0636fd245d7d0ae2026a948487c77ce60142a6cf848552d85df505",
+     "result": "invalid"
+    },
+    {
+     "tcId": 6,
+     "comment": "modified bit 4 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "78e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d5cf1f7389e1e15df0b3a856ab1728bd0c6c9be8d6d23e3840fba43b2e0bd83fbd92e1e5f5800",
+     "result": "invalid"
+    },
+    {
+     "tcId": 7,
+     "comment": "modified bit 5 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "48e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d57762c172322d222d02280390f626d81ee6e30013b753dbe17c4e21a891e23bcddff02903505",
+     "result": "invalid"
+    },
+    {
+     "tcId": 8,
+     "comment": "modified bit 6 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "28e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d05800f785204452147b3ccff203ed207b904dd338af8522f221d24d5398fff9b4292065f3e07",
+     "result": "invalid"
+    },
+    {
+     "tcId": 9,
+     "comment": "modified bit 7 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "e8e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79db9b266b13a1541441e8fe7710a052110581dc7a4dcb4adf013e6c09cc203d9aed259169fd903",
+     "result": "invalid"
+    },
+    {
+     "tcId": 10,
+     "comment": "modified bit 8 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e2e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79decda12b1480a26a37a61dde8e66c9d4775cef68cbf859cec2866dbc9978c990d560949f84101",
+     "result": "invalid"
+    },
+    {
+     "tcId": 11,
+     "comment": "modified bit 9 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e1e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79deef52c2cedfed563d9ed11bbf40fcbfbb6553e005e89f440c4ec3d85443f9187d5c159612e07",
+     "result": "invalid"
+    },
+    {
+     "tcId": 12,
+     "comment": "modified bit 10 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e7e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d7b1e8756772bfbcb98d6240115cbad11f6469f4f831db39217418fd1de82aa82941bd134fa01",
+     "result": "invalid"
+    },
+    {
+     "tcId": 13,
+     "comment": "modified bit 11 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68ebe0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d6df80a6ef355b8498666eeeea0a9dd6cbd149ac75a8831d8bea577c98e03fd83657525e77502",
+     "result": "invalid"
+    },
+    {
+     "tcId": 14,
+     "comment": "modified bit 12 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68f3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d4fe7dd0bf59d81d09f301214f3577fd0b566a8867e4020914cb06ecf1eed3c373b2950e26500",
+     "result": "invalid"
+    },
+    {
+     "tcId": 15,
+     "comment": "modified bit 13 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68c3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d25acffd6625ae4f305732dd2c8fa526484c7bc93112a6b3d5255e747acbb99acf6c682ae0801",
+     "result": "invalid"
+    },
+    {
+     "tcId": 16,
+     "comment": "modified bit 14 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68a3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d9c7f7a6a96c46e7dc87d64a86f60f76598774b0006b9736937ba62e48aa34c18669b01de0804",
+     "result": "invalid"
+    },
+    {
+     "tcId": 17,
+     "comment": "modified bit 15 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "6863e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79dd91a02901a155d24404f82c1abfdbcfff516235afa8e571076b2f0f51be2672fb3b229b3db02",
+     "result": "invalid"
+    },
+    {
+     "tcId": 18,
+     "comment": "modified bit 16 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e1a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79dbc8c59810af5e56512e0a1c358704f183906b148a3c7665c6287f55e8ee5762f6686c0ca1d00",
+     "result": "invalid"
+    },
+    {
+     "tcId": 19,
+     "comment": "modified bit 17 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e2a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d7ea1667aae842b608010990e3e143ca46bcf68cd5414d5684344b1552a9d8337bfda2e040507",
+     "result": "invalid"
+    },
+    {
+     "tcId": 20,
+     "comment": "modified bit 18 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e4a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79df8b31d8a8a8bedc28c72076c785c204bb89aca2188dba90839414b758c5b15a0cddf2a8ed002",
+     "result": "invalid"
+    },
+    {
+     "tcId": 21,
+     "comment": "modified bit 19 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e8a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d2a3bca64dd589b2d29815a6e646f603b599d7a729d28ac4f7dc1369a4ad3e90ba7ece269dd03",
+     "result": "invalid"
+    },
+    {
+     "tcId": 22,
+     "comment": "modified bit 20 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3f0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79dabbcb3e737fb764a11e8901aa998408c112a840953e52042e77782b9d4a274a8f587f015e607",
+     "result": "invalid"
+    },
+    {
+     "tcId": 23,
+     "comment": "modified bit 21 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3c0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79db83b990d702a234392659ea819a6f8a329fa6641867c4c60c0ba0d91c2f4df94b22faa884e02",
+     "result": "invalid"
+    },
+    {
+     "tcId": 24,
+     "comment": "modified bit 22 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3a0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79da18bc0f68b3c037d744e9e7dfc3fcdfd571b52b82429fcf4858454dae8bec20a5f5113363e07",
+     "result": "invalid"
+    },
+    {
+     "tcId": 25,
+     "comment": "modified bit 23 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e360a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79deeece37d7f1970ead3d8859d7d37968493ca098a94e65204f8f44e4e3bc37ae1c6e1a57a1a03",
+     "result": "invalid"
+    },
+    {
+     "tcId": 26,
+     "comment": "modified bit 24 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a1934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d143926c7090a560ce18da97a3c9fc741d02f3dd911482671d1ac5e7dbf636b8cbc20ae82eb00",
+     "result": "invalid"
+    },
+    {
+     "tcId": 27,
+     "comment": "modified bit 25 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a2934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d2e2c230c02fe94e4cf96fcb0e76fda141b08cc0677b9e06d005e15b2228356e382afea39de02",
+     "result": "invalid"
+    },
+    {
+     "tcId": 28,
+     "comment": "modified bit 26 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a4934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79debaed6a6ed86d2ce1ffdbf30d3068a2ab6adb5409548b90a00cc6c56e6f51027c29be2fa1207",
+     "result": "invalid"
+    },
+    {
+     "tcId": 29,
+     "comment": "modified bit 27 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a8934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d3223c25c19808a0bb5f6f76be9e07342253c4f4776814a69e6a07351bcf9c320f71938d08202",
+     "result": "invalid"
+    },
+    {
+     "tcId": 30,
+     "comment": "modified bit 28 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0b0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79da06545c4381d0458e869d8869ceecaa7b3dee436c9f45b72c96ec547ac400afe2eb169045101",
+     "result": "invalid"
+    },
+    {
+     "tcId": 31,
+     "comment": "modified bit 29 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e080934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79de3c209ca5d03f99cce8c5c7700517f5cfcc89c59b939525fc7914436cd95be9164a5b4b67b03",
+     "result": "invalid"
+    },
+    {
+     "tcId": 32,
+     "comment": "modified bit 30 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0e0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d3b852c1051c120f99a577da3a834b5888a3a61d3e52146b6a0e74bfe83b51553b3f873422903",
+     "result": "invalid"
+    },
+    {
+     "tcId": 33,
+     "comment": "modified bit 31 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e020934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79dfd020db4ed86b2958a80b864db6b1e0e2ed35d06ecff3cc5d59a9282fc64e57db394c0247c02",
+     "result": "invalid"
+    },
+    {
+     "tcId": 34,
+     "comment": "modified bit 32 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0924eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d7057e0b55d11483adc1c806d1423641c563e9723fe46436fce0052580ad2a9d4d5c140b2b303",
+     "result": "invalid"
+    },
+    {
+     "tcId": 35,
+     "comment": "modified bit 33 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0914eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d132241ede9692ee224f892b81acc12675ffdc9540608d5cc6257ab8ff0b0698624f374d16102",
+     "result": "invalid"
+    },
+    {
+     "tcId": 36,
+     "comment": "modified bit 34 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0974eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d9650aff33fa1b9b619cc4e23d7d9bf44ed11b22d7e894750fafdce5b57b05668a9921c0d9704",
+     "result": "invalid"
+    },
+    {
+     "tcId": 37,
+     "comment": "modified bit 35 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a09b4eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d2e340c9d41d290a5bc5c24a6717b614e693dc486d7db055370b3d8839f5a154f91c9f5f57602",
+     "result": "invalid"
+    },
+    {
+     "tcId": 38,
+     "comment": "modified bit 36 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0834eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d826199190178a028672cc856f9c90988723fe4961bda55e184cd5d3cc11ec553821398a92406",
+     "result": "invalid"
+    },
+    {
+     "tcId": 39,
+     "comment": "modified bit 37 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0b34eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d4eaaf6bb7b206d24bcbd586a9a46367d4665ca988ce03eea782aee146c93af0922f89c55f002",
+     "result": "invalid"
+    },
+    {
+     "tcId": 40,
+     "comment": "modified bit 38 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0d34eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79dbd8f7ee037d6ea05c2c85f4aaf07134b496294a1b112049c97b144870927438d9a565db3bb07",
+     "result": "invalid"
+    },
+    {
+     "tcId": 41,
+     "comment": "modified bit 39 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0134eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79dd9f41169a4431cedc911c228357714285ca7fee10f82f66a51da050a8e9e4b21dc392e59c007",
+     "result": "invalid"
+    },
+    {
+     "tcId": 42,
+     "comment": "modified bit 40 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934fab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d337972b6b0068ae77165921df45b9ce9362b79033082990a4304290dd04e9b55964c78844407",
+     "result": "invalid"
+    },
+    {
+     "tcId": 43,
+     "comment": "modified bit 41 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934cab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d45e6c34991f99440340713c60d98404efab82411befb42ba373f0033353ce4d409c1c5110703",
+     "result": "invalid"
+    },
+    {
+     "tcId": 44,
+     "comment": "modified bit 42 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934aab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79dc7da8d8afaeeac433bddcfb977fd0c0c7e07c35ac9359e372f283722cb450a3bb218aa0b2204",
+     "result": "invalid"
+    },
+    {
+     "tcId": 45,
+     "comment": "modified bit 43 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a09346ab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79dceb2327be0f3d7598ce0aaba7ef0c3118851bf16f545b544d307a64bb32d364ebf251bad5100",
+     "result": "invalid"
+    },
+    {
+     "tcId": 46,
+     "comment": "modified bit 44 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0935eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d5faf0a8b686b482ac90c73bed51d2bf9267271e3abdf66228f5df9ef73af99ed04bece431201",
+     "result": "invalid"
+    },
+    {
+     "tcId": 47,
+     "comment": "modified bit 45 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0936eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79ddff56c86a0aa3831576e34dc596a840a42908029cc79c68e5a7162218944b39cbde9bf5e7c00",
+     "result": "invalid"
+    },
+    {
+     "tcId": 48,
+     "comment": "modified bit 46 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0930eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d619b2c55341a2daf68ef7896254cae78e214da1ab8f859f07d2f20e4397e5b178fd973292e01",
+     "result": "invalid"
+    },
+    {
+     "tcId": 49,
+     "comment": "modified bit 47 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a093ceab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79da8247bd92829d615d0e0c79fa7e6bba22506db7ab021cd9555f8a2cf15e8bb27c1c5493f4506",
+     "result": "invalid"
+    },
+    {
+     "tcId": 50,
+     "comment": "modified bit 48 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eaa83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79db8aae45153596a060b18da904220fe66a3937c90a33baaff673286c7ce0e3e188de848371605",
+     "result": "invalid"
+    },
+    {
+     "tcId": 51,
+     "comment": "modified bit 49 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934ea983b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d3ad29624c24bb3735333fa39112e47bdaa29aa45bdd78ae0bc3fb6e23a261bd516b3ef065601",
+     "result": "invalid"
+    },
+    {
+     "tcId": 52,
+     "comment": "modified bit 50 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eaf83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d172474745ef1cffba7eea48f89ca59da1507302613fa0a6c222395da0995a537b48870da7503",
+     "result": "invalid"
+    },
+    {
+     "tcId": 53,
+     "comment": "modified bit 51 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934ea383b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79dc45397711b1b4390afc04d5e7cb90289e5c41573130c706ea983ef49c263cfa42dd4e4acad03",
+     "result": "invalid"
+    },
+    {
+     "tcId": 54,
+     "comment": "modified bit 52 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934ebb83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d913057ff8f97b245e4d7116ce70a5d3b918f7b6e29bd0d7ec33888fa60d5118b60fde02e8405",
+     "result": "invalid"
+    },
+    {
+     "tcId": 55,
+     "comment": "modified bit 53 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934e8b83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79def28aa4086cc4b33232cc2f45d03b39d647458d8de3c67fa87877970cb5f90384f6179b38703",
+     "result": "invalid"
+    },
+    {
+     "tcId": 56,
+     "comment": "modified bit 54 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eeb83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d6b5dcb7cceaca54bbc82b03d7da49f2b674a03d2b7641a5fbdc51dfcaba324ca921f61184505",
+     "result": "invalid"
+    },
+    {
+     "tcId": 57,
+     "comment": "modified bit 55 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934e2b83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d38530940675cf05cb818f941fa99d5bb8a38b27b779810fa524e88ae16aa8e84a760fc07a105",
+     "result": "invalid"
+    },
+    {
+     "tcId": 58,
+     "comment": "modified bit 56 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab82b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79db05b1163475deb3e783de09a8357bd0c8bf963643305532a9e276fff351b588a11447da1a705",
+     "result": "invalid"
+    },
+    {
+     "tcId": 59,
+     "comment": "modified bit 57 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab81b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d0262204ab0350f794bad230785ce5addcc45c3cf89abd4d8c27bfe1a19afebac1088463f3c03",
+     "result": "invalid"
+    },
+    {
+     "tcId": 60,
+     "comment": "modified bit 58 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab87b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79da55ba3649afb29735b090769f77b7833286a5b40d107b90ef0b0ebd21c1396b9111ffcd8da06",
+     "result": "invalid"
+    },
+    {
+     "tcId": 61,
+     "comment": "modified bit 59 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab8bb46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d70d64071752a6fc35206d2f5d7f9acdc5f1a1103a98b67009c1712f866f54ad504f298b6fd05",
+     "result": "invalid"
+    },
+    {
+     "tcId": 62,
+     "comment": "modified bit 60 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab93b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d8b2a2acc108454c931493b3861b03bc6b49106d4be3a17df0dce38d3a71fff15006cf56d8e07",
+     "result": "invalid"
+    },
+    {
+     "tcId": 63,
+     "comment": "modified bit 61 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eaba3b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d1641827f473845d93a3e442ae73c1044643cc5bea1134e3aab353732025100e18264d7611304",
+     "result": "invalid"
+    },
+    {
+     "tcId": 64,
+     "comment": "modified bit 62 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eabc3b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d42f4da306cb61d83851e0365c36e676455b095e815eed71c5c7c50f537916b91280bd5c0b705",
+     "result": "invalid"
+    },
+    {
+     "tcId": 65,
+     "comment": "modified bit 63 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab03b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79df2d94a19ef534bea4151fe492430a099e2977b6f99cf1559f38a2b12fb9017e84580466d2501",
+     "result": "invalid"
+    },
+    {
+     "tcId": 66,
+     "comment": "modified bit 64 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b56fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d3be1f8c351c78e2bd9b1852657c9475592dd56e70339287ae40f2dc2acc107d845c1b6d64500",
+     "result": "invalid"
+    },
+    {
+     "tcId": 67,
+     "comment": "modified bit 65 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b66fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d83da076c202fcb0e4f36759966cb783cfc6caec009202865f14f1a9f4fc5c1f6748bf8068c00",
+     "result": "invalid"
+    },
+    {
+     "tcId": 68,
+     "comment": "modified bit 66 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b06fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d688767cd364fd8421731092ec1047b576000a6b3408d1ca2bf7e1b539ef943adb86807dd2804",
+     "result": "invalid"
+    },
+    {
+     "tcId": 69,
+     "comment": "modified bit 67 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83bc6fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79dc9b67c11f2ed0e88d4898347aa55a2081d72eeeff174b17c7cb5fabf5cc69afda9a86e457603",
+     "result": "invalid"
+    },
+    {
+     "tcId": 70,
+     "comment": "modified bit 68 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83a46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d509159243e510ba2762badb672653ad91f5481922addd047ed0de7c5997ca1c295476698c200",
+     "result": "invalid"
+    },
+    {
+     "tcId": 71,
+     "comment": "modified bit 69 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83946fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79dfb4b2ae49ed66861fd266463e66a455c66eae2fa03b1ddf0aa6e9bdbee360fa427ef9cdbf403",
+     "result": "invalid"
+    },
+    {
+     "tcId": 72,
+     "comment": "modified bit 70 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83f46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79dac0ae8030a89cf3cbe590d920cb2dc5adbae1018fbc10b1ff07f81ee878fd514a797a536dc06",
+     "result": "invalid"
+    },
+    {
+     "tcId": 73,
+     "comment": "modified bit 71 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83346fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d1d669ed391dcf9a2c3048843b1c243cca1b576934733883f560edc94a5bab98d0bb887e0a803",
+     "result": "invalid"
+    },
+    {
+     "tcId": 74,
+     "comment": "modified bit 72 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46ebd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d669df2a81429cd5e9dc5fea8405aa10bc194a66cf57a9d0f5f802fcf011a75ccd2d382723206",
+     "result": "invalid"
+    },
+    {
+     "tcId": 75,
+     "comment": "modified bit 73 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46dbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d5e2fbaf69e41560128cedeb2cf06182567590761631cf8b0a945b3ced23ac148b0020ba8da01",
+     "result": "invalid"
+    },
+    {
+     "tcId": 76,
+     "comment": "modified bit 74 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46bbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d5330ffd4c0b88f44a904396fbf036fd3ec7585913e328061e32f96350a1528b918bbc31b7001",
+     "result": "invalid"
+    },
+    {
+     "tcId": 77,
+     "comment": "modified bit 75 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b467bd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d8ff9b2aeaf2f584be4d7103721e6909d03c8b07e2debfb29f0c5c86d0abdf0d1081c65c3bc01",
+     "result": "invalid"
+    },
+    {
+     "tcId": 78,
+     "comment": "modified bit 76 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b47fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79de717b6711c980d6bcc344c20420931376740b11f886c36645f1fba4f01f4041d6fc3c1958a02",
+     "result": "invalid"
+    },
+    {
+     "tcId": 79,
+     "comment": "modified bit 77 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b44fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79db9aa7670b2118245ccf4feacc999a55942578b44f5ae543763097d8cfbd7b51af5afe529ce05",
+     "result": "invalid"
+    },
+    {
+     "tcId": 80,
+     "comment": "modified bit 78 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b42fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d1354f2d678ad62d147fcdd4785d7f60ed5efc65b9c010ec9be762e2970834437693980a78c06",
+     "result": "invalid"
+    },
+    {
+     "tcId": 81,
+     "comment": "modified bit 79 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b4efbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d550f69a06791ffd0fb4a79605f7e0d7bcbc7915a5df2bfd321357479266e7f8e9b1287e76400",
+     "result": "invalid"
+    },
+    {
+     "tcId": 82,
+     "comment": "modified bit 80 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbc23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79dad6361a329c8fbe74ee3d027f92759b278f76843a3c3f727673b1d8a83fb61bb6d03ba0de206",
+     "result": "invalid"
+    },
+    {
+     "tcId": 83,
+     "comment": "modified bit 81 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbf23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79dc4d6991b7eab242a5db9240dae3c7bbc1a0088378c9ea33ab413e6b7623ff12b3502f5c5d401",
+     "result": "invalid"
+    },
+    {
+     "tcId": 84,
+     "comment": "modified bit 82 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fb923489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79dcfaff66558f9b1b348a5e141941e429113cdb5bc575c8fce47df32242882c84d4de3a8b4ab06",
+     "result": "invalid"
+    },
+    {
+     "tcId": 85,
+     "comment": "modified bit 83 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fb523489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d5a98a200cefed3888025a612b681c55d909800920d1ee39ad0c3a3280a505eb47faba5a05401",
+     "result": "invalid"
+    },
+    {
+     "tcId": 86,
+     "comment": "modified bit 84 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fad23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79deead57af03298bfd64d387554d6904c4cf1fe966be273daa568254be65bae38bead3dfdcc406",
+     "result": "invalid"
+    },
+    {
+     "tcId": 87,
+     "comment": "modified bit 85 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46f9d23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79da1ebb22cd5d729b812dc63d74c56be8fe611f4ea067e3c42a993b9dce9a544fbbbad1fc77500",
+     "result": "invalid"
+    },
+    {
+     "tcId": 88,
+     "comment": "modified bit 86 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46ffd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d304147b1c5193aa64a8f7ae470100c0b789a4a7d898d27bad449c48512da577fa50525a43506",
+     "result": "invalid"
+    },
+    {
+     "tcId": 89,
+     "comment": "modified bit 87 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46f3d23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d9c0aec3c3fb4f18d05e94245affb943ecab2e16adb8fd385c07db2db09eb93c5b4739238a601",
+     "result": "invalid"
+    },
+    {
+     "tcId": 90,
+     "comment": "modified bit 88 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd22489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d963179b4df199daab66c72e959a84b74360b90c47a0afacedd8a5773003bc104c9142982f501",
+     "result": "invalid"
+    },
+    {
+     "tcId": 91,
+     "comment": "modified bit 89 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd21489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d2f98ac719a5e7ca2c38ebd1723065d4da666fa4e92539ea7acdd7cc8732346b65942f429ef05",
+     "result": "invalid"
+    },
+    {
+     "tcId": 92,
+     "comment": "modified bit 90 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd27489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79decbc59e0064ba1682faa2513a6afd495e47520ee6f866c9e98896553f0fd30508f7af1c20405",
+     "result": "invalid"
+    },
+    {
+     "tcId": 93,
+     "comment": "modified bit 91 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd2b489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d96aaea93126304f017066396359766e7d92f7815d5573f34e8fc46596aa43de1c51e04a76705",
+     "result": "invalid"
+    },
+    {
+     "tcId": 94,
+     "comment": "modified bit 92 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd33489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d4d790137a4fc3179a59e9fab8fa5b514a7eec4d773aac4b9e06244c15ec32de1ac66059da106",
+     "result": "invalid"
+    },
+    {
+     "tcId": 95,
+     "comment": "modified bit 93 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd03489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79df1640bb8fd92beacf48a1074fa0a6b267f7fbbe54042e802fa8d1c337deb024368ad29141004",
+     "result": "invalid"
+    },
+    {
+     "tcId": 96,
+     "comment": "modified bit 94 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd63489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d3500866e48fdda380f8327980030cbba8a77e125cc52ae0e274f560f3a98fe2499818152ff06",
+     "result": "invalid"
+    },
+    {
+     "tcId": 97,
+     "comment": "modified bit 95 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbda3489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79dc331285b8ce3457bd4fa2e2a3b78cb269ee06ec7c51671f6cc9f20b87eba7b88e245b7eb9904",
+     "result": "invalid"
+    },
+    {
+     "tcId": 98,
+     "comment": "modified bit 96 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23499a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d15abbb7a9bada385e0d1696464d9aa3a5cbea659abaf204c715a027a40de321b84e43ab52206",
+     "result": "invalid"
+    },
+    {
+     "tcId": 99,
+     "comment": "modified bit 97 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd234a9a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d24aa583c576c89d511847615d0ea5a4e9191cffe3960357c449ddbe24ce54056d27704c1f605",
+     "result": "invalid"
+    },
+    {
+     "tcId": 100,
+     "comment": "modified bit 98 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd234c9a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d2b0dba9af2a056121e81aba988ba940a0d64cab5e153344a87b1ed3836deaee9a96b43a9d304",
+     "result": "invalid"
+    },
+    {
+     "tcId": 101,
+     "comment": "modified bit 99 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23409a3c4e1298a772855aaa93029c39695e6014c7f3499090d79dcb62887cbb94a387e4dcf333b577ee473ea29b727179e5cc0ed867786bc8a286173e3feb1901",
+     "result": "invalid"
+    },
+    {
+     "tcId": 102,
+     "comment": "modified bit 100 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23589a3c4e1298a772855aaa93029c39695e6014c7f3499090d79dc311418f92cd04ff5c7884e489ae2ca07ad797a75980fedb773bb92b85dd4d6a0c71ddfb2403",
+     "result": "invalid"
+    },
+    {
+     "tcId": 103,
+     "comment": "modified bit 101 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23689a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d0792ff7f3994a18ccea2518c9cffb2b08dc1970c86e22c6a216031e7b96531041fb4cfda7201",
+     "result": "invalid"
+    },
+    {
+     "tcId": 104,
+     "comment": "modified bit 102 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23089a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d3f44910ec23b4e6d22fda622c5dd60d36a7a51c85e03cb8f9fc71ebbea72a724880ba87b6500",
+     "result": "invalid"
+    },
+    {
+     "tcId": 105,
+     "comment": "modified bit 103 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23c89a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d85698bd736f0e2a36f412da11fc52de445ba523755043c9175f389e22f77b6a755db77aa9802",
+     "result": "invalid"
+    },
+    {
+     "tcId": 106,
+     "comment": "modified bit 104 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489b3c4e1298a772855aaa93029c39695e6014c7f3499090d79d485a5617667aa9ca43f7f9c9e8bbe4c661375caca871edf5f23d5cbe0fab7d1b7f12d30f0b00",
+     "result": "invalid"
+    },
+    {
+     "tcId": 107,
+     "comment": "modified bit 105 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd2348983c4e1298a772855aaa93029c39695e6014c7f3499090d79d997a8361ffea08f6b824809101902ec0b905b46f036d57dba9ca67603aca145223a77785b202",
+     "result": "invalid"
+    },
+    {
+     "tcId": 108,
+     "comment": "modified bit 106 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489e3c4e1298a772855aaa93029c39695e6014c7f3499090d79d297bc5dd4c01208e69a53bcafbc2b73b35b732174169ab4ce29a51424b1bfaed55a71eee0703",
+     "result": "invalid"
+    },
+    {
+     "tcId": 109,
+     "comment": "modified bit 107 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd2348923c4e1298a772855aaa93029c39695e6014c7f3499090d79dc7b1e93daa759d6bd8a67d81e9b12140a36b9e8be3ad668492160a1d3e015ba6758680a01806",
+     "result": "invalid"
+    },
+    {
+     "tcId": 110,
+     "comment": "modified bit 108 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23488a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d931cf8a1c0e98c833786ec98f6f117293a0c074d059e7ffb5ecf821e7b634500ba4700b51503",
+     "result": "invalid"
+    },
+    {
+     "tcId": 111,
+     "comment": "modified bit 109 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd2348ba3c4e1298a772855aaa93029c39695e6014c7f3499090d79d3ae05fe090dbe38b07fcedf3d376a9ddd69790248fd8827e9331354fe9a28d1a9dfb2122d507",
+     "result": "invalid"
+    },
+    {
+     "tcId": 112,
+     "comment": "modified bit 110 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd2348da3c4e1298a772855aaa93029c39695e6014c7f3499090d79de0c09c693464b955004edd045db601bf737ca36b24a7f7c493b802f06d364b0b7ea5c70e4c04",
+     "result": "invalid"
+    },
+    {
+     "tcId": 113,
+     "comment": "modified bit 111 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23481a3c4e1298a772855aaa93029c39695e6014c7f3499090d79d127af7d54018968aa6dcc27a3cfa100c5ecf42cebdb6e02a1e86c7537e6a99192b8eb55c9401",
+     "result": "invalid"
+    },
+    {
+     "tcId": 114,
+     "comment": "modified bit 112 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3d4e1298a772855aaa93029c39695e6014c7f3499090d79d25aa34072e711439947e895e9aa853566c198aaf26704696bc48ff11aee29e83083bc166ea03",
+     "result": "invalid"
+    },
+    {
+     "tcId": 115,
+     "comment": "modified bit 113 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3e4e1298a772855aaa93029c39695e6014c7f3499090d79dffb91c4486cac38522b1b9c7cd4936089c04e390337ef9fd6d2bd833f5c88a86a07b7b061701",
+     "result": "invalid"
+    },
+    {
+     "tcId": 116,
+     "comment": "modified bit 114 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a384e1298a772855aaa93029c39695e6014c7f3499090d79d9807625551ca2a550294d82c3396932eb07607b4e29cc7a38b84e2474ee296c20701374a3807",
+     "result": "invalid"
+    },
+    {
+     "tcId": 117,
+     "comment": "modified bit 115 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a344e1298a772855aaa93029c39695e6014c7f3499090d79d3415a749f8d96e4c429bf6d5426fa533b86bc9ec92cfe7d2f52a21b3855587f54a0430ebd003",
+     "result": "invalid"
+    },
+    {
+     "tcId": 118,
+     "comment": "modified bit 116 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a2c4e1298a772855aaa93029c39695e6014c7f3499090d79df086bc494335e61fbb62e0941a321a3175980257423333b8c6e50f0689b1459e5d9ff2649d07",
+     "result": "invalid"
+    },
+    {
+     "tcId": 119,
+     "comment": "modified bit 117 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a1c4e1298a772855aaa93029c39695e6014c7f3499090d79da96a748578e0132a5ba63eecfa453bb8a88b12877225fec7ae4ff9b85946d073f72aa4cefb06",
+     "result": "invalid"
+    },
+    {
+     "tcId": 120,
+     "comment": "modified bit 118 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a7c4e1298a772855aaa93029c39695e6014c7f3499090d79de73414360a232f9477d647809b48729dcca7d5638e811fabdb1cdae7b5e1b65ede2605ae3704",
+     "result": "invalid"
+    },
+    {
+     "tcId": 121,
+     "comment": "modified bit 119 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489abc4e1298a772855aaa93029c39695e6014c7f3499090d79ddf55f86aec6b76b422ed52447f53c642990873e9c5725ffb6c6238059dc48cce0c2e86cf0200",
+     "result": "invalid"
+    },
+    {
+     "tcId": 122,
+     "comment": "modified bit 120 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4f1298a772855aaa93029c39695e6014c7f3499090d79de4a4353b3d369525f32972084eba87ed3f147c7a1d5e51ddddd3f0f4af25ed72aaa3f85acc00",
+     "result": "invalid"
+    },
+    {
+     "tcId": 123,
+     "comment": "modified bit 121 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4c1298a772855aaa93029c39695e6014c7f3499090d79d67ef3e071c0c434a5d9847b83ce06b22f5048a586715d04aa0d824ab4c8cbeacd7fd5fdadc01",
+     "result": "invalid"
+    },
+    {
+     "tcId": 124,
+     "comment": "modified bit 122 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4a1298a772855aaa93029c39695e6014c7f3499090d79d5909e65f223810cd399850e1c214dbf78ce849cca4dc33d246a568e366398ba1bfe057f43505",
+     "result": "invalid"
+    },
+    {
+     "tcId": 125,
+     "comment": "modified bit 123 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c461298a772855aaa93029c39695e6014c7f3499090d79d4c8270f718032e5860940aa71c6ce9f544459f0aca9d3b0280833f3033f9c3ac2c562b749f00",
+     "result": "invalid"
+    },
+    {
+     "tcId": 126,
+     "comment": "modified bit 124 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c5e1298a772855aaa93029c39695e6014c7f3499090d79d656f2ea78d4594bedc07ec80a27df56815fac3ca37021d2c4ba49c7ff4432b7fd03549431b06",
+     "result": "invalid"
+    },
+    {
+     "tcId": 127,
+     "comment": "modified bit 125 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c6e1298a772855aaa93029c39695e6014c7f3499090d79d2e49ffe73f67a88cd6fc32827aa9e81a07dc5f370700d81986246d61002992fb90364dfb1707",
+     "result": "invalid"
+    },
+    {
+     "tcId": 128,
+     "comment": "modified bit 126 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c0e1298a772855aaa93029c39695e6014c7f3499090d79dde1312114b39ce448c93cec179958e5b58f5c3532c20b0a266f1fb3709c0316283f0973f3407",
+     "result": "invalid"
+    },
+    {
+     "tcId": 129,
+     "comment": "modified bit 127 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3cce1298a772855aaa93029c39695e6014c7f3499090d79d0cecd56216537ae3c440fa6be412fff133ba6fe5d5660a1efaeba1796406bce6bbc6a81f4402",
+     "result": "invalid"
+    },
+    {
+     "tcId": 130,
+     "comment": "modified bit 128 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1398a772855aaa93029c39695e6014c7f3499090d79d4a37fad5466d00d5e9e75f7cb1e6f15b3b20ff0ec38a43fefae85fff8c6a3c8d55b6a9fdc306",
+     "result": "invalid"
+    },
+    {
+     "tcId": 131,
+     "comment": "modified bit 129 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1098a772855aaa93029c39695e6014c7f3499090d79d26aa41f9b27c079f90107bde7fba71f9995399ef8808fff0056b53de64f5b627fe8a3f858703",
+     "result": "invalid"
+    },
+    {
+     "tcId": 132,
+     "comment": "modified bit 130 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1698a772855aaa93029c39695e6014c7f3499090d79debaf6974a6bc384c31d463ca7236bf7b4e230740d983220e39e2b06ce2f8b5928d8c033f9701",
+     "result": "invalid"
+    },
+    {
+     "tcId": 133,
+     "comment": "modified bit 131 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1a98a772855aaa93029c39695e6014c7f3499090d79d4beee55bf5dd39a45ea237a2ec9fc75880bb2582647eefb631c48b443f401227b7a2bdd61500",
+     "result": "invalid"
+    },
+    {
+     "tcId": 134,
+     "comment": "modified bit 132 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e0298a772855aaa93029c39695e6014c7f3499090d79d5be2a1565088869b56fab332589c7beccafa292f6514be7138fcb4c4be453154ed6384115302",
+     "result": "invalid"
+    },
+    {
+     "tcId": 135,
+     "comment": "modified bit 133 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e3298a772855aaa93029c39695e6014c7f3499090d79ddea7d75fee9885ee199f0a776f65c6eb7ccf0ec4ce9828992542d47aafc6f6758b8ea5481304",
+     "result": "invalid"
+    },
+    {
+     "tcId": 136,
+     "comment": "modified bit 134 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e5298a772855aaa93029c39695e6014c7f3499090d79d2b43c6aabb53c466f6243e1f0db8ed4ea52b8f732b9057cafdbba6d2f1f443b14d671d7d4207",
+     "result": "invalid"
+    },
+    {
+     "tcId": 137,
+     "comment": "modified bit 135 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e9298a772855aaa93029c39695e6014c7f3499090d79da1789612da6519ae5e3eb53fdb5b1e3ee862de1e1bf88ff6c57e024622f51ca926acfd206101",
+     "result": "invalid"
+    },
+    {
+     "tcId": 138,
+     "comment": "modified bit 136 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1299a772855aaa93029c39695e6014c7f3499090d79d00eeebe6f9cdb61e0739d1de0de2b85ac68d2f3ad1a69f4ac2a5026c439a0a00a60e33133e04",
+     "result": "invalid"
+    },
+    {
+     "tcId": 139,
+     "comment": "modified bit 137 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e129aa772855aaa93029c39695e6014c7f3499090d79d8504db4d65b6b4979a86a253933ef1b0fa5d16c4bb4f016e56baed098cadd67c22ce955c0102",
+     "result": "invalid"
+    },
+    {
+     "tcId": 140,
+     "comment": "modified bit 138 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e129ca772855aaa93029c39695e6014c7f3499090d79de28ea25f51efe5c1ca39f8a085112cf35c68cb271c4c18522179f8e96c355eec05617bdcd301",
+     "result": "invalid"
+    },
+    {
+     "tcId": 141,
+     "comment": "modified bit 139 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1290a772855aaa93029c39695e6014c7f3499090d79dc8d36c32bfc726a2e678128f6f0b9cfba6144569dea7556a1dcbc4e79691f3141286516d9101",
+     "result": "invalid"
+    },
+    {
+     "tcId": 142,
+     "comment": "modified bit 140 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1288a772855aaa93029c39695e6014c7f3499090d79d25510dcacf89b2dada60d7a23575d6a6f230066f8bdc3c1353a1e6b70f9f8b7aacfd01e01305",
+     "result": "invalid"
+    },
+    {
+     "tcId": 143,
+     "comment": "modified bit 141 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e12b8a772855aaa93029c39695e6014c7f3499090d79d898d8eac7f47d0c6d3cb8cbe7e1e9e22c3df1e8aaae7ccf0e98e3403983d9f669d73daff1206",
+     "result": "invalid"
+    },
+    {
+     "tcId": 144,
+     "comment": "modified bit 142 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e12d8a772855aaa93029c39695e6014c7f3499090d79df623096dd4bf866e57566f23e8c30b097ae24e30ff743daa9c755234d44cee1800ef29123005",
+     "result": "invalid"
+    },
+    {
+     "tcId": 145,
+     "comment": "modified bit 143 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1218a772855aaa93029c39695e6014c7f3499090d79d26aeed15c66238f9a6feda6bb53d95ac55ce61fcfd9dccb648ab8a6b0629efe6ba931227ff02",
+     "result": "invalid"
+    },
+    {
+     "tcId": 146,
+     "comment": "modified bit 144 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a672855aaa93029c39695e6014c7f3499090d79dd057e7dc28e9cfc09f23c27778e09ab98aa4b6c69458d7a4db9d461313f92b40a66d23e55a01",
+     "result": "invalid"
+    },
+    {
+     "tcId": 147,
+     "comment": "modified bit 145 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a572855aaa93029c39695e6014c7f3499090d79dd95bf61b22a127a079f19893ef52d85abddd53a368b8b4b8ff7ecfb0b8f6580917b96e34a701",
+     "result": "invalid"
+    },
+    {
+     "tcId": 148,
+     "comment": "modified bit 146 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a372855aaa93029c39695e6014c7f3499090d79d634cd57b255379327c27f283c28f7e008c2bbfd68f06fc7a230378f7232d5556216b08575107",
+     "result": "invalid"
+    },
+    {
+     "tcId": 149,
+     "comment": "modified bit 147 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298af72855aaa93029c39695e6014c7f3499090d79d3e030d4efef380b0dd82392c9a33774708b8dbf19e77d57b69a2566df897ccc97ae9419bd504",
+     "result": "invalid"
+    },
+    {
+     "tcId": 150,
+     "comment": "modified bit 148 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298b772855aaa93029c39695e6014c7f3499090d79dd8c7f4b2c0cb22783386edb523714369f20d6a671b0f75bd3e29f8a91d3fdd2a95351c608a03",
+     "result": "invalid"
+    },
+    {
+     "tcId": 151,
+     "comment": "modified bit 149 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e12988772855aaa93029c39695e6014c7f3499090d79dabbf85fcbca8a17b89aec5bd2d28e5235edcecc615749b1619539f7495282b2dea96d8edbc01",
+     "result": "invalid"
+    },
+    {
+     "tcId": 152,
+     "comment": "modified bit 150 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298e772855aaa93029c39695e6014c7f3499090d79dd51346efe9d6e3b25c5c86d176d13185e7f62c8632e7131464dfdc2f40164fec83833a427d01",
+     "result": "invalid"
+    },
+    {
+     "tcId": 153,
+     "comment": "modified bit 151 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e12982772855aaa93029c39695e6014c7f3499090d79d33da6734e5a64b08f528a691f1f82bf1ff1b7170e412e6948b25279fc8b4b97c31b74323e003",
+     "result": "invalid"
+    },
+    {
+     "tcId": 154,
+     "comment": "modified bit 152 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a773855aaa93029c39695e6014c7f3499090d79d72b459fb1719dd6b40200677f1e9b66b24c729e67e72e326125eb8bd5046c3ba863d7ee22507",
+     "result": "invalid"
+    },
+    {
+     "tcId": 155,
+     "comment": "modified bit 153 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a770855aaa93029c39695e6014c7f3499090d79de70b97d6ad5d7876f3a8dd2b24a2806beaeabc521dc3eb7ba27e75de4e7e9407f113093f9e06",
+     "result": "invalid"
+    },
+    {
+     "tcId": 156,
+     "comment": "modified bit 154 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a776855aaa93029c39695e6014c7f3499090d79d79503178255d5bba39d908a36c271ddb29d70b3f57baa76e7b96607c24a7ee53ef8a4f1f1301",
+     "result": "invalid"
+    },
+    {
+     "tcId": 157,
+     "comment": "modified bit 155 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a77a855aaa93029c39695e6014c7f3499090d79dfa3bb24a319d4ed798a763940565e1266c6057b9321a85c00831be776db40b091924af705d05",
+     "result": "invalid"
+    },
+    {
+     "tcId": 158,
+     "comment": "modified bit 156 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a762855aaa93029c39695e6014c7f3499090d79d572bef36ff83e740d8044d5b21aa009bf8438688cc1080f958c2e43488ffed15089955b4fb03",
+     "result": "invalid"
+    },
+    {
+     "tcId": 159,
+     "comment": "modified bit 157 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a752855aaa93029c39695e6014c7f3499090d79d2376b108b4d94a254b18b4d4ce8da76c7ae4a8bc5e17d3b667f906c6aacc0d83ab697e7e9603",
+     "result": "invalid"
+    },
+    {
+     "tcId": 160,
+     "comment": "modified bit 158 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a732855aaa93029c39695e6014c7f3499090d79d4ccd47e223c6b00c1e902540df1790ec82acc1a9938d4cf024a304fdf39816e2637eaca00505",
+     "result": "invalid"
+    },
+    {
+     "tcId": 161,
+     "comment": "modified bit 159 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a7f2855aaa93029c39695e6014c7f3499090d79d0d9d58529158e3fbf0fc716d5158891cd3b68f1113a4f5473812e657bc51df4723f7b3feeb03",
+     "result": "invalid"
+    },
+    {
+     "tcId": 162,
+     "comment": "modified bit 160 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772845aaa93029c39695e6014c7f3499090d79d215a851847f9e8942003013ac1a8614aedd064188b2cb0281cbe2c47dfeccb1e41a868f9f801",
+     "result": "invalid"
+    },
+    {
+     "tcId": 163,
+     "comment": "modified bit 161 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772875aaa93029c39695e6014c7f3499090d79d707cade9f3d4705e50b606b557d18d1372dad325930384ed42eeaaabaea37688b32f76289b06",
+     "result": "invalid"
+    },
+    {
+     "tcId": 164,
+     "comment": "modified bit 162 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772815aaa93029c39695e6014c7f3499090d79dcfffefc86c5e4cecf8786b00194da550e82cbec0a42afa972e2c6adbfd0d09b40bbe8d701e07",
+     "result": "invalid"
+    },
+    {
+     "tcId": 165,
+     "comment": "modified bit 163 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a7728d5aaa93029c39695e6014c7f3499090d79d9a7200c16b7761474d9f31ed79f0cc5b8c222d72dc503a6080a33cb9e7fbe8861f269412ef01",
+     "result": "invalid"
+    },
+    {
+     "tcId": 166,
+     "comment": "modified bit 164 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772955aaa93029c39695e6014c7f3499090d79d2e8c5bbe0f566d568cec38492d7a5663c9d8e9b526bc85c720439e659b7f6550b31de2d12701",
+     "result": "invalid"
+    },
+    {
+     "tcId": 167,
+     "comment": "modified bit 165 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772a55aaa93029c39695e6014c7f3499090d79da66625ffa61bd7f099c0f4c45b0bb380d3f6eaf5778c50478a24fbb210cb3bd7baf7bda58a06",
+     "result": "invalid"
+    },
+    {
+     "tcId": 168,
+     "comment": "modified bit 166 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772c55aaa93029c39695e6014c7f3499090d79d979ed88ba37c68aee0f459b835d8170307c1a35476c1c8b8e88dad86866dab3222803be0f007",
+     "result": "invalid"
+    },
+    {
+     "tcId": 169,
+     "comment": "modified bit 167 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772055aaa93029c39695e6014c7f3499090d79d603fbeec08ac67cdcc0a96b0ef52ee8f204a7b3a4e9ab2d581050c6842386936b662ba2fbc01",
+     "result": "invalid"
+    },
+    {
+     "tcId": 170,
+     "comment": "modified bit 168 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855baa93029c39695e6014c7f3499090d79d6f3f62da92cc5461d86b58eb5997409e4f23edc676968eede77c0a0e22c2f9d33fe2fb726f04",
+     "result": "invalid"
+    },
+    {
+     "tcId": 171,
+     "comment": "modified bit 169 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a7728558aa93029c39695e6014c7f3499090d79d11dc33857613b7cd7fe4926d66661dc68fcd58a2031f2e79676be066d63a8786cfd88f7d2c06",
+     "result": "invalid"
+    },
+    {
+     "tcId": 172,
+     "comment": "modified bit 170 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855eaa93029c39695e6014c7f3499090d79d648fb10f56444d49151e61363afb3e6463bb3210dc0d2f2ad7d8c89e659a6f4e26d20d3d7500",
+     "result": "invalid"
+    },
+    {
+     "tcId": 173,
+     "comment": "modified bit 171 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a7728552aa93029c39695e6014c7f3499090d79dba07a32a90766f96d62c2bbee7a33b32f36d6f9d5cfeb293584dffade9d999e0c77284faad02",
+     "result": "invalid"
+    },
+    {
+     "tcId": 174,
+     "comment": "modified bit 172 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772854aaa93029c39695e6014c7f3499090d79d15818e6822782b7111529e7d988c30089f962f9873521d390fff36d444569dd8f734b86e3001",
+     "result": "invalid"
+    },
+    {
+     "tcId": 175,
+     "comment": "modified bit 173 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772857aaa93029c39695e6014c7f3499090d79db68310d3b9c6a60dab7a47670430f8fc5b2a288f0d2f96b275d896265c7546ca4ef17510cc01",
+     "result": "invalid"
+    },
+    {
+     "tcId": 176,
+     "comment": "modified bit 174 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772851aaa93029c39695e6014c7f3499090d79d9a6fe1dbe26fc19c59ac3e7ad8a90de0f1b692387220833c862ea5b32bc4f4a8b4be18e00405",
+     "result": "invalid"
+    },
+    {
+     "tcId": 177,
+     "comment": "modified bit 175 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a77285daaa93029c39695e6014c7f3499090d79d14a861222fcc28694f9dc215145100fe5152c6d3aeb297a623c2192588e1d5a6c71951a0a301",
+     "result": "invalid"
+    },
+    {
+     "tcId": 178,
+     "comment": "modified bit 176 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aab93029c39695e6014c7f3499090d79d82b23195d0e2f9fa4a00a4036034aa73bc7e755671bb27f9273d1bbe68cf42da961282d20604",
+     "result": "invalid"
+    },
+    {
+     "tcId": 179,
+     "comment": "modified bit 177 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aa893029c39695e6014c7f3499090d79dee72825cefb6d88065b15af65e39af2a424f1708d6c7a5134fa0e5b154afc8cf0d17233bdb01",
+     "result": "invalid"
+    },
+    {
+     "tcId": 180,
+     "comment": "modified bit 178 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aae93029c39695e6014c7f3499090d79d9e668a66ca36d9ddd5ff903cde2816d72c0fe8e0acd05f79271f238d578dd9eced535669a807",
+     "result": "invalid"
+    },
+    {
+     "tcId": 181,
+     "comment": "modified bit 179 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aa293029c39695e6014c7f3499090d79d2afb82ec44f64df88754630995344b5dd3e27808efc81b00c2359e7a54b77d2bc1b1c377cc04",
+     "result": "invalid"
+    },
+    {
+     "tcId": 182,
+     "comment": "modified bit 180 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aba93029c39695e6014c7f3499090d79da8486f8178a4715085acbe91887882c225123330e40dd1fc2a4cc482d1874bcebf8965e91c05",
+     "result": "invalid"
+    },
+    {
+     "tcId": 183,
+     "comment": "modified bit 181 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855a8a93029c39695e6014c7f3499090d79d06617179d4f78ccf353abbf80441eb077017318f9469239445bd40c98f1ea04ff216a00d5501",
+     "result": "invalid"
+    },
+    {
+     "tcId": 184,
+     "comment": "modified bit 182 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aea93029c39695e6014c7f3499090d79dda6167c164d10133eba289bc498e7a6d90dfdb3339a015c5f6c4755d476e653ab647570ee807",
+     "result": "invalid"
+    },
+    {
+     "tcId": 185,
+     "comment": "modified bit 183 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855a2a93029c39695e6014c7f3499090d79d13d758fabc263a5939bbb44732ba6803261d141b59b62e605759eeba8108f3d5f752487e8603",
+     "result": "invalid"
+    },
+    {
+     "tcId": 186,
+     "comment": "modified bit 184 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa92029c39695e6014c7f3499090d79d2b717f55cea5639acfeb907f0f6bb90add5cb8bccfb7fd3535fa15108aa7fe3627bcfe20d000",
+     "result": "invalid"
+    },
+    {
+     "tcId": 187,
+     "comment": "modified bit 185 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa91029c39695e6014c7f3499090d79da80baec60b1f9c0cabc6f79f3c591dd41d3a435420a1b19fe916d8e17e85e4e24c54b75cf702",
+     "result": "invalid"
+    },
+    {
+     "tcId": 188,
+     "comment": "modified bit 186 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa97029c39695e6014c7f3499090d79d32fbfdd35c3741c84e6717217e2332ef778322887b26afff36d4fc915d95284da481d9b4cf03",
+     "result": "invalid"
+    },
+    {
+     "tcId": 189,
+     "comment": "modified bit 187 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa9b029c39695e6014c7f3499090d79de3a5cd038a29ed77965a0abc902837b70c236dab25a882da2241c922dc6a7f9aab18452b9a03",
+     "result": "invalid"
+    },
+    {
+     "tcId": 190,
+     "comment": "modified bit 188 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa83029c39695e6014c7f3499090d79d968ce40bdd57c63415249f4324064bab354f500f5ec150e669b8d9466089df5b9a8dde2ccd07",
+     "result": "invalid"
+    },
+    {
+     "tcId": 191,
+     "comment": "modified bit 189 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaab3029c39695e6014c7f3499090d79db3629e604b115181bd8d841595ff4e551163ce7c6f45885d93e3e1fb694c9e776e1840188605",
+     "result": "invalid"
+    },
+    {
+     "tcId": 192,
+     "comment": "modified bit 190 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaad3029c39695e6014c7f3499090d79d8c48db40619cda1f4b35980d1e101caeb9eb7ce8d69136b1116507660317ec622c9e6d1e0f02",
+     "result": "invalid"
+    },
+    {
+     "tcId": 193,
+     "comment": "modified bit 191 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa13029c39695e6014c7f3499090d79d4b34bf053f482a9898006be024f2f18f8f08f59d5bdb50954842cc826fdaa662cb656ccb7803",
+     "result": "invalid"
+    },
+    {
+     "tcId": 194,
+     "comment": "modified bit 192 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93039c39695e6014c7f3499090d79d362f6ec70700228b1d774adb6e0c58e28060dbbe14b8a60135fd0d85ef4a55461b21af8d1802",
+     "result": "invalid"
+    },
+    {
+     "tcId": 195,
+     "comment": "modified bit 193 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93009c39695e6014c7f3499090d79d5884807ef47ba5be790f1b2827e01b58533cc0996fdec857e0368fa3f34447e78eaafaeeb700",
+     "result": "invalid"
+    },
+    {
+     "tcId": 196,
+     "comment": "modified bit 194 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93069c39695e6014c7f3499090d79d248c09da405342b859e26496da2dbcd0ede8cac39af12722e8f4d64acd6a8828f949d4b2d406",
+     "result": "invalid"
+    },
+    {
+     "tcId": 197,
+     "comment": "modified bit 195 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa930a9c39695e6014c7f3499090d79d859a058953589d0663e17d645b46b0f70699b5ee09c12daa64b74aa0c51219294f0d0e399903",
+     "result": "invalid"
+    },
+    {
+     "tcId": 198,
+     "comment": "modified bit 196 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93129c39695e6014c7f3499090d79d5de0e21a11353244d0211aad05dae3011c635b19612e815ff85dfde38e489bd135a84b799906",
+     "result": "invalid"
+    },
+    {
+     "tcId": 199,
+     "comment": "modified bit 197 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93229c39695e6014c7f3499090d79d618b0620ea7780cdcab2b1136914ec7c5a5ab830a2890666f70ea730f6b5f6a74fee29a52c00",
+     "result": "invalid"
+    },
+    {
+     "tcId": 200,
+     "comment": "modified bit 198 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93429c39695e6014c7f3499090d79d210f39e795697d03763e45078edd6ab8e3b3781a4107015d19509529f68ebead0343e4651306",
+     "result": "invalid"
+    },
+    {
+     "tcId": 201,
+     "comment": "modified bit 199 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93829c39695e6014c7f3499090d79d0780e5977b27de508e1b69cd9eac9498bf69af2145c46e62728ac55456a82bb0486d47f90506",
+     "result": "invalid"
+    },
+    {
+     "tcId": 202,
+     "comment": "modified bit 200 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029d39695e6014c7f3499090d79dcca14fc39760c41b4f0b3990705d86018396f669147da2a80c88fcaa2fb6800fb030583dd806",
+     "result": "invalid"
+    },
+    {
+     "tcId": 203,
+     "comment": "modified bit 201 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029e39695e6014c7f3499090d79d0054dc37634890de52e5dc02f8462f93e9de76b915dd6244b1908a3affa29c6ef38e56671b03",
+     "result": "invalid"
+    },
+    {
+     "tcId": 204,
+     "comment": "modified bit 202 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029839695e6014c7f3499090d79ded1f3fd5c56b6d86e2fc40138b094a417a222499f43b4ae6097433bea485939c29118d23a207",
+     "result": "invalid"
+    },
+    {
+     "tcId": 205,
+     "comment": "modified bit 203 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029439695e6014c7f3499090d79d73c527101dddc217c7953daf29d57ddc5d27f6194a6dabfae9c61ca03ffef0f452bfcc148903",
+     "result": "invalid"
+    },
+    {
+     "tcId": 206,
+     "comment": "modified bit 204 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93028c39695e6014c7f3499090d79da8ebe11889aba05ff74deb958a2440efe2243c5c9fdd92f299caa459073fd0475701dc5ba403",
+     "result": "invalid"
+    },
+    {
+     "tcId": 207,
+     "comment": "modified bit 205 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa9302bc39695e6014c7f3499090d79df520df9c9a4303336f75dbfba184edeee3f1c3def8e9fdbb9d670cffdcee348b91afd7095706",
+     "result": "invalid"
+    },
+    {
+     "tcId": 208,
+     "comment": "modified bit 206 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa9302dc39695e6014c7f3499090d79d88b9c1ddff0118e472671a18cf57973ec85c0e8553d3923b59e35eb255603e38d366844a6a03",
+     "result": "invalid"
+    },
+    {
+     "tcId": 209,
+     "comment": "modified bit 207 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93021c39695e6014c7f3499090d79d4c9275e6c2bacc81f9a3609f2d56903ed01dc2531deee8b06fe415a14f5a929fcec482c6f706",
+     "result": "invalid"
+    },
+    {
+     "tcId": 210,
+     "comment": "modified bit 208 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c38695e6014c7f3499090d79de72ec685cbf12df267d528edf6392088f4e46886f01348c8db45d1a861696534c4358d162e00",
+     "result": "invalid"
+    },
+    {
+     "tcId": 211,
+     "comment": "modified bit 209 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c3b695e6014c7f3499090d79d76159044ca8d175024b5a98e5c0d02199b331a11c40a58931e153ca87fdcee49b4b8a7151301",
+     "result": "invalid"
+    },
+    {
+     "tcId": 212,
+     "comment": "modified bit 210 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c3d695e6014c7f3499090d79dfeee84bf1663301a792ea1dc494f36acdc935f0961d1e32d617649caeed0e63e293960309f01",
+     "result": "invalid"
+    },
+    {
+     "tcId": 213,
+     "comment": "modified bit 211 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c31695e6014c7f3499090d79d66ea6bd87eb3424e637d6770d58a5819afafe56a941d545b348269d79e7f2a1190a75db01505",
+     "result": "invalid"
+    },
+    {
+     "tcId": 214,
+     "comment": "modified bit 212 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c29695e6014c7f3499090d79dd4c4eb89a07d25dff3a8632f60698ea91a3a34aaef4b15e32355104e59d7720402a28db14004",
+     "result": "invalid"
+    },
+    {
+     "tcId": 215,
+     "comment": "modified bit 213 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c19695e6014c7f3499090d79d949d9f2afb9fa43baeaba3b2a8d147175da05e9bd98a94b743931f5fdfb820e56701f8b2dd01",
+     "result": "invalid"
+    },
+    {
+     "tcId": 216,
+     "comment": "modified bit 214 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c79695e6014c7f3499090d79d734ae4e1932b2fa9dbf3f7c4551e707f1c984cca67ba584741199df9f206e934c0faa147e005",
+     "result": "invalid"
+    },
+    {
+     "tcId": 217,
+     "comment": "modified bit 215 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029cb9695e6014c7f3499090d79d663ab15c278e4e0f4a93d6417bef6adea3a5905b2f3133b12514cc2dacd414d449479bede300",
+     "result": "invalid"
+    },
+    {
+     "tcId": 218,
+     "comment": "modified bit 216 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39685e6014c7f3499090d79dae14ca229817d2dcdbefe7cf0c5fd67100fbf93c5badb1c1a6738dc9fce0e0c7506b7b685b00",
+     "result": "invalid"
+    },
+    {
+     "tcId": 219,
+     "comment": "modified bit 217 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c396b5e6014c7f3499090d79d9af7b4ef18bc0cb14ff9ad5ab4a84f1785fbceaa576b186b7f4f72bf2e7b6a1625e07b88a504",
+     "result": "invalid"
+    },
+    {
+     "tcId": 220,
+     "comment": "modified bit 218 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c396d5e6014c7f3499090d79d3ff25612844e5b19e7c2e2ae1849eb31c3c7591df71cd8fff255ccfc9d5bd4a0072f9e435f04",
+     "result": "invalid"
+    },
+    {
+     "tcId": 221,
+     "comment": "modified bit 219 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39615e6014c7f3499090d79dbb12f04075ae6fa29baa78322149d4030b67a55fef46f27823c702c00c76cb001800fb361c06",
+     "result": "invalid"
+    },
+    {
+     "tcId": 222,
+     "comment": "modified bit 220 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39795e6014c7f3499090d79dc9e7186c096a026684ad8dcb496c45f9844e3235c3e073a136d0be8913a7809539a68c669500",
+     "result": "invalid"
+    },
+    {
+     "tcId": 223,
+     "comment": "modified bit 221 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39495e6014c7f3499090d79dfad4e9f8d557371815d2890a63dfbeac1df2b54922f6f75b12b03561fbb8be4faa4622b75402",
+     "result": "invalid"
+    },
+    {
+     "tcId": 224,
+     "comment": "modified bit 222 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39295e6014c7f3499090d79d15c70ed2253c09e3ff44852ce0147bb0546bf57e26bc6022339ba57f85473377720aec1bf001",
+     "result": "invalid"
+    },
+    {
+     "tcId": 225,
+     "comment": "modified bit 223 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39e95e6014c7f3499090d79d3fe9179ab5f24f4d0883e0491a4307dcb9510bc4eac39a197754b16bd3103ac6e2e0f6b10d05",
+     "result": "invalid"
+    },
+    {
+     "tcId": 226,
+     "comment": "modified bit 224 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695f6014c7f3499090d79d0a7c3134d1448e46d208d578cc1f57453f244af9be4abe2376ad6bbf3d53f0f49a958c22b606",
+     "result": "invalid"
+    },
+    {
+     "tcId": 227,
+     "comment": "modified bit 225 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695c6014c7f3499090d79d2031a2a59cb178a7cf410e9b080ad11c549b68c0fca0f7bf18262310f1953b3a5842db209103",
+     "result": "invalid"
+    },
+    {
+     "tcId": 228,
+     "comment": "modified bit 226 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695a6014c7f3499090d79dc5a7b10e98958de58ebf4c118bacbeec080b6a0a6f827e5d22158c8319c493f06ff4935e1b05",
+     "result": "invalid"
+    },
+    {
+     "tcId": 229,
+     "comment": "modified bit 227 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c3969566014c7f3499090d79dae5387a907bf578a10bf8c3f6152e0d14b3643c7eb38a1b04b2021e20e4fb92bdfa4e9d6a404",
+     "result": "invalid"
+    },
+    {
+     "tcId": 230,
+     "comment": "modified bit 228 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39694e6014c7f3499090d79d6248e1080d800df8a23728902ff3a7795c2d4be4571da790bd73ed6399f9d2f9d6a808d1af03",
+     "result": "invalid"
+    },
+    {
+     "tcId": 231,
+     "comment": "modified bit 229 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39697e6014c7f3499090d79d17a0ec6b0ae83d652b595f802c3ebff25f9df6bd842461a9e29a333ea78be210f5574c682f07",
+     "result": "invalid"
+    },
+    {
+     "tcId": 232,
+     "comment": "modified bit 230 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39691e6014c7f3499090d79d84523f349ad04db391b5962d45679ace014abf6ed2dc3d6efeebf2bacd7a6f6bfdcf2df81f04",
+     "result": "invalid"
+    },
+    {
+     "tcId": 233,
+     "comment": "modified bit 231 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c3969de6014c7f3499090d79dd92111390e17b64d344989fb2baaf40ca4a158723aa6f285abab17d7041475b26a3f1d0c6402",
+     "result": "invalid"
+    },
+    {
+     "tcId": 234,
+     "comment": "modified bit 232 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6114c7f3499090d79d9d57803dab3cbededaeb895ae92b8e21140b425d0ba3bb0a1fc6bab3c2bfb054416b56c74001",
+     "result": "invalid"
+    },
+    {
+     "tcId": 235,
+     "comment": "modified bit 233 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6214c7f3499090d79d41135bde4c688028bf633e431bdd0ecab54289e410643e420e766b994e9c498e397117a64d02",
+     "result": "invalid"
+    },
+    {
+     "tcId": 236,
+     "comment": "modified bit 234 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6414c7f3499090d79d30407c1207fd3c943dde400602361b6130dfb63f59ee8bd68a3a967e10ec2f7013563f109803",
+     "result": "invalid"
+    },
+    {
+     "tcId": 237,
+     "comment": "modified bit 235 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6814c7f3499090d79d586c969480eef3dcc9ebd38d51af14ceaa5855e92a652b9e87fa8d90614835a7364efa02eb06",
+     "result": "invalid"
+    },
+    {
+     "tcId": 238,
+     "comment": "modified bit 236 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e7014c7f3499090d79d2b9ad01c7ccb3a3f4de5810dc272c85ce31de90685f9edac1566ccb429dfedac643bee303402",
+     "result": "invalid"
+    },
+    {
+     "tcId": 239,
+     "comment": "modified bit 237 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e4014c7f3499090d79dd8270e2ba1e1d78fc691d5b2b4e591dfbd6fc21451409cc4bd96333ca979e8b77e2801c75c03",
+     "result": "invalid"
+    },
+    {
+     "tcId": 240,
+     "comment": "modified bit 238 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e2014c7f3499090d79d000477fd46dd6fc10d537bdea2e71d5c0553ee9d0725751dc84db21ad4ce18bf52290f798204",
+     "result": "invalid"
+    },
+    {
+     "tcId": 241,
+     "comment": "modified bit 239 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695ee014c7f3499090d79d93c490e2fe775971ba67db7b53224f87b754d778694d0c698db9dd56c7b0f2953abdd733d205",
+     "result": "invalid"
+    },
+    {
+     "tcId": 242,
+     "comment": "modified bit 240 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6015c7f3499090d79d452e9d457d05893955498d1fb683c54bebb2766fa69ea27983b5309baa7309e0079175ee4402",
+     "result": "invalid"
+    },
+    {
+     "tcId": 243,
+     "comment": "modified bit 241 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6016c7f3499090d79d6f259d4324897ca37fac252a608362741663f6cae424501c0160cc4798388d696d830bc98d05",
+     "result": "invalid"
+    },
+    {
+     "tcId": 244,
+     "comment": "modified bit 242 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6010c7f3499090d79dada1b665126c60fab946d2369b45fb72d5fa1993e114a8afd0cc5f8739fe4d37e3cbe9d0d003",
+     "result": "invalid"
+    },
+    {
+     "tcId": 245,
+     "comment": "modified bit 243 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e601cc7f3499090d79d2fac276a2e5a2bdecb8828761e2bff5bbd1b3910d273710449d8615f8f21bc772615f17c9f03",
+     "result": "invalid"
+    },
+    {
+     "tcId": 246,
+     "comment": "modified bit 244 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6004c7f3499090d79d90b45a20a5b31f95087ebf2bf23ba0dce5e5dd92eba50d73188060d04dc8480441433ea7ca06",
+     "result": "invalid"
+    },
+    {
+     "tcId": 247,
+     "comment": "modified bit 245 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6034c7f3499090d79d7222f9b1e6e3b0db4dea21da843578439f5b7bb60fb0fd8459cf5c2a75355232f46917075805",
+     "result": "invalid"
+    },
+    {
+     "tcId": 248,
+     "comment": "modified bit 246 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6054c7f3499090d79deee194c06a8d3de0a4ab7af28a2fdf61d43d00385c4ae1a6f7c604ad6f21495a245e685ee105",
+     "result": "invalid"
+    },
+    {
+     "tcId": 249,
+     "comment": "modified bit 247 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6094c7f3499090d79d7d87500da0347918ca69efd819d02bd7744ba15c12c980eaf03fdfa54e6a087359e0b5b33a04",
+     "result": "invalid"
+    },
+    {
+     "tcId": 250,
+     "comment": "modified bit 248 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c6f3499090d79d212f5d03ce97b5f3a0d4a40b5ccfdbc324449e1400ff0f7ddd6ed17edb3154146188c484ee07",
+     "result": "invalid"
+    },
+    {
+     "tcId": 251,
+     "comment": "modified bit 249 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c5f3499090d79d82d2004299d98f2b8562f08c9271e9d3727fcb81a7d928783645bb2ac6ac88d1cd1f97bb0a03",
+     "result": "invalid"
+    },
+    {
+     "tcId": 252,
+     "comment": "modified bit 250 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c3f3499090d79d28db92964e7d4a45750c59e142128202b3e1fe80dc8f2506a7ab0c70ee93872a4698290a8600",
+     "result": "invalid"
+    },
+    {
+     "tcId": 253,
+     "comment": "modified bit 251 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014cff3499090d79d951f0694f7d9f5d9058ffcabcbbad37991f9f71a5599f18e4cf0e22268bcd0f1e0e367116e04",
+     "result": "invalid"
+    },
+    {
+     "tcId": 254,
+     "comment": "modified bit 252 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014d7f3499090d79df485715f3c3466b3a2b8ec0dead4678dfc001e5a1b10a5de9cd12d35a696de1067b542756d03",
+     "result": "invalid"
+    },
+    {
+     "tcId": 255,
+     "comment": "modified bit 253 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014e7f3499090d79d7c00cd68838c9a6232dd9be2a7a00c442c2efb3333939efc8c3663483b4dc03b02acfbc57407",
+     "result": "invalid"
+    },
+    {
+     "tcId": 256,
+     "comment": "modified bit 254 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e601487f3499090d79dc056a27aa01169a60f9c760c8d559fd828058aed6abdf774537ae0308bbe3c788193ee7e3a03",
+     "result": "invalid"
+    },
+    {
+     "tcId": 257,
+     "comment": "modified bit 255 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e601447f3499090d79d5f921de325069ac56d78bc84fa79ac64a6d180eed4544d8696d0b4e6cfb92a39dfe70d0ed907",
+     "result": "invalid"
+    },
+    {
+     "tcId": 258,
+     "comment": "modified bit 256 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f2499090d79d65afa33e20bce197acfccb761e82ca1f2446ae73e32627e687619519afa117502b7788982202",
+     "result": "invalid"
+    },
+    {
+     "tcId": 259,
+     "comment": "modified bit 257 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f1499090d79dada8450dc02ad1afdb50cdad751f145beb905ec6264f2b383da0786747802cf1d9de78455306",
+     "result": "invalid"
+    },
+    {
+     "tcId": 260,
+     "comment": "modified bit 258 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f7499090d79d48b5508f1bf1b35c954eac2d073f94feac3962ebbba8ebe5901decdb6077c12272c772870f04",
+     "result": "invalid"
+    },
+    {
+     "tcId": 261,
+     "comment": "modified bit 259 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7fb499090d79d758b915b325c80d4bf09e97d5ef52b628b247be608530555d125066daefdf9bc51cb11695201",
+     "result": "invalid"
+    },
+    {
+     "tcId": 262,
+     "comment": "modified bit 260 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7e3499090d79d0832b5d09c6d04d631d6cd0b5c98d6e1b10207bcb4d8a43685a109e6744407ab99737933b900",
+     "result": "invalid"
+    },
+    {
+     "tcId": 263,
+     "comment": "modified bit 261 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7d3499090d79d32768ab0c09be14d134f7bab5c3ea055548042cc66744648e258956477c583ac9fd4a0d27903",
+     "result": "invalid"
+    },
+    {
+     "tcId": 264,
+     "comment": "modified bit 262 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7b3499090d79d6b6687d03208b4de02a7719e30f09ac4864615719ce1b6805281b8c2d88c981231e9cb05ef03",
+     "result": "invalid"
+    },
+    {
+     "tcId": 265,
+     "comment": "modified bit 263 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c773499090d79d4684d0cb7a743fd85ae65e311a158571f8a002a515e9ec239507cdb32d69acaee676c2933606",
+     "result": "invalid"
+    },
+    {
+     "tcId": 266,
+     "comment": "modified bit 264 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3489090d79d356b2b0391984c6029ed8210f02c7c124a24b21b408c46da9f3b6aefc3e91107cd916adfba01",
+     "result": "invalid"
+    },
+    {
+     "tcId": 267,
+     "comment": "modified bit 265 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f34b9090d79d670d5714ef4bc44a0fba925af628b70f9ff2c4414bb02f11e965dfbb479e1db938bb7e1e3307",
+     "result": "invalid"
+    },
+    {
+     "tcId": 268,
+     "comment": "modified bit 266 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f34d9090d79ddb0afa81859536f6e219a478936e774e80b1ff50952f8f07c495cc54180fd99571591eb51207",
+     "result": "invalid"
+    },
+    {
+     "tcId": 269,
+     "comment": "modified bit 267 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3419090d79dadf804d66851fc40e88ef77ad5e5234792be2acc10ba43d0484ec86e685a7252939a1f534e01",
+     "result": "invalid"
+    },
+    {
+     "tcId": 270,
+     "comment": "modified bit 268 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3599090d79d0aae93852fc68fe27cf9782b4e7de5974225e7f58d7aa1ce65559cf613f20ca9227cc4c28e02",
+     "result": "invalid"
+    },
+    {
+     "tcId": 271,
+     "comment": "modified bit 269 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3699090d79d45ce4593ca564f5ba8adead062933542bc5debfffa54a972a88dd23737c64e8b90d10ca51603",
+     "result": "invalid"
+    },
+    {
+     "tcId": 272,
+     "comment": "modified bit 270 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3099090d79d92d810f70d4c3c9c34c6d9a85ce6008178d9447d053d1ecfbfb14be8061100947318e36ccc07",
+     "result": "invalid"
+    },
+    {
+     "tcId": 273,
+     "comment": "modified bit 271 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3c99090d79d13560807ef4165cca8dfe511f50a9bdf47a773d84ce40ec340e1e17821caec6aaa6bd12c2801",
+     "result": "invalid"
+    },
+    {
+     "tcId": 274,
+     "comment": "modified bit 272 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499190d79d6bc5934e531fabb490117d19ecd7bf5f88ea7b36095e96a9e5a4c2323712c48b2b47cee10e06",
+     "result": "invalid"
+    },
+    {
+     "tcId": 275,
+     "comment": "modified bit 273 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499290d79d2e692825c3d4e41b08b38882889dfcc690b69352396c9be98809bf075ef1b76df9da175fc203",
+     "result": "invalid"
+    },
+    {
+     "tcId": 276,
+     "comment": "modified bit 274 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499490d79da103559138967f556bbebfed86ff70845cc679ccee1e443ca7d2d023e1f0fefd945567b41b03",
+     "result": "invalid"
+    },
+    {
+     "tcId": 277,
+     "comment": "modified bit 275 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499890d79db081c60288acbbd53fe5a941e9d15ac3ecaebbd0f5a3121f22439a818308fe616cfd5476bb04",
+     "result": "invalid"
+    },
+    {
+     "tcId": 278,
+     "comment": "modified bit 276 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3498090d79d55a4ea6bcb89f29e1348a867d29374e5f0dd72fda6040a8db16029313512e390c0777c2e9d03",
+     "result": "invalid"
+    },
+    {
+     "tcId": 279,
+     "comment": "modified bit 277 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f349b090d79d5e1d2e45a5f024898926cb6d485f8ea3ce5c6776c0764221ce2a51cf1a300a1f01f4032d5405",
+     "result": "invalid"
+    },
+    {
+     "tcId": 280,
+     "comment": "modified bit 278 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f349d090d79d7887370aaacff17b8d262834a3161c720620f2bfbb08d3df18ff7e8a5229c09f03aa2aec6c02",
+     "result": "invalid"
+    },
+    {
+     "tcId": 281,
+     "comment": "modified bit 279 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3491090d79d29183ff70e679fc1536d36d250a90018217873404d81ad26d3a95971c67b4d2ec6d9eb9ef501",
+     "result": "invalid"
+    },
+    {
+     "tcId": 282,
+     "comment": "modified bit 280 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499091d79d1aef16f216e87409bebd15f315ae90e5f21c8dc3aa072e6ef7806325a9b130361bf0a73aa000",
+     "result": "invalid"
+    },
+    {
+     "tcId": 283,
+     "comment": "modified bit 281 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499092d79dd2088a80847b08c03501b4cbfc5c41844f4558de19dc39874981eaaba18eddc1885cb6050501",
+     "result": "invalid"
+    },
+    {
+     "tcId": 284,
+     "comment": "modified bit 282 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499094d79dfbc82c1c68a4457573d79da0532c86aaa5e0105e836e34ebda61ccc311a9a0062e07d4679b05",
+     "result": "invalid"
+    },
+    {
+     "tcId": 285,
+     "comment": "modified bit 283 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499098d79dde3ecab896a9be6725f12096671199dae2e086dfa4f6be632854487be6ae25e8462b79065507",
+     "result": "invalid"
+    },
+    {
+     "tcId": 286,
+     "comment": "modified bit 284 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499080d79d1111492d266553472c37e1db139f4c3a43232edf511756c428f81c869d00d03715b3ceedec06",
+     "result": "invalid"
+    },
+    {
+     "tcId": 287,
+     "comment": "modified bit 285 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f34990b0d79dd83f083eaf43d84aa7d0a33d9db9010001bbfd199575e4c41f280e522b1ddc0cb02e72a44c05",
+     "result": "invalid"
+    },
+    {
+     "tcId": 288,
+     "comment": "modified bit 286 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f34990d0d79d0e3a2bde3fabbb48f728fe41034dc96795787277b54fb53d684ccc3329f749cab608a3a61100",
+     "result": "invalid"
+    },
+    {
+     "tcId": 289,
+     "comment": "modified bit 287 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499010d79d509fb367ede06e9d09e0d1582115b89210e658381d00053d80ed086c6a44b03403e854fb5104",
+     "result": "invalid"
+    },
+    {
+     "tcId": 290,
+     "comment": "modified bit 288 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d69d0f9f926f6346f5f47bf2c8e26623f8990221d746d4307751c11a93229279f2ab37c3589b2000",
+     "result": "invalid"
+    },
+    {
+     "tcId": 291,
+     "comment": "modified bit 289 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d59d4f0a76cbe8fd89cea1cd80b03bdb67c30f767042fec1621b055499b58f25ec577d0b7eb76e01",
+     "result": "invalid"
+    },
+    {
+     "tcId": 292,
+     "comment": "modified bit 290 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d39dc6af30faf4bfc299194d510a9d64c565d426f9bb22af4500b09babdcea7bfb2951e400ecac00",
+     "result": "invalid"
+    },
+    {
+     "tcId": 293,
+     "comment": "modified bit 291 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090df9dabc89a1b5615ad7f092ab0411f67e3e5b378a8f8833b2d2517bfefac41477f2876923fb47203",
+     "result": "invalid"
+    },
+    {
+     "tcId": 294,
+     "comment": "modified bit 292 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090c79dbec2c0881d1ac1618e3b6eb9495cc941b1fccd714920b8f8f5f20d7a5efeddb8a8d6706b5703",
+     "result": "invalid"
+    },
+    {
+     "tcId": 295,
+     "comment": "modified bit 293 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090f79d09c47cc1879bb97b5fb17541470d54432474e041f1218ea282d55019b67b52b8a00fe74e1707",
+     "result": "invalid"
+    },
+    {
+     "tcId": 296,
+     "comment": "modified bit 294 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090979d74a04e15e6d184a8329151900fd2209c31a7e2b6c70f3ea72a41c0b0b6d2c7a2f4df9fb44701",
+     "result": "invalid"
+    },
+    {
+     "tcId": 297,
+     "comment": "modified bit 295 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090579d5e7dadbed1395aae63e0ed9aa9c0b0649edac5ce033fb254e8f878a3bce10ed41d46c88bd802",
+     "result": "invalid"
+    },
+    {
+     "tcId": 298,
+     "comment": "modified bit 296 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79c0d0c1395568445e5bfda1c2ab1701066c036a86785f02d1283c12b9029cb946029b7aed0a600",
+     "result": "invalid"
+    },
+    {
+     "tcId": 299,
+     "comment": "modified bit 297 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d79fb557d2a285dcc054578e7adea48bf350e1ab8e0b8cf6f3b44fc547e423fa317c00b57e893a05",
+     "result": "invalid"
+    },
+    {
+     "tcId": 300,
+     "comment": "modified bit 298 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d799d396e6518a9e7c8acf1c261aa37d304b61b2a3e8206be7a9c5be86e3abbfd91e04047d1c1400",
+     "result": "invalid"
+    },
+    {
+     "tcId": 301,
+     "comment": "modified bit 299 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d7958780a3795a0e0296ba428a89d75107de97c9cf803891031e54e8a9684cbdd45109fdc4bd0d01",
+     "result": "invalid"
+    },
+    {
+     "tcId": 302,
+     "comment": "modified bit 300 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d78d69e5175149fcf1e0af28d3467927e83fb359fa45fa476550ab6c9fba95fa8616359ca0a0e303",
+     "result": "invalid"
+    },
+    {
+     "tcId": 303,
+     "comment": "modified bit 301 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d7bd156970497d5f2422aa115cd96e429464fca4086d962a1904ccfb82ad012063860fc0ad4fd402",
+     "result": "invalid"
+    },
+    {
+     "tcId": 304,
+     "comment": "modified bit 302 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d7dd21e98fa40b3ef537f4b87f6e9a37f7c643c11baba7bcc31e2526aa772d836e67fee0491a8501",
+     "result": "invalid"
+    },
+    {
+     "tcId": 305,
+     "comment": "modified bit 303 in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "68e3e0a0934eab83b46fbd23489a3c4e1298a772855aaa93029c39695e6014c7f3499090d71daa34a82e12ac32ef13c3103f4e22b36676a205baea4f54c428f8ebd80adf1f7a48e48063b300",
+     "result": "invalid"
+    },
+    {
+     "tcId": 306,
+     "comment": "all bits flipped in R",
+     "flags": [
+      "InvalidEncoding"
+     ],
+     "msg": "313233343030",
+     "sig": "971c1f5f6cb1547c4b9042dcb765c3b1ed67588d7aa5556cfd63c696a19feb380cb66f6f286234c0d6c7f5f52acecf7239cc8169d63193fccd0b4d2005f611a0cdcf336b10c62ea9fc914f03",
+     "result": "invalid"
+    },
+    {
+     "tcId": 307,
+     "comment": "special values for r and s",
+     "flags": [
+      "InvalidSignature"
+     ],
+     "msg": "3f",
+     "sig": "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+     "result": "invalid"
+    },
+    {
+     "tcId": 308,
+     "comment": "special values for r and s",
+     "flags": [
+      "InvalidSignature"
+     ],
+     "msg": "3f",
+     "sig": "00000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000",
+     "result": "invalid"
+    },
+    {
+     "tcId": 309,
+     "comment": "special values for r and s",
+     "flags": [
+      "InvalidSignature"
+     ],
+     "msg": "3f",
+     "sig": "0000000000000000000000000000000000000000000000000000000000000000000000000000248f5b7827ab3c7bd3be96a25c7959499ab70e00000000000000000000000000000000000008",
+     "result": "invalid"
+    },
+    {
+     "tcId": 310,
+     "comment": "special values for r and s",
+     "flags": [
+      "InvalidSignature"
+     ],
+     "msg": "3f",
+     "sig": "0000000000000000000000000000000000000000000000000000000000000000000000000000258f5b7827ab3c7bd3be96a25c7959499ab70e00000000000000000000000000000000000008",
+     "result": "invalid"
+    },
+    {
+     "tcId": 311,
+     "comment": "special values for r and s",
+     "flags": [
+      "InvalidSignature"
+     ],
+     "msg": "3f",
+     "sig": "00000000000000000000000000000000000000000000000000000000000000000000000000008b03000000000000000000feffffffffffffffffffffffffffffffffffffffffffffffffff1f",
+     "result": "invalid"
+    },
+    {
+     "tcId": 312,
+     "comment": "special values for r and s",
+     "flags": [
+      "InvalidSignature"
+     ],
+     "msg": "3f",
+     "sig": "01000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+     "result": "invalid"
+    },
+    {
+     "tcId": 313,
+     "comment": "special values for r and s",
+     "flags": [
+      "InvalidSignature"
+     ],
+     "msg": "3f",
+     "sig": "01000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000",
+     "result": "invalid"
+    },
+    {
+     "tcId": 314,
+     "comment": "special values for r and s",
+     "flags": [
+      "InvalidSignature"
+     ],
+     "msg": "3f",
+     "sig": "0100000000000000000000000000000000000000000000000000000000000000000000000000248f5b7827ab3c7bd3be96a25c7959499ab70e00000000000000000000000000000000000008",
+     "result": "invalid"
+    },
+    {
+     "tcId": 315,
+     "comment": "special values for r and s",
+     "flags": [
+      "InvalidSignature"
+     ],
+     "msg": "3f",
+     "sig": "0100000000000000000000000000000000000000000000000000000000000000000000000000258f5b7827ab3c7bd3be96a25c7959499ab70e00000000000000000000000000000000000008",
+     "result": "invalid"
+    },
+    {
+     "tcId": 316,
+     "comment": "special values for r and s",
+     "flags": [
+      "InvalidSignature"
+     ],
+     "msg": "3f",
+     "sig": "01000000000000000000000000000000000000000000000000000000000000000000000000008b03000000000000000000feffffffffffffffffffffffffffffffffffffffffffffffffff1f",
+     "result": "invalid"
+    },
+    {
+     "tcId": 317,
+     "comment": "special values for r and s",
+     "flags": [
+      "InvalidSignature"
+     ],
+     "msg": "3f",
+     "sig": "258f5b7827ab3c7bd3be96a25c7959499ab70e000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000",
+     "result": "invalid"
+    },
+    {
+     "tcId": 318,
+     "comment": "special values for r and s",
+     "flags": [
+      "InvalidSignature"
+     ],
+     "msg": "3f",
+     "sig": "258f5b7827ab3c7bd3be96a25c7959499ab70e000000000000000000000000000000000000080100000000000000000000000000000000000000000000000000000000000000000000000000",
+     "result": "invalid"
+    },
+    {
+     "tcId": 319,
+     "comment": "special values for r and s",
+     "flags": [
+      "InvalidSignature"
+     ],
+     "msg": "3f",
+     "sig": "258f5b7827ab3c7bd3be96a25c7959499ab70e00000000000000000000000000000000000008248f5b7827ab3c7bd3be96a25c7959499ab70e00000000000000000000000000000000000008",
+     "result": "invalid"
+    },
+    {
+     "tcId": 320,
+     "comment": "special values for r and s",
+     "flags": [
+      "InvalidSignature"
+     ],
+     "msg": "3f",
+     "sig": "258f5b7827ab3c7bd3be96a25c7959499ab70e00000000000000000000000000000000000008258f5b7827ab3c7bd3be96a25c7959499ab70e00000000000000000000000000000000000008",
+     "result": "invalid"
+    },
+    {
+     "tcId": 321,
+     "comment": "special values for r and s",
+     "flags": [
+      "InvalidSignature"
+     ],
+     "msg": "3f",
+     "sig": "258f5b7827ab3c7bd3be96a25c7959499ab70e000000000000000000000000000000000000088b03000000000000000000feffffffffffffffffffffffffffffffffffffffffffffffffff1f",
+     "result": "invalid"
+    },
+    {
+     "tcId": 322,
+     "comment": "special values for r and s",
+     "flags": [
+      "InvalidSignature"
+     ],
+     "msg": "3f",
+     "sig": "8b03000000000000000000feffffffffffffffffffffffffffffffffffffffffffffffffff1f0000000000000000000000000000000000000000000000000000000000000000000000000000",
+     "result": "invalid"
+    },
+    {
+     "tcId": 323,
+     "comment": "special values for r and s",
+     "flags": [
+      "InvalidSignature"
+     ],
+     "msg": "3f",
+     "sig": "8b03000000000000000000feffffffffffffffffffffffffffffffffffffffffffffffffff1f0100000000000000000000000000000000000000000000000000000000000000000000000000",
+     "result": "invalid"
+    },
+    {
+     "tcId": 324,
+     "comment": "special values for r and s",
+     "flags": [
+      "InvalidSignature"
+     ],
+     "msg": "3f",
+     "sig": "8b03000000000000000000feffffffffffffffffffffffffffffffffffffffffffffffffff1f248f5b7827ab3c7bd3be96a25c7959499ab70e00000000000000000000000000000000000008",
+     "result": "invalid"
+    },
+    {
+     "tcId": 325,
+     "comment": "special values for r and s",
+     "flags": [
+      "InvalidSignature"
+     ],
+     "msg": "3f",
+     "sig": "8b03000000000000000000feffffffffffffffffffffffffffffffffffffffffffffffffff1f258f5b7827ab3c7bd3be96a25c7959499ab70e00000000000000000000000000000000000008",
+     "result": "invalid"
+    },
+    {
+     "tcId": 326,
+     "comment": "special values for r and s",
+     "flags": [
+      "InvalidSignature"
+     ],
+     "msg": "3f",
+     "sig": "8b03000000000000000000feffffffffffffffffffffffffffffffffffffffffffffffffff1f8b03000000000000000000feffffffffffffffffffffffffffffffffffffffffffffffffff1f",
+     "result": "invalid"
+    }
+   ]
+  }
+ ]
+}
