@@ -211,8 +211,9 @@ The [October 19 follow-up](docs/REVIEW_FOLLOWUP_20261019.md) drops the
 cached `x + y` from the basepoint table and aligns X301 parameter queries on
 public-only keys with OpenSSL.
 
-Development history is on `Testing`, condensed review snapshots on `Review`;
-`main` is reserved for an explicitly approved product release.
+Development history is on `Testing`, condensed review snapshots on
+`crypto-review`; `main` is reserved for an explicitly approved product release.
+The former `Review` branch is archived as tag `archive/Review-2026-10-20`.
 
 ## License
 
