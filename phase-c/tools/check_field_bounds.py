@@ -47,14 +47,13 @@ require(fold1_max < 1 << (7 * 64) and fold2_max < 1 << (5 * 64), "no discarded o
 
 small_product_max = (2 * p - 1) * small_max
 small_high_max = small_product_max >> 301
-penalty_max = small_high_max * 907
-positive_max = (split - 1) + small_high_max * (1 << 89)
+small_low_chain_max = (split - 1) + small_high_max * (word - 907)
+small_fold_max = (split - 1) + small_high_max * fold
 require(small_product_max < 1 << 338, "lazy small product fits six words")
 require(small_high_max < 1 << 37, "small high fits one word")
-require(penalty_max < 1 << 47 < word, "small penalty fits the subtracted low word")
-require(positive_max < (1 << 301) + (1 << 126) < 2 * p, "small reduction bound")
-require(positive_max < 1 << 320, "small positive sum cannot overflow five words")
-require(penalty_max < p, "single-modulus correction dominates the full penalty")
+require(small_low_chain_max < (1 << 301) + (1 << 101) < 1 << 320, "small low-word chain fits five words")
+require(small_fold_max < (1 << 301) + (1 << 126) < 2 * p, "small reduction bound")
+require(small_fold_max < 1 << 320, "small additive fold cannot overflow five words")
 
 # Every multiply-accumulate has one word product, an output word and carry.
 require((word - 1) ** 2 + 2 * (word - 1) == (1 << 128) - 1, "u128 multiply-accumulate bound")
@@ -122,8 +121,7 @@ require(narrow_product_max < 1 << 335 < 1 << 338, "loose narrow small product do
 require(narrow_product_max <= small_product_max, "loose narrow product within existing small-reducer proof")
 require((word - 1) * narrow_max + (narrow_max - 1) < 1 << 96, "narrow MAC capacity")
 require(narrow_high_max < 1 << 34, "narrow high word capacity")
-require(907 * narrow_high_max < 1 << 44 < word, "narrow penalty capacity")
-require((split - 1) + narrow_high_max * (1 << 89) < (1 << 301) + (1 << 123) < 2 * p,
+require((split - 1) + narrow_high_max * fold < (1 << 301) + (1 << 123) < 2 * p,
         "narrow reducer restores lazy domain")
 scale = a - d
 a24 = int(data["montgomery"]["A24_minus_decimal"])
@@ -158,7 +156,7 @@ print(json.dumps({
     "wide_input_max": str(wide_max), "first_fold_upper_bound": str(fold1_max),
     "second_fold_upper_bound": str(fold2_max), "two_p": str(2 * p),
     "small_product_upper_bound": str(small_product_max),
-    "small_high_upper_bound": str(small_high_max), "small_penalty_upper_bound": str(penalty_max),
+    "small_high_upper_bound": str(small_high_max), "small_fold_upper_bound": str(small_fold_max),
     "square_diagonal_products": 5, "square_doubled_cross_products": 10,
     "square_schedule": "row-wise cross products, full-width shift, diagonals",
     "square_row_steps": row_steps,

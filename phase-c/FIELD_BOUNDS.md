@@ -101,12 +101,13 @@ points check this PUBLIC argument; fixed curve call sites use constants.
 The const path enforces the same bound.
 
 For a lazy operand x<2p and m<2^36, T=x*m<2^338. Thus h=T>>301<2^37
-fits one word and 907*h<2^47 fits the low-word penalty subtraction.
-The positive sum l+h*2^89 is below 2^301+2^126<2p and fits five words.
-The fold l+h*(2^89-907) is nonnegative for valid inputs. The inherited
-fixed-schedule borrow correction is retained; no full-width underflow occurs
-for valid inputs (individual word borrows still propagate). Canonical callers then
-perform one conditional subtraction, lazy callers retain [0,2p).
+fits one word. Since October 2026 the small reducer uses the same
+addition-only fold l+h*K as the general reducer, with one high word: the
+low-word chain l+h*(b-907) is below 2^301+2^101, the full fold below
+2^301+2^126<2p; both fit five words, so no carry is discarded. Canonical
+callers then perform one conditional subtraction, lazy callers retain [0,2p).
+Until then it added h*2^89, subtracted the penalty 907h<2^47 and added p
+after an underflow; the bounds above cover both forms.
 
 The original multiplication by d uses multiplication by 301 followed by
 negation. This remains in the canonical `add_const` test oracle. Lazy
@@ -203,9 +204,8 @@ AA is lazy, so K*AA is covered by the existing 36-bit small-product bound.
 E is loose, E<4p<2^303. The new crate-private mul_small_narrow accepts only
 a PUBLIC m<2^32, checked by a non-debug assertion. Its product satisfies
 T<2^335<2^338, the existing small-reducer input bound. More explicitly,
-h=T>>301<2^34, 907h<2^44 and the positive fold sum is less than
-2^301+2^123<2p; five words suffice and the retained borrow correction is
-unchanged. Its per-word multiply-accumulate is below 2^96. The result is
+h=T>>301<2^34 and the additive fold l+h*(2^89-907) is less than
+2^301+2^123<2p; five words suffice. Its per-word multiply-accumulate is below 2^96. The result is
 lazy without first tightening E. The actual numerator 301 is also bound by
 a compile-time assertion, as is K's original 36-bit limit.
 

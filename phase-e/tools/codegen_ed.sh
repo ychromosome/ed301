@@ -39,17 +39,22 @@ check_optional_field_symbol field_square \
     'ed301_eddsa::field_5x64::square_wide' 0 0
 check_optional_field_symbol field_multiply \
     'ed301_eddsa::field_5x64::multiply_wide' 0 0
+# Since the addition-only small-multiplier fold (October 2026) each inlined
+# mul_small has no borrow chain and no select: about five sbb and exactly five
+# cmov fewer (Rust 1.99.1: double 34/40 -> 29/35, add 35/35 -> 26/25,
+# add_affine 30/30 -> 26/25). The minima follow; confirm them on Rust 1.98.0.
 check_branch_free point_double \
-    '<ed301_eddsa::edwards::EdwardsPoint>::double' 20 35 no \
+    '<ed301_eddsa::edwards::EdwardsPoint>::double' 20 30 no \
     'ed301_eddsa::field_5x64::(reduce_wide|square_wide|multiply_wide)' allow
 # The lazily reduced formulas canonicalise only their four outputs, so the
 # full addition carries fewer conditional corrections than the canonical
-# lowering (reviewed shape on Rust 1.98.0: sbb=31 cmov=35).
+# lowering (reviewed shape on Rust 1.98.0 before the small-fold change:
+# sbb=31 cmov=35).
 check_branch_free point_add \
-    '<ed301_eddsa::edwards::EdwardsPoint>::add' 25 35 no \
+    '<ed301_eddsa::edwards::EdwardsPoint>::add' 20 25 no \
     'ed301_eddsa::field_5x64::(reduce_wide|multiply_wide)' allow
 check_branch_free point_add_affine \
-    '<ed301_eddsa::edwards::EdwardsPoint>::add_affine' 20 30 no \
+    '<ed301_eddsa::edwards::EdwardsPoint>::add_affine' 20 25 no \
     'ed301_eddsa::field_5x64::(reduce_wide|multiply_wide)' allow
 check_branch_free point_is_valid \
     '<ed301_eddsa::edwards::EdwardsPoint>::is_valid' 10 25 no \

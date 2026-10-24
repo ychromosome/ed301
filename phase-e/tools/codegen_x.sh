@@ -103,10 +103,11 @@ fi
 # E1 links the same Edwards fixed-base leaves under the X301 crate identity.
 # The negation has been inlined into select_basepoint: preserve its original
 # borrow/select minima there in addition to the no-secret-index policy.
+# Lowered with the addition-only small-multiplier fold; see codegen_ed.sh.
 check_branch_free point_double \
-    '<x301_core::edwards::EdwardsPoint>::double' 20 35 no '^$' allow
+    '<x301_core::edwards::EdwardsPoint>::double' 20 30 no '^$' allow
 check_branch_free point_add_affine \
-    '<x301_core::edwards::EdwardsPoint>::add_affine' 20 30 no '^$' allow
+    '<x301_core::edwards::EdwardsPoint>::add_affine' 20 25 no '^$' allow
 check_branch_free affine_select \
     '<x301_core::edwards::AffineNielsPoint>::conditional_select' 0 16 no '^$' reject
 check_branch_free basepoint_select \
