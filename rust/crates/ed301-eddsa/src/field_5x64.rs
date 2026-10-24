@@ -19,7 +19,6 @@ use crate::parameters::FIELD_BYTES;
 const LIMBS: usize = 5;
 const TOP_BITS: u32 = 45;
 const TOP_MASK: u64 = (1_u64 << TOP_BITS) - 1;
-const FOLD_SUBTRAHEND: u64 = parameters::FOLD_SUBTRAHEND;
 const MAX_SMALL_MULTIPLIER: u64 = parameters::MAX_SMALL_MULTIPLIER;
 const _: () = assert!(parameters::SMALL_MULTIPLIER_BITS == 36);
 
@@ -157,9 +156,9 @@ impl Fe301 {
     ///
     /// The group formulas use this for the two public curve constants.  For
     /// `value < 2^36`, the canonical product is below 2^337. The lazy variant
-    /// is below 2^338, giving high < 2^37 and high*907 < 2^47. One fold of
-    /// `2^301 = 2^89 - 907`, underflow correction and one conditional
-    /// subtraction suffice. The u64 argument is PUBLIC, not unrestricted.
+    /// is below 2^338, giving high < 2^37. One addition-only fold and one
+    /// conditional subtraction suffice. The u64 argument is PUBLIC, not
+    /// unrestricted.
     #[inline(always)]
     pub(crate) fn mul_small(self, value: u64) -> Self {
         assert!(
@@ -422,52 +421,22 @@ impl zeroize::DefaultIsZeroes for Fe301 {}
 
 /// Fold a sparse six-limb product below `2^338` into `[0, 2p)`.
 ///
-/// One fold of `2^301 = 2^89 - 907` leaves `low + high * 2^89 - high * 907`
-/// with `high < 2^37`; its penalty fits one word (<2^47). The positive
-/// part is below 2^301+2^126 < 2p. Adding p after an underflow keeps the result
-/// non-negative and below `2p`.  Callers that need a canonical value apply one
+/// One addition-only fold `low + high * K`, as in [`reduce_wide_unreduced`]:
+/// `high < 2^37`, so `high * K < 2^126` and the sum is below
+/// `2^301 + 2^126 < 2p`. Callers that need a canonical value apply one
 /// conditional subtraction.
 #[inline(always)]
 fn reduce_small_product_unreduced(product: [u64; LIMBS + 1]) -> [u64; LIMBS] {
-    let high = (product[4] >> TOP_BITS) | (product[5] << (64 - TOP_BITS));
-    let mut reduced = [
+    let low = [
         product[0],
         product[1],
         product[2],
         product[3],
         product[4] & TOP_MASK,
     ];
-
-    // Add high * 2^89, split across radix-2^64 limbs 1 and 2.
-    let add_low = high << parameters::FOLD_SHIFT;
-    let add_high = high >> (64 - parameters::FOLD_SHIFT);
-    let sum = reduced[1] as u128 + add_low as u128;
-    reduced[1] = sum as u64;
-    let sum = reduced[2] as u128 + add_high as u128 + (sum >> 64);
-    reduced[2] = sum as u64;
-    let mut carry = (sum >> 64) as u64;
-    let mut index = 3;
-    while index < LIMBS {
-        let sum = reduced[index] as u128 + carry as u128;
-        reduced[index] = sum as u64;
-        carry = (sum >> 64) as u64;
-        index += 1;
-    }
-
-    // Subtract the proved single-word penalty and add p after underflow.
-    let penalty = high as u128 * FOLD_SUBTRAHEND as u128;
-    let (word, first_borrow) = sub_with_borrow_runtime(reduced[0], penalty as u64, 0);
-    reduced[0] = word;
-    let mut borrow = first_borrow;
-    index = 1;
-    while index < LIMBS {
-        let (word, next_borrow) = sub_with_borrow_runtime(reduced[index], 0, borrow);
-        reduced[index] = word;
-        borrow = next_borrow;
-        index += 1;
-    }
-    let (corrected, _) = add_limbs(reduced, MODULUS);
-    reduced.ct_assign(&corrected, Choice::from_u8_lsb(borrow as u8));
+    let high = [(product[4] >> TOP_BITS) | (product[5] << (64 - TOP_BITS))];
+    let mut reduced = [0_u64; LIMBS];
+    accumulate_fold(&low, &high, &mut reduced);
     reduced
 }
 
@@ -946,6 +915,17 @@ const FOLD_CONSTANT_LOW: u64 = parameters::FOLD_LOW;
 /// High limb of the positive fold constant K from the approved modulus.
 const FOLD_CONSTANT_HIGH: u64 = parameters::FOLD_HIGH;
 
+// Bind K to the modulus, K = 2^301 - p, and to its generated sparse form
+// 2^(64 + FOLD_SHIFT) - FOLD_SUBTRAHEND.
+const _: () = {
+    let (sum, carry) = add_limbs(MODULUS, [FOLD_CONSTANT_LOW, FOLD_CONSTANT_HIGH, 0, 0, 0]);
+    assert!(carry == 0);
+    assert!(sum[0] == 0 && sum[1] == 0 && sum[2] == 0 && sum[3] == 0);
+    assert!(sum[4] == 1 << TOP_BITS);
+    assert!(FOLD_CONSTANT_LOW == 0_u64.wrapping_sub(parameters::FOLD_SUBTRAHEND));
+    assert!(FOLD_CONSTANT_HIGH == (1 << parameters::FOLD_SHIFT) - 1);
+};
+
 /// Compute `output = low + high * K` with addition-only carry chains.
 ///
 /// Every loop bound is a compile-time constant and every carry is propagated
@@ -977,6 +957,7 @@ const fn accumulate_fold<const HIGH: usize, const OUTPUT: usize>(
         carry = (accumulator >> 64) as u64;
         index += 1;
     }
+    debug_assert!(carry == 0);
     carry = 0;
     index = 0;
     while index < HIGH {
@@ -994,6 +975,7 @@ const fn accumulate_fold<const HIGH: usize, const OUTPUT: usize>(
         carry = (accumulator >> 64) as u64;
         index += 1;
     }
+    debug_assert!(carry == 0);
 }
 
 #[cfg(test)]
